@@ -1,0 +1,27 @@
+{
+  "name": "TrustPredict",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenPredict/TrustPredict.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OpenPredict/TrustPredict/issues"
+  },
+  "homepage": "https://github.com/OpenPredict/TrustPredict#readme",
+  "dependencies": {
+    "@chainlink/contracts": "0.0.9",
+    "openzeppelin-solidity": "3.1.0"
+  }
+}
