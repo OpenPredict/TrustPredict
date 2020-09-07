@@ -8,4 +8,3 @@ contract StableCoin is ERC20 {
     _mint(msg.sender, 10000000 * (10 ** uint256(decimals())));
   }
 }
-
