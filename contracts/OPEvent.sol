@@ -1,11 +1,14 @@
-pragma solidity ^0.6.7;
+pragma solidity ^0.6.0;
     
 import "./OPOption.sol";
-import "./StableCoin.sol";
+import "./Oracle.sol";
 
-contract OPEvent {
+contract OPEvent is Ownable {
     // ********** start state vars **********
     using SafeERC20 for IERC20;
+    
+    event Result(bytes _bytes, uint _uint);
+    event Address(address _address);
     
     // constants
     uint constant minimumTokenAmountPerEvent = 500; 
@@ -13,35 +16,36 @@ contract OPEvent {
     //uint constant maxEventPeriod = 315360000; // max time any one event can last for (10y in seconds)
     // TESTING
     uint constant depositPeriod = 1000; // time to allow deposits before event start (24h in seconds)
-    uint constant maxEventPeriod = 10000; // max time any one event can last for (10y in seconds)
-
+    uint constant maxEventPeriod = 2000; // max time any one event can last for (10y in seconds)
+    
+    address constant stableCoin = 0xb5f4d40279Aaa89F7F556558C789D1816C3D5122;
+    
     // contract references
     OPOption[] tokens;
-    IERC20 public stableCoin;
-    //PriceConsumer priceFeed;
+    Oracle oracle;
     
     // constructor
-    uint priceConclusion;
-    bool priceGreater;
+    int betPrice;
+    Side betSide;
     uint startTime;
     uint endTime;
-    
+
     // decided in settle()
+    int settledPrice;
     Token winner;
-    uint winnerPercentage;
-    uint loserPercentage;
     bool eventSettled;
-    
-    bool firstMint = true;
+    uint amountPerWinningToken;
     // ********** end state vars **********
 
     // ********** start enums **********
     enum Token {O, IO}
+    enum Side {Higher, Lower}
     // ********** end enums **********
 
     // ********** start modifiers *********
-    modifier validEventPeriod(uint _endTime) {
+    modifier validEventPeriod(uint _eventPeriod) {
         // require that event takes place within maxEventPeriod time
+        uint _endTime = SafeMath.add(block.timestamp, _eventPeriod);
         require(SafeMath.add(block.timestamp, maxEventPeriod) > _endTime, 
                 "OpenPredictEvent: event end is out of bounds");
 
@@ -52,40 +56,31 @@ contract OPEvent {
     }
     
     modifier hasGrantedAllowance(uint numTokens) {
-        
-        require(stableCoin.allowance(msg.sender, address(this)) == numTokens, 
+        require(allowance(msg.sender, address(this)) ==  numTokens, 
                 "OpenPredictEvent: stablecoin balance not granted");
         _;
     }
-
-    modifier handleFirstDeposit(Token selection) {
-        // First mint must be to O token
-        if(firstMint)
-            require(selection == Token.O, "OpenPredictEvent: First deposit must be of O token.");
-        _;
-     }
      
     modifier correctWeight(uint numTokensToMint, Token selection) {
-        // ensure that minting this number of tokens will result in less than 90% on one side.
-        // We enforce that the weight be >= 10% to ensure that the proper ratio is abided following the first deposit.
-        if(!firstMint){
-            // (((selection + new) * 100) / (total + new)) >= 10 && <= 90.
-            uint newWeightSelection = SafeMath.div(
-                SafeMath.mul(SafeMath.add(tokens[uint(selection)].totalSupply(), numTokensToMint), 100),
-                SafeMath.add(getTotalSupply(), numTokensToMint)
-            );
+        // ensure that minting this number of tokens will result in less than 90% holdings on one side.
+        // We also enforce that the weight be >= 10% to ensure that the proper ratio is held following the first deposit.
+        
+        // (((selection + new) * 100) / (total + new)) >= 10 && <= 90.
+        uint newWeightSelection = SafeMath.div(
+            SafeMath.mul(SafeMath.add(tokens[uint(selection)].totalSupply(), numTokensToMint), 100),
+            SafeMath.add(getTotalSupply(), numTokensToMint)
+        );
 
-            require(newWeightSelection >= 10 && newWeightSelection <= 90, 
-                   "OpenPredictEvent: requested tokens would result in invalid weight on selected side of the draw.");
-        }
+        require(newWeightSelection >= 10 && newWeightSelection <= 90, 
+               "OpenPredictEvent: requested tokens would result in invalid weight on one side of the draw.");
         _;
      }
 
     modifier minimumTimeReached(bool reached) {
         if(reached){
-            require(block.timestamp >= startTime, "OpenPredictEvent: minimum time not yet reached.");
+            require(block.timestamp >= startTime, "OpenPredictEvent: Event not yet started. Minting of new tokens is enabled.");
         }else {
-            require(block.timestamp < startTime, "OpenPredictEvent: minimum time reached.");
+            require(block.timestamp < startTime, "OpenPredictEvent: Event started. Minting of new tokens is disabled.");
         }
         _;
      }
@@ -118,27 +113,31 @@ contract OPEvent {
 
     // ********** start functions *******
 
-    constructor(uint _priceConclusion, 
-                bool _priceGreater, 
-                uint _endTime)
-        validEventPeriod(_endTime) 
+    constructor(int _betPrice, 
+                Side _betSide, 
+                uint _eventPeriod,
+                uint numOTokensToMint)
+        validEventPeriod(_eventPeriod)
+        hasGrantedAllowance(numOTokensToMint)
         public 
     {
-        // contract creation/references
-        tokens.push(new OPOption()); // Token.O
-        tokens.push(new OPOption()); // Token.IO
-        //priceFeed = new PriceConsumer();
-        stableCoin = IERC20(0x02eE126f76EEe5Da72f292f1da8A33CA9D794F98);
-
         // argument assignment
-        priceConclusion = _priceConclusion;
-        priceGreater = _priceGreater;
-        endTime = _endTime;
+        betPrice = _betPrice;
+        betSide = _betSide;
+        endTime = block.timestamp + _eventPeriod;
         startTime = block.timestamp + depositPeriod;
+        
+        // contract creation/references
+        tokens.push(new OPOption("ETHUSD O Token", "EUO")); // Token.O
+        tokens.push(new OPOption("ETHUSD IO Token", "EUIO")); // Token.IO
+        oracle = new Oracle(endTime + 2 minutes); // give the oracle callback some leeway
+        
+        // mint tokens
+        tokens[uint(Token.O)].mint(msg.sender, numOTokensToMint);
+        transferFrom(msg.sender, address(this), numOTokensToMint);
     }
 
     function mint(uint numTokensToMint, Token selection)
-        handleFirstDeposit(selection)
         settled(false)
         minimumTimeReached(false)
         correctWeight(numTokensToMint, selection) 
@@ -146,19 +145,32 @@ contract OPEvent {
         public 
     {
         tokens[uint(selection)].mint(msg.sender, numTokensToMint);
-        stableCoin.safeTransferFrom(msg.sender, address(this), numTokensToMint);
-        if(firstMint) firstMint = false;
+        transferFrom(msg.sender, address(this), numTokensToMint);
     }
 
     function settle() 
         minimumAmountReached(true) 
-        concluded(true) 
-        public 
+        concluded(true)
+        settled(false)
+        public
     {
-        // TODO ChainLink addition to settlement function. for now set winner as O token
-        winner = Token.O;
-        winnerPercentage = 60;
-        loserPercentage = 100 - winnerPercentage;
+        settledPrice = oracle.getLatestPrice();
+        if((settledPrice >= betPrice &&  betSide == Side.Higher) || 
+           (settledPrice <  betPrice &&  betSide == Side.Lower)) {
+            winner = Token.O;
+        }else {
+            winner = Token.IO;
+        }
+        
+        // next, calculate payment per winning token.
+        uint winnerAmount = tokens[   uint(winner)      ].totalSupply();
+        uint  loserAmount = tokens[getOtherToken(winner)].totalSupply();
+        
+        // (loser * (10 ^ 18)) / winner (valid uint division)
+        amountPerWinningToken = SafeMath.div(
+            loserAmount * (10 ** uint256(tokens[uint(Token.O)].decimals())),
+            winnerAmount
+        );
         eventSettled = true;
     }
     
@@ -169,16 +181,17 @@ contract OPEvent {
         uint senderDeposit = tokens[uint(winner)].balanceOf(msg.sender);
         // sender has winnings
         require(senderDeposit > 0, "OpenPredictEvent: no deposit held for sender in winning token.");
-        // send has granted allowance to the contract to handle the deposit
+        // sender has granted allowance to the contract to handle the deposit
         require(tokens[uint(winner)].allowance(msg.sender, address(this)) == senderDeposit,
                 "OpenPredictEvent: sender has not granted allowance for winning tokens.");
         
         // first return stablecoin holdings, burn winning event tokens (send to this contract)
-        stableCoin.transfer(msg.sender, senderDeposit);
-        tokens[uint(winner)].safeTransferFrom(msg.sender, address(this), senderDeposit);
-        // next, distribute winnings: give sender an amount of stablecoin proportional to deposit.
-        uint senderWinnings = SafeMath.mul(SafeMath.div(senderDeposit, winnerPercentage), loserPercentage);
-        stableCoin.safeTransfer(msg.sender, senderWinnings);
+        transfer(msg.sender, senderDeposit);
+        tokens[uint(winner)].transferFrom(msg.sender, address(this), senderDeposit);
+        
+        // next, distribute winnings: give sender their portion of the loser stablecoin pool.
+        uint senderWinnings = SafeMath.mul(senderDeposit, amountPerWinningToken);
+        transfer(msg.sender, senderWinnings);
     }
 
     function revoke() 
@@ -194,27 +207,110 @@ contract OPEvent {
         if(ODeposit > 0){
             require(tokens[uint(Token.O)].allowance(msg.sender, address(this)) == ODeposit,
             "OpenPredictEvent: sender has not granted allowance for O tokens.");
-            stableCoin.safeTransfer(msg.sender, ODeposit);
-            tokens[uint(Token.O)].safeTransferFrom(msg.sender, address(this), ODeposit);
+            transfer(msg.sender, ODeposit);
+            tokens[uint(Token.O)].transferFrom(msg.sender, address(this), ODeposit);
         }
         if(IODeposit > 0){
             require(tokens[uint(Token.IO)].allowance(msg.sender, address(this)) == IODeposit,
             "OpenPredictEvent: sender has not granted allowance for IO tokens.");
-            stableCoin.safeTransfer(msg.sender, IODeposit);
-            tokens[uint(Token.IO)].safeTransferFrom(msg.sender, address(this), IODeposit);
+            transfer(msg.sender, IODeposit);
+            tokens[uint(Token.IO)].transferFrom(msg.sender, address(this), IODeposit);
         }
     }
     
     
     // ********** start util functions *******
-    function getOtherToken(Token selection) pure private returns (Token) {
-        return (selection == Token.IO) ? Token.O : Token.IO;
+    function getOtherToken(Token selection) pure private returns (uint) {
+        return (selection == Token.O) ? uint(Token.IO) : uint(Token.O);
     }
     
     function getTotalSupply() view public returns (uint) {
-        return tokens[uint(Token.IO)].totalSupply() + tokens[uint(Token.O)].totalSupply();
+        return SafeMath.add(tokens[uint(Token.IO)].totalSupply(), 
+                            tokens[uint( Token.O)].totalSupply());
     }
+    
+    function bytesToUint(bytes memory _bytes) internal pure returns (uint256) {
+        require(_bytes.length >= 32, "Read out of bounds");
+        uint256 result;
+        assembly {
+            result := mload(add(_bytes, 0x20))
+        }
+        return result;
+    }
+    
+    // StableCoin helper functions
+    function transferFrom(address _from, address _to, uint _tokensToTransfer) private  {
+        (bool success, bytes memory result) = stableCoin.call(
+            (abi.encodeWithSignature("transferFrom(address,address,uint256)", 
+             _from, _to, _tokensToTransfer)
+        ));
+        require(success, "OpenPredictEvent: call to stableCoin contract failed (transferFrom)");
+    }
+    
+    function transfer(address _to, uint _tokensToTransfer) private {
+        (bool success, bytes memory result) = stableCoin.call(
+            (abi.encodeWithSignature("transfer(address,uint256)", 
+             _to, _tokensToTransfer)
+        ));
+        require(success, "OpenPredictEvent: call to stableCoin contract failed (transfer)"); 
+    }
+    
+    function allowance(address _from, address _to) private returns(uint256) {
+        emit Address(_from);
+        emit Address(_to);
+        (bool success, bytes memory result) = stableCoin.call(
+            (abi.encodeWithSignature("allowance(address,address)", 
+             _from, _to)
+        ));
+        require(success, "OpenPredictEvent: call to stableCoin contract failed (allowance)");
+        uint resultUint = bytesToUint(result);
+        emit Result(result, resultUint);
+        return resultUint;
+    }
+    
    // ********** end util functions *******
    
-   // ********** end functions *******
+   // ******  start view functions ******
+    function getTokenAddress(Token selection) view public returns(address) {
+        return address(tokens[uint(selection)]);
+   }
+   
+    function getOracleAddress() view public returns(address) {
+        return address(oracle);
+   }
+   
+    function getBetPrice() view public returns(int) {
+       return betPrice;
+    }
+    
+    function getBetSide() view public returns(Side) {
+       return betSide;
+    }
+    
+    function getStartTime() view public returns(uint) {
+       return startTime;
+    }
+    
+    function getEndTime() view public returns(uint) {
+       return endTime;
+    }
+    
+    function getWinner() settled(true) view public returns(Token){
+       return winner;
+    }
+    
+    function getAmountPerWinningToken() settled(true) view public returns(uint) {
+       return amountPerWinningToken;
+    }
+    
+    function getSettledPrice() settled(true) view public returns(int) {
+       return settledPrice;
+    }
+
+    function getEventSettled() view public returns(bool) {
+       return eventSettled;
+   }
+   // ****** end view functions ******
+   
+  // ********** end functions *******
 }
