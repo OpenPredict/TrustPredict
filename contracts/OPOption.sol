@@ -11,6 +11,6 @@ contract OPOption is ERC20, Ownable {
     constructor (string memory name, string memory symbol) public ERC20(name, symbol) {}
 
     function mint(address beneficiary, uint tokensToMint) onlyOwner public {
-      _mint(beneficiary, (tokensToMint * (10 ** uint256(decimals())));
+      _mint(beneficiary, tokensToMint);
     }
 }
