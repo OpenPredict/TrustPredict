@@ -5,23 +5,23 @@ module.exports = {
         console.log("test")
         from = web3.eth.accounts[0].address
         nonce = await web3.eth.getTransactionCount(from);
-            console.log('nonce start ' + nonce);
-            gasPrice = await web3.eth.getGasPrice();
-            
-                OPEventAddress = utils.getNextContractAddress(from, nonce+2)
-                console.log('OPEventAddress ' + OPEventAddress)
-                OracleAddress  = utils.getNextContractAddress(OPEventAddress, 3);
-                console.log('OracleAddress ' + OracleAddress)
-                methods[ChainLink]  = contracts[ChainLink].methods.transfer(OracleAddress, utils.EncodeTokenAmount(1, tokenDecimals, 0))
-                methods[StableCoin] = contracts[StableCoin].methods.approve(OPEventAddress, utils.EncodeTokenAmount(1 * stableCoinOptionRatio, tokenDecimals, 0))
-                console.log("test here")
-                
-                await this.sendTransaction(ChainLink, web3.eth.accounts[0], contract_addresses[ChainLink], nonce);
-                await this.sendTransaction(StableCoin, web3.eth.accounts[0], contract_addresses[StableCoin], nonce+1);
-                console.log('sleeping..');
-                console.log('done');
-                await this.deployContract(OPEvent, args, nonce+2);
-                console.log('executed deploycontract');
+        console.log('nonce start ' + nonce);
+        gasPrice = await web3.eth.getGasPrice();
+        
+        OPEventAddress = utils.getNextContractAddress(from, nonce+2)
+        console.log('OPEventAddress ' + OPEventAddress)
+        OracleAddress  = utils.getNextContractAddress(OPEventAddress, 3);
+        console.log('OracleAddress ' + OracleAddress)
+        methods[ChainLink]  = contracts[ChainLink].methods.transfer(OracleAddress, utils.EncodeTokenAmount(1, tokenDecimals, 0))
+        methods[StableCoin] = contracts[StableCoin].methods.approve(OPEventAddress, utils.EncodeTokenAmount(1 * stableCoinOptionRatio, tokenDecimals, 0))
+        console.log("test here")
+        
+        await this.sendTransaction(ChainLink, web3.eth.accounts[0], contract_addresses[ChainLink], nonce);
+        await this.sendTransaction(StableCoin, web3.eth.accounts[0], contract_addresses[StableCoin], nonce+1);
+        console.log('sleeping..');
+        console.log('done');
+        await this.deployContract(OPEvent, args, nonce+2);
+        console.log('executed deploycontract');
     },
 
     deployContract: async function(contractName, args, nonce) {
@@ -66,6 +66,6 @@ module.exports = {
 
 args[betPrice] = utils.EncodeTokenAmount(ethBasePrice, priceFeedDecimals, 2);
 args[betSide] = 1
-args[eventPeriod] = 1500
+args[eventPeriod] = 100000
 args[numTokensToMint] = utils.EncodeTokenAmount(1, tokenDecimals, 0);
 
