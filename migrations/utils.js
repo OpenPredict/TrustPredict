@@ -6,6 +6,7 @@ module.exports = {
         var contract_address = '0x'.concat(contract_address_long.substring(24));
         return contract_address;
     },
+
     getFundingAddresses: function (sendingAddress) {
         web3.eth.getTransactionCount(sendingAddress).then(nonce => { 
             // LINK funding will have "nonce" nonce
@@ -17,6 +18,7 @@ module.exports = {
             OracleAddress     = this.getNextContractAddress(OPEventAddress, 3);
         });
     },
+
     EncodeTokenAmount: function (tokenAmount, decimalRepresentation, decimalsInArgument) {
         if(decimalRepresentation > maxDecimals || decimalsInArgument > maxDecimals){
             throw new Error('decimal encoding incorrect');

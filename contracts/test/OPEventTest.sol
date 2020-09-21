@@ -1,9 +1,11 @@
 pragma solidity ^0.6.0;
     
-import "./OPOption.sol";
-import "./Oracle.sol";
+import "./../OPOption.sol";
+/* test: not deploying Oracle contract
+ * import "./Oracle.sol"; 
+ */
 
-contract OPEvent is Ownable {
+contract OPEventTest is Ownable {
     // ********** start state vars **********
     using SafeERC20 for IERC20;
     
@@ -11,14 +13,26 @@ contract OPEvent is Ownable {
     event Address(address _address);
     
     // constants
-    uint constant minimumTokenAmountPerEvent = 500000000000000000000; // 500 * 10^18 (50,000 USD)
-    uint constant depositPeriod = 86400; // time to allow deposits before event start (24h in seconds)
+    
+    /* Test: Change minimumTokenAmountPerEvent && deposit period for testing
+    *  uint constant minimumTokenAmountPerEvent = 500000000000000000000; // 500 * 10^18 (50,000 USD)
+     * uint constant depositPeriod = 86400; // time to allow deposits before event start (24h in seconds)
+     */
+    uint constant minimumTokenAmountPerEvent = 10000000000000000000; // 10 * 10^18 (1,000 USD)
+    uint constant depositPeriod = 10;
     uint constant maxEventPeriod = 315360000; // max time any one event can last for (10y in seconds)
-    address constant stableCoin = 0xb5f4d40279Aaa89F7F556558C789D1816C3D5122;
+    
+    /* Test: StableCoin address will be passed via constructor
+     * address constant stableCoin = 0xb5f4d40279Aaa89F7F556558C789D1816C3D5122;
+    */
+    address stableCoin;
     
     // contract references
     OPOption[] tokens;
-    Oracle oracle;
+
+    /* Test: not deploying Oracle contract
+    * Oracle oracle;
+    */
     
     // constructor
     int betPrice;
@@ -30,7 +44,7 @@ contract OPEvent is Ownable {
     int settledPrice;
     Token winner;
     bool eventSettled;
-    uint amountPerWinningToken;
+    uint amountPerWinningToken; // fraction of (1 * 10^18).
     // ********** end state vars **********
 
     // ********** start enums **********
@@ -48,6 +62,12 @@ contract OPEvent is Ownable {
         // require that event end happens after deposit period
         require(SafeMath.add(block.timestamp, depositPeriod) < _endTime, 
                 "OpenPredictEvent: event initiation is out of bounds"); 
+        _;
+    }
+
+    // test: pass stablecoin address via constructor
+    modifier setStablecoinAddress(address _stableCoin) {
+        stableCoin = _stableCoin;
         _;
     }
     
@@ -112,7 +132,9 @@ contract OPEvent is Ownable {
     constructor(int _betPrice, 
                 Side _betSide, 
                 uint _eventPeriod,
-                uint numTokensToMint)
+                uint numTokensToMint,
+                address _stableCoin)
+        setStablecoinAddress(_stableCoin) // test: pass stablecoin address via constructor
         validEventPeriod(_eventPeriod)
         hasGrantedAllowance(convertToStableCoinAmount(numTokensToMint))
         public 
@@ -122,11 +144,15 @@ contract OPEvent is Ownable {
         betSide = _betSide;
         endTime = block.timestamp + _eventPeriod;
         startTime = block.timestamp + depositPeriod;
+        stableCoin = _stableCoin;
         
         // contract creation/references
         tokens.push(new OPOption("ETHUSD O Token", "EUO")); // Token.O
         tokens.push(new OPOption("ETHUSD IO Token", "EUIO")); // Token.IO
-        oracle = new Oracle(endTime + 2 minutes); // give the oracle callback some leeway
+
+        /* Test: Not deploying Oracle contract
+         * oracle = new Oracle(endTime + 2 minutes); // give the oracle callback some leeway
+         */ 
         
         // mint tokens
         tokens[uint(Token.O)].mint(msg.sender, numTokensToMint);
@@ -144,13 +170,20 @@ contract OPEvent is Ownable {
         transferFrom(msg.sender, address(this), convertToStableCoinAmount(numTokensToMint));
     }
 
-    function settle() 
+    function settle(
+        int _settledPrice
+        ) 
         minimumAmountReached(true) 
         concluded(true)
         settled(false)
         public
     {
-        settledPrice = oracle.getLatestPrice();
+        
+        /* Test: not deploying Oracle contract
+        * settledPrice = oracle.getLatestPrice();
+        */
+        settledPrice = _settledPrice;
+
         if((settledPrice >= betPrice &&  betSide == Side.Higher) || 
            (settledPrice <  betPrice &&  betSide == Side.Lower)) {
             winner = Token.O;
@@ -176,7 +209,7 @@ contract OPEvent is Ownable {
     {
         uint tokenHoldings = tokens[uint(winner)].balanceOf(msg.sender);
         // sender has winnings
-        require(tokenHoldings > 0, "OpenPredictEvent: no holdings for sender in winning token.");
+        require(tokenHoldings > 0, "OpenPredictEvent: no deposit held for sender in winning token.");
         // sender has granted allowance to the contract to handle the deposit
         require(tokens[uint(winner)].allowance(msg.sender, address(this)) == tokenHoldings,
                 "OpenPredictEvent: sender has not granted allowance for winning tokens.");
@@ -202,7 +235,7 @@ contract OPEvent is Ownable {
         // send stablecoin holdings back to the sending party if they have funds deposited.
         uint OHoldings = tokens[uint(Token.O)].balanceOf(msg.sender);
         uint IOHoldings = tokens[uint(Token.IO)].balanceOf(msg.sender);
-        require(OHoldings > 0 || IOHoldings > 0, "OpenPredictEvent: no holdings for sender in any token.");
+        require(OHoldings > 0 || IOHoldings > 0, "OpenPredictEvent: no deposit held for sender in any token.");
 
         if(OHoldings > 0){
             require(tokens[uint(Token.O)].allowance(msg.sender, address(this)) == OHoldings,
@@ -274,16 +307,22 @@ contract OPEvent is Ownable {
         return SafeMath.mul(optionAmount, 100);
     }
    
-   // ********** end util functions *******
+    // ********** end util functions *******
    
-   // ******  start view functions ******
+    // ******  start view functions ******
     function getTokenAddress(Token selection) view public returns(address) {
         return address(tokens[uint(selection)]);
-   }
+    }
    
-    function getOracleAddress() view public returns(address) {
-        return address(oracle);
-   }
+    /* Test: not deploying Oracle contract
+     * function getOracleAddress() view public returns(address) {
+     *     return address(oracle);
+     * }
+     * 
+     * function getOracleAddress() view public returns(address) {
+     *     return address(oracle);
+     * }
+     */ 
    
     function getBetPrice() view public returns(int) {
        return betPrice;
@@ -315,6 +354,10 @@ contract OPEvent is Ownable {
 
     function getEventSettled() view public returns(bool) {
        return eventSettled;
+   }
+
+   function getEventConcluded() view public returns(bool) {
+       return block.timestamp >= endTime;
    }
    // ****** end view functions ******
    
