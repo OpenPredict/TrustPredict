@@ -1,5 +1,8 @@
+require("./setup.js")
 module.exports = {
     getNextContractAddress: function (address, nonce){
+        rlp = require('rlp')
+        keccak = require('keccak')
         var input_arr = [ address, nonce ];
         var rlp_encoded = rlp.encode(input_arr);
         var contract_address_long = keccak('keccak256').update(rlp_encoded).digest('hex');
