@@ -24,6 +24,7 @@ const HDWalletProvider = require('truffle-hdwallet-provider');
 //
 // const fs = require('fs');
 const privateKey = "18f53bff05faa130eb987e6a29c5956df1f2ebc71499d6757a935daa558e454e";
+const mnemonic="expire blast solar butter vague together glory warrior slim budget observe direct"
 module.exports = {
   /**
    * Networks define how you connect to your ethereum client and let you set the
@@ -42,11 +43,12 @@ module.exports = {
     // tab if you use this network and you must also set the `host`, `port` and `network_id`
     // options below to some value.
     //
-    // development: {
-    //  host: "127.0.0.1",     // Localhost (default: none)
-    //  port: 8545,            // Standard Ethereum port (default: none)
-    //  network_id: "*",       // Any network (default: none)
-    // },
+    development: {
+      host: "127.0.0.1",     // Localhost (default: none)
+      port: 8545,            // Standard Ethereum port (default: none)
+      network_id: "*",
+    },
+
     kovan: {
       provider: new HDWalletProvider(privateKey, "https://kovan.infura.io/v3/fb44167f83e740898c90737b6ec456d8"),
       network_id: 42,

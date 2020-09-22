@@ -25,6 +25,7 @@
     "@chainlink/contracts": "0.0.9",
     "@drizzle/store": "^1.5.3",
     "clear-module": "^4.1.1",
+    "ethers": "^5.0.14",
     "import-fresh": "^3.2.1",
     "oneclick": "^1.0.2",
     "openzeppelin-solidity": "3.1.0",
