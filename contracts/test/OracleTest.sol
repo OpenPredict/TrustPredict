@@ -3,14 +3,17 @@ pragma solidity ^0.6.7;
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorInterface.sol";
 import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
 
-contract Oracle is ChainlinkClient {
+contract OracleTest is ChainlinkClient {
 
     AggregatorInterface internal priceFeed;
     
     // ChainLink data (Kovan network)
-    address _token            = 0xa36085F69e2889c224210F603D836748e7dC0088; // ChainLink ERC20
+    /* Test: _token from constructor
+     * settledPrice = oracle.getLatestPrice();
+     */
+    address _token            = 0x30690193C75199fdcBb7F588eF3F966402249315; // ChainLink ERC20 (testing)
     address _oracle           = 0x2f90A6D021db21e1B2A077c5a37B3C7E75D15b7e; // oracle contract
-    address _priceAggregators = 0xE1825220f11D561a9664C18Ca7F9797755215e65; // Pairings contract
+    address _priceAggregators = 0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C; // Pairings contract (testing)
     string _jobId             =         "a7ab70d561d34eb49e9b1612fd2e044b"; // callback job
     address callee;
     address priceAggregator;
@@ -34,16 +37,18 @@ contract Oracle is ChainlinkClient {
         setPriceAggregator(_priceAggregator)
         public 
     {
-      setPublicChainlinkToken();
-      priceFeed = AggregatorInterface(_priceAggregator);
-      Chainlink.Request memory req = buildChainlinkRequest(
-          stringToBytes32(_jobId),
-          address(this), 
-          this.fullfill.selector
-      );
-      req.addUint("until", _until);
-      sendChainlinkRequestTo(_oracle, req, 1 * LINK);
-      callee = msg.sender;
+    /* Test: don't set
+    *   setPublicChainlinkToken();
+    *   priceFeed = AggregatorInterface(_priceAggregator);
+    *   Chainlink.Request memory req = buildChainlinkRequest(
+    *       stringToBytes32(_jobId),
+    *       address(this), 
+    *       this.fullfill.selector
+    *   );
+    *   req.addUint("until", _until);
+    *   sendChainlinkRequestTo(_oracle, req, 1 * LINK);
+    */
+        callee = msg.sender;
     }
     
     /**

@@ -1,6 +1,6 @@
 const OPEvent    = artifacts.require("OPEvent");
 const ChainLink  = artifacts.require("ChainLinkToken");
-const StableCoin = artifacts.require("StableCoin");
+const OPUSD = artifacts.require("OPUSDToken");
 const Utils = require('../utils.js');
 
 module.exports = async function (deployer, network, accounts) {
@@ -14,23 +14,24 @@ module.exports = async function (deployer, network, accounts) {
         args[Constants.numTokensToMint] = Utils.EncodeTokenAmount(Constants.numTokens, Constants.tokenDecimals, 0);
     
         console.log("Getting contract address and Oracle address for setup transactions..")
-        nonce = await Constants[network].web3.eth.getTransactionCount(accounts[0]);
+        //nonce = await Constants[network].web3.eth.getTransactionCount(accounts[0]);
+        nonce = await new ethers.Wallet(Constants[network].secret, Constants[network].provider).getTransactionCount();
         OPEventAddress = Utils.getNextContractAddress(accounts[0], nonce+2)
         OracleAddress  = Utils.getNextContractAddress(OPEventAddress, 3);
     
         console.log("ChainLink transfer..")
         contracts = []
         contracts['ChainLink'] = await ChainLink.at(Constants.contractAddresses.ChainLink);
-        contracts['StableCoin'] = await StableCoin.at(Constants.contractAddresses.StableCoin);
+        contracts['OPUSD'] = await OPUSD.at(Constants.contractAddresses.OPUSD);
     
         await contracts['ChainLink'].transfer(OracleAddress, 
                                               Utils.EncodeTokenAmount(Constants.numTokens, 
                                               Constants.tokenDecimals, 
                                               0));
     
-        console.log("Stablecoin approve..")
-        await contracts['StableCoin'].approve(OPEventAddress, 
-                                              Utils.EncodeTokenAmount(Constants.numTokens * Constants.stableCoinOptionRatio, 
+        console.log("OPUSD approve..")
+        await contracts['OPUSD'].approve(OPEventAddress, 
+                                              Utils.EncodeTokenAmount(Constants.numTokens * Constants.OPUSDOptionRatio, 
                                               Constants.tokenDecimals, 
                                               0));
         console.log("deploy..")
