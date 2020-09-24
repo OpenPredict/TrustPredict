@@ -1,0 +1,17 @@
+<ion-row>
+  <ion-col *ngIf="!connectedWallet">
+    <div class="connectWallet o-container">
+      <h2>You have not connected a wallet. </h2>
+      <ion-button (click)="connectWallet()">
+        Connect Wallet
+      </ion-button>           
+    </div>
+  </ion-col>
+  <ion-col *ngIf="connectedWallet">
+    <div class="connectWallet greenTxt">
+      <h2>
+        <span>Connected:</span> {{ connectedWallet | trimAddress}}
+      </h2>     
+    </div>
+  </ion-col>      
+</ion-row>   

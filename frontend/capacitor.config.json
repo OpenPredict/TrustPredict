@@ -1,0 +1,13 @@
+{
+  "appId": "io.TrustPredict.app",
+  "appName": "TrustPredict",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "www",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  },
+  "cordova": {}
+}
