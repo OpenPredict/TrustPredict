@@ -14,7 +14,7 @@ contract OPEvent is Ownable {
     uint constant minimumTokenAmountPerEvent = 500000000000000000000; // 500 * 10^18 (50,000 USD)
     uint constant depositPeriod = 86400; // time to allow deposits before event start (24h in seconds)
     uint constant maxEventPeriod = 315360000; // max time any one event can last for (10y in seconds)
-    address constant stableCoin = 0xb5f4d40279Aaa89F7F556558C789D1816C3D5122;
+    address constant OPUSD = 0xB876a52ABD933a02426C31d8231e9B9352864214;
     
     // contract references
     OPOption[] tokens;
@@ -53,7 +53,7 @@ contract OPEvent is Ownable {
     
     modifier hasGrantedAllowance(uint numTokens) {
         require(allowance(msg.sender, address(this)) ==  numTokens, 
-                "OpenPredictEvent: stablecoin balance not granted.");
+                "OpenPredictEvent: OPUSD balance not granted.");
         _;
     }
      
@@ -112,9 +112,10 @@ contract OPEvent is Ownable {
     constructor(int _betPrice, 
                 Side _betSide, 
                 uint _eventPeriod,
-                uint numTokensToMint)
+                uint numTokensToMint,
+                address _priceAggregator)
         validEventPeriod(_eventPeriod)
-        hasGrantedAllowance(convertToStableCoinAmount(numTokensToMint))
+        hasGrantedAllowance(convertToOPUSDAmount(numTokensToMint))
         public 
     {
         // argument assignment
@@ -126,22 +127,22 @@ contract OPEvent is Ownable {
         // contract creation/references
         tokens.push(new OPOption("ETHUSD O Token", "EUO")); // Token.O
         tokens.push(new OPOption("ETHUSD IO Token", "EUIO")); // Token.IO
-        oracle = new Oracle(endTime + 2 minutes); // give the oracle callback some leeway
+        oracle = new Oracle(endTime + 2 minutes, _priceAggregator); // give the oracle callback some leeway
         
         // mint tokens
         tokens[uint(Token.O)].mint(msg.sender, numTokensToMint);
-        transferFrom(msg.sender, address(this), convertToStableCoinAmount(numTokensToMint));
+        transferFrom(msg.sender, address(this), convertToOPUSDAmount(numTokensToMint));
     }
 
     function mint(uint numTokensToMint, Token selection)
         settled(false)
         minimumTimeReached(false)
         correctWeight(numTokensToMint, selection) 
-        hasGrantedAllowance(convertToStableCoinAmount(numTokensToMint))
+        hasGrantedAllowance(convertToOPUSDAmount(numTokensToMint))
         public 
     {
         tokens[uint(selection)].mint(msg.sender, numTokensToMint);
-        transferFrom(msg.sender, address(this), convertToStableCoinAmount(numTokensToMint));
+        transferFrom(msg.sender, address(this), convertToOPUSDAmount(numTokensToMint));
     }
 
     function settle() 
@@ -181,14 +182,14 @@ contract OPEvent is Ownable {
         require(tokens[uint(winner)].allowance(msg.sender, address(this)) == tokenHoldings,
                 "OpenPredictEvent: sender has not granted allowance for winning tokens.");
         
-        // first return stablecoin holdings, burn winning event tokens (send to this contract)
-        uint stableCoinHoldings = convertToStableCoinAmount(tokenHoldings);
-        transfer(msg.sender, stableCoinHoldings);
+        // first return OPUSD holdings, burn winning event tokens (send to this contract)
+        uint OPUSDHoldings = convertToOPUSDAmount(tokenHoldings);
+        transfer(msg.sender, OPUSDHoldings);
         tokens[uint(winner)].transferFrom(msg.sender, address(this), tokenHoldings);
         
-        // next, distribute winnings: give sender their portion of the loser stablecoin pool.
+        // next, distribute winnings: give sender their portion of the loser OPUSD pool.
         uint senderWinnings = SafeMath.div(
-            SafeMath.mul(stableCoinHoldings, amountPerWinningToken),
+            SafeMath.mul(OPUSDHoldings, amountPerWinningToken),
             10 ** uint256(tokens[uint(Token.O)].decimals())
         );
         transfer(msg.sender, senderWinnings);
@@ -199,7 +200,7 @@ contract OPEvent is Ownable {
         minimumTimeReached(true) 
         public 
     {
-        // send stablecoin holdings back to the sending party if they have funds deposited.
+        // send OPUSD holdings back to the sending party if they have funds deposited.
         uint OHoldings = tokens[uint(Token.O)].balanceOf(msg.sender);
         uint IOHoldings = tokens[uint(Token.IO)].balanceOf(msg.sender);
         require(OHoldings > 0 || IOHoldings > 0, "OpenPredictEvent: no holdings for sender in any token.");
@@ -207,13 +208,13 @@ contract OPEvent is Ownable {
         if(OHoldings > 0){
             require(tokens[uint(Token.O)].allowance(msg.sender, address(this)) == OHoldings,
             "OpenPredictEvent: sender has not granted allowance for O tokens.");
-            transfer(msg.sender, convertToStableCoinAmount(OHoldings));
+            transfer(msg.sender, convertToOPUSDAmount(OHoldings));
             tokens[uint(Token.O)].transferFrom(msg.sender, address(this), OHoldings);
         }
         if(IOHoldings > 0){
             require(tokens[uint(Token.IO)].allowance(msg.sender, address(this)) == IOHoldings,
             "OpenPredictEvent: sender has not granted allowance for IO tokens.");
-            transfer(msg.sender, convertToStableCoinAmount(IOHoldings));
+            transfer(msg.sender, convertToOPUSDAmount(IOHoldings));
             tokens[uint(Token.IO)].transferFrom(msg.sender, address(this), IOHoldings);
         }
     }
@@ -238,37 +239,37 @@ contract OPEvent is Ownable {
         return result;
     }
     
-    // StableCoin helper functions
+    // OPUSD helper functions
     function transferFrom(address _from, address _to, uint _tokensToTransfer) private  {
-        (bool success, bytes memory result) = stableCoin.call(
+        (bool success, bytes memory result) = OPUSD.call(
             (abi.encodeWithSignature("transferFrom(address,address,uint256)", 
              _from, _to, _tokensToTransfer)
         ));
-        require(success, "OpenPredictEvent: call to stableCoin contract failed (transferFrom)");
+        require(success, "OpenPredictEvent: call to OPUSD contract failed (transferFrom)");
     }
     
     function transfer(address _to, uint _tokensToTransfer) private {
-        (bool success, bytes memory result) = stableCoin.call(
+        (bool success, bytes memory result) = OPUSD.call(
             (abi.encodeWithSignature("transfer(address,uint256)", 
              _to, _tokensToTransfer)
         ));
-        require(success, "OpenPredictEvent: call to stableCoin contract failed (transfer)"); 
+        require(success, "OpenPredictEvent: call to OPUSD contract failed (transfer)"); 
     }
     
     function allowance(address _from, address _to) private returns(uint256) {
         emit Address(_from);
         emit Address(_to);
-        (bool success, bytes memory result) = stableCoin.call(
+        (bool success, bytes memory result) = OPUSD.call(
             (abi.encodeWithSignature("allowance(address,address)", 
              _from, _to)
         ));
-        require(success, "OpenPredictEvent: call to stableCoin contract failed (allowance)");
+        require(success, "OpenPredictEvent: call to OPUSD contract failed (allowance)");
         uint resultUint = bytesToUint(result);
         emit Result(result, resultUint);
         return resultUint;
     }
 
-    function convertToStableCoinAmount(uint optionAmount) private pure returns(uint) {
+    function convertToOPUSDAmount(uint optionAmount) private pure returns(uint) {
         // assumes optionAmount is already encoded
         // 1 O/IO token = 100 USD
         return SafeMath.mul(optionAmount, 100);
