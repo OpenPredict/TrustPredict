@@ -1,0 +1,7 @@
+{
+  "name": "openpredict-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

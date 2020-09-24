@@ -1,0 +1,74 @@
+<app-app-header></app-app-header>
+
+<ion-content>
+  
+  <ion-grid>
+
+    <ion-row>
+      <ion-col>
+        <div class="darkBox">
+            
+            <form [formGroup]="form" (ngSubmit)="continue()">     
+                <div class="formWrapper">   
+
+                  <app-wager-selected-token></app-wager-selected-token>
+                                    
+                  <h2 class="eventHeader">
+                    Set event success condition
+                  </h2>
+               
+                  <!-- <app-wager-information-output></app-wager-information-output> -->
+                  
+                 <div class="wagerBtnWrap">
+                  <input type="radio" formControlName="condition" value="1" id="more" [checked]="true">                   
+                   <label for="more" class="btn-switch btn-switch--plus">                        
+                    <span>More than</span>
+                  </label>                                       
+                   <div class="o-switch"></div>                 
+                   <input type="radio" formControlName="condition" value="0" id="less">                    
+                   <label for="less" class="btn-switch btn-switch--minus">                        
+                    <span>Less than</span>
+                  </label>                       
+                 </div> 
+                  
+                  <div class="form__item buffer"> 
+                    <div class="form__label"> 
+                      Input Ethereum (ETH) settled price in USD
+                    </div>
+                    <ion-input 
+                      (ionBlur)="transformAmount($event)"
+                      (ionFocus)="clearAmount($event)"                      
+                      class="form__input"
+                      type="text"
+                      formControlName="wager"
+                      placeholder="0.00">
+                   </ion-input>                     
+                    <div *ngIf="hasError('wager', 'required')" class="standardInputErr">
+                      Wager is required
+                    </div>   
+                    <div *ngIf="hasError('wager', 'min')" class="standardInputErr">
+                      Wager must be over 1
+                    </div>                                
+                  </div>                   
+                  <div class="form__item"> 
+                    <ion-button [disabled]="form.invalid" class="o-btn" type="submit" (click)="continue()">Continue</ion-button>
+                  </div>                                      
+                  </div>
+            </form>            
+          
+          </div>          
+
+      </ion-col>      
+    </ion-row>
+    <ion-row>   
+      <ion-col>     
+        <div class="back__button" (click)="goBack()">
+          <div class="back__button--icon"></div>
+          <span>Go back</span>
+        </div>
+      </ion-col>      
+    </ion-row>      
+    
+  </ion-grid>
+
+</ion-content>

@@ -1,0 +1,319 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import "~@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "~@ionic/angular/css/normalize.css";
+@import "~@ionic/angular/css/structure.css";
+@import "~@ionic/angular/css/typography.css";
+@import '~@ionic/angular/css/display.css';
+
+/* Optional CSS utils that can be commented out */
+@import "~@ionic/angular/css/padding.css";
+@import "~@ionic/angular/css/float-elements.css";
+@import "~@ionic/angular/css/text-alignment.css";
+@import "~@ionic/angular/css/text-transformation.css";
+@import "~@ionic/angular/css/flex-utils.css";
+
+
+.o-container {
+    width: 900px;
+    margin: 0 auto;
+}
+
+
+
+.darkBox {
+    background-color: #182640;
+    padding: 20px;
+    border-radius: 14px;
+    max-width: 500px;
+    margin: 45px auto;
+}
+
+
+.header {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: normal;
+    // font-size: 24px;
+    // line-height: 29px;
+    width: 76%;
+    text-align: center;
+    color: #FFFFFF;
+    // margin: 44px auto 60px;
+    
+    
+    font-size: 53px;
+    line-height: 68px;
+    margin: 44px auto 20px;    
+    
+    
+    span {
+        color: var(--ion-color-primary)
+    } 
+}
+
+
+
+
+.form__input {
+    --padding-start: 12px;
+    border-radius: 15px;
+    border: 1px solid var(--ion-color-primary);
+  }
+  
+  
+  
+  
+  
+  
+  .assetOptions {
+    .assetOptions__nav {
+      display: flex;
+      flex-direction: row;
+      text-align: center;
+      // margin-bottom: 35px;
+      .assetOptions__option {
+        flex: 1;
+        color: white;
+        width: 33.333%;
+        font-family: Montserrat;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 14px;
+        line-height: 17px;      
+        &.assetOptions__selected {
+          color: var(--ion-color-primary);
+        }
+      }
+    }
+  }
+  
+  
+.formWrapper {
+    .form__item {
+        &.buffer {
+        margin: 40px 0;      
+        }
+        .form__select {
+        margin: 10px auto 0; 
+        }
+        .form__label {
+        font-family: Montserrat;
+        font-style: normal;
+        font-weight: normal;
+        font-size: 12px;
+        line-height: 15px;      
+        color: #A6AEBE;
+        margin: 0 auto 10px;
+        display: flex;
+        justify-content: space-between;        
+        .form__label-info {
+            
+        }
+        &.form__label--sub {
+            margin-top: 10px;
+        }
+        }
+    }
+}
+  
+.asset__listLine {
+    border-top: 1px solid #A6AEBE;
+    padding-top: 20px;    
+}
+
+
+.o-btn {
+    width: 100%;
+    height: 50px;
+    --color: black;
+    --border-radius: 20px;
+}
+
+
+.asset_item {
+    // padding: 10px 0;
+}
+
+.asset_itemWrap {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+    padding: 7px 0px;
+    border-radius: 7px;
+    overflow: hidden;
+    .highlight {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: transparent;
+        opacity: 0;        
+        transition: all 300ms ease-in-out;
+    }
+}
+.asset_itemWrap > input{ /* HIDE RADIO */
+    visibility: hidden; /* Makes input not-clickable */
+    position: absolute; /* Remove input from document flow */
+}
+// .asset_itemWrap > input + div{ /* DIV STYLES */
+//     cursor:pointer;
+//     // border:2px solid transparent;
+// }
+.asset_itemWrap > input:checked + div { /* (RADIO CHECKED) DIV STYLES */
+    background-color: var(--ion-color-primary);
+    opacity: .2;
+    transition: all 300ms ease-in-out;    
+}
+
+
+
+
+
+.asset_icon {
+    width: 30px;
+    height: 30px;
+    background-position: center center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    margin-right: 15px;
+    &.token-usdt {
+        background-image: url(/assets/img/usdt.svg);
+    }
+    &.token-eth {
+        background-image: url(/assets/img/eth.svg);
+    } 
+    &.token-btc {
+        background-image: url(/assets/img/btc.svg);
+    } 
+    &.token-link {
+        background-image: url(/assets/img/chainlink.svg);
+    }            
+    &.token-lend {
+        background-image: url(/assets/img/lend.svg);
+    }    
+    &.token-orn {
+        background-image: url(/assets/img/orn.svg);
+    }  
+    &.token-snx {
+        background-image: url(/assets/img/snx.svg);
+    }   
+    &.token-usdc {
+        background-image: url(/assets/img/usdc.svg);
+    }
+    &.token-usdt {
+        background-image: url(/assets/img/usdt.svg);
+    }  
+    &.token-cdai {
+        background-image: url(/assets/img/cdai.svg);
+    }                                          
+}
+
+
+
+.asset__list {
+    height: 40vh;
+    overflow: hidden;  
+    overflow-y: scroll;
+    scrollbar-width: thin;
+    // scrollbar-color: var(--ion-color-secondary) var(--ion-color-primary);     
+    &::-webkit-scrollbar {
+        width: 11px;
+    }
+    &::-webkit-scrollbar-track {
+        background: #C4C4C4;
+        width: 2px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--ion-color-primary);
+        border-radius: 6px;
+        border: 3px solid var(--ion-color-primary);
+    }    
+}
+
+
+
+
+
+.back__button {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 17px;
+    color: var(--ion-color-primary);
+    display: flex;
+    margin: 16px auto 0;
+    width: 100px;
+    align-items: center;  
+    .back__button--icon {
+        width: 15px;
+        height: 17px;
+        background-size: cover;
+        background-image: url(/assets/icon/back.svg);    
+        background-position: center;
+        margin-right: 15px;
+    }      
+}
+
+
+
+
+.eventHeader {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 18px;
+    line-height: 22px;
+    color: #FFFFFF;
+    text-align: center;
+    margin: 25px 0;    
+    &.tokenNameWager {
+        margin: 37px 0;        
+    }
+}
+
+.bold {
+    font-weight: bold;    
+}
+
+
+
+.wager__information {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 17px;
+    text-align: center;
+    color: #FFFFFF;    
+    margin: 30px auto 14px;
+}
+
+.list-reset {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    li {
+        margin: 7px auto;
+    }
+}
+
+
+
+
+.picker-wrapper {
+    top:0;
+}

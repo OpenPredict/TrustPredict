@@ -1,0 +1,21 @@
+.connectWallet {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    margin: 32px auto;
+    h2 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1;  
+      transform: scale(1);   
+      transition: transform 300ms ease-in-out;     
+      color: black;
+      &.expand {
+        transform: scale(2);        
+        transition: transform 300ms ease-in-out;            
+      }
+      span {
+        color: var(--ion-color-primary);
+      }
+    }  
+  }

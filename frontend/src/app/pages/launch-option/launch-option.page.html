@@ -1,0 +1,80 @@
+<app-app-header></app-app-header>
+
+<ion-content>
+  
+  <ion-grid>
+
+    <ion-row>
+      <ion-col>
+        <div class="darkBox">
+            
+            <form [formGroup]="form">     
+                <div class="formWrapper">   
+
+                  <app-wager-selected-token></app-wager-selected-token>
+                                    
+                  <h2 class="eventHeader">
+                    Choose asset and amount being staked for the Option
+                  </h2>
+                  
+                  <div class="form__item buffer"> 
+                    <div class="form__label"> 
+                      Select asset
+                    </div>
+                    <ion-select class="form__input form__select" formControlName="option_asset" >
+                      <ion-select-option *ngFor="let t of availableOptions" [value]="t" >
+                        {{ t.name  }} ( {{ t.ticker  }} )
+                      </ion-select-option>
+                    </ion-select>                     
+                    <div *ngIf="hasError('option_asset', 'required')" class="standardInputErr">
+                      option_asset is required
+                    </div>                                      
+                  </div> 
+                  
+                  <div class="form__item buffer"> 
+                    <div class="form__label"> 
+                      Select amount 
+                      <!-- <div class="form__label-info">Balance: 5000.245</div> -->
+                    </div>
+                    <ion-input class="form__input" type="number" formControlName="option_stake" placeholder="0.00"></ion-input>                     
+                    <div class="form__label form__label--sub"> 
+                      Minimum amount: $100.00
+                    </div>                    
+                    <div *ngIf="hasError('option_stake', 'required')" class="standardInputErr">
+                      Amount is required
+                    </div>           
+                    <div *ngIf="hasError('option_stake', 'min')" class="standardInputErr">
+                      Amount must be greater than 100
+                    </div>                        
+                    <div *ngIf="hasError('option_stake', 'pattern')" class="standardInputErr">
+                      Amount must be a multiple of 100
+                    </div>                        
+                  </div>                  
+                  
+                  <div class="form__item"> 
+                    <ion-button [disabled]="form.invalid" class="o-btn" type="submit" (click)="continue()">
+                      Launch Option
+                    </ion-button>
+                  </div>  
+                  
+                  <app-wager-information-output></app-wager-information-output>
+                                    
+                  </div>
+            </form>            
+          
+          </div>          
+
+      </ion-col>      
+    </ion-row>
+    <ion-row>   
+      <ion-col>     
+        <div class="back__button" (click)="goBack()">
+          <div class="back__button--icon"></div>
+          <span>Go back</span>
+        </div>
+      </ion-col>      
+    </ion-row>      
+    
+  </ion-grid>
+
+</ion-content>

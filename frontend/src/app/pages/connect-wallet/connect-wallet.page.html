@@ -1,0 +1,49 @@
+<app-app-header></app-app-header>
+
+<ion-content>
+  
+  <ion-grid>
+
+    <ion-row>
+      <ion-col>
+        <div class="header">
+          Connect to a <span>wallet.</span>
+        </div>
+      </ion-col>      
+    </ion-row>    
+    
+    <ion-row>
+      <ion-col>
+        <div class="darkBox">
+
+          
+          <div class="walletSelectionModal">
+            <!-- <h1>
+              Connect to a wallet where you hold tokens
+            </h1> -->
+            <ul class="list-reset walletSelectionModal__list">
+              <li class="list-reset walletSelectionModal__item" (click)="openMetamask()">
+                <div class="walletSelectionModal__name">
+                  MetaMask
+                </div>
+                <div class="walletSelectionModal__icon i-metamask"></div>
+              </li>
+              <!-- <li style="visibility: hidden;" class="list-reset walletSelectionModal__item" (click)="openLedger()">
+                <div class="walletSelectionModal__name">
+                  Ledger
+                </div>
+                <div class="walletSelectionModal__icon i-ledger"></div>
+              </li>       -->
+            </ul>
+          </div>
+<!--           
+          <ion-button (click)="callContracts()">
+            Get Signer
+          </ion-button> -->
+
+        </div>
+      </ion-col>      
+    </ion-row>
+  </ion-grid>
+
+</ion-content>

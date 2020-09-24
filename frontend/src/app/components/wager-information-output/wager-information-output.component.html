@@ -1,0 +1,16 @@
+<div class="wager__information"> 
+  <ul class="list-reset">
+    <li>
+      {{ wager | json }}
+    </li>        
+    <li *ngIf="wager?.condition">
+      Success condition: {{ conditionTxt(wager?.condition) }} $10.25
+    </li>    
+    <li *ngIf="wager?.expiration_date">
+      Expiration date: {{ wager?.expiration_date | date }}   
+    </li>                     
+  </ul>          
+</div>
+
+
+
