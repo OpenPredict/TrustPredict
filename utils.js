@@ -4,7 +4,6 @@ ethers = require('ethers')
 module.exports = {
     Constants: {
         'development' : {
-            //web3 : new Web3("http://" + truffleConfig.networks.development.host + ":" + truffleConfig.networks.development.port.toString()),
             provider : new ethers.providers.JsonRpcProvider("http://" + truffleConfig.networks.development.host + ":" + truffleConfig.networks.development.port.toString()),
             //eventPeriod
             depositPeriodSeconds : 10,
@@ -12,7 +11,6 @@ module.exports = {
             secret: truffleConfig.networks.development.secret
         },
         'kovan': {
-            //web3 : new Web3(truffleConfig.networks.kovan.provider),
             provider : new ethers.providers.JsonRpcProvider('https://kovan.infura.io/v3/fb44167f83e740898c90737b6ec456d8'),
             //eventPeriod
             eventPeriodSeconds : 100000,
