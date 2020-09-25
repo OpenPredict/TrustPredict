@@ -19,9 +19,9 @@ contract OracleTest is ChainlinkClient {
     address priceAggregator;
     string pairing;
     
-    modifier hasFundedOracle() {
-        require(balanceOf(address(this)) == (1 * LINK),
-                "Oracle: Oracle contract not prefunded with required LINK.");
+    modifier hasGrantedAllowance() {
+        require(allowance(tx.origin, address(this)) ==  (1 * LINK), 
+                "OpenPredictEvent: Required LINK amount not granted.");
         _;
     }
 
@@ -33,22 +33,21 @@ contract OracleTest is ChainlinkClient {
     }
   
     constructor(uint256 _until, address _priceAggregator)
-        hasFundedOracle()
+        hasGrantedAllowance()
         setPriceAggregator(_priceAggregator)
         public 
     {
-    /* Test: don't set
-    *   setPublicChainlinkToken();
-    *   priceFeed = AggregatorInterface(_priceAggregator);
-    *   Chainlink.Request memory req = buildChainlinkRequest(
-    *       stringToBytes32(_jobId),
-    *       address(this), 
-    *       this.fullfill.selector
-    *   );
-    *   req.addUint("until", _until);
-    *   sendChainlinkRequestTo(_oracle, req, 1 * LINK);
-    */
-        callee = msg.sender;
+      //setPublicChainlinkToken();
+      //priceFeed = AggregatorInterface(_priceAggregator);
+      transferFrom(tx.origin, address(this), 1 * LINK);
+    //   Chainlink.Request memory req = buildChainlinkRequest(
+    //       stringToBytes32(_jobId),
+    //       address(this), 
+    //       this.fullfill.selector
+    //   );
+    //   req.addUint("until", _until);
+    //   sendChainlinkRequestTo(_oracle, req, 1 * LINK);
+      callee = msg.sender;
     }
     
     /**
@@ -128,14 +127,23 @@ contract OracleTest is ChainlinkClient {
             result := mload(add(_bytes, 0x20))
         }
     }
-    
-    function balanceOf(address _address) private returns(uint256) {
+
+    function allowance(address _from, address _to) private returns(uint256) {
         (bool success, bytes memory result) = _token.call(
-            (abi.encodeWithSignature("balanceOf(address)", 
-             _address)
+            (abi.encodeWithSignature("allowance(address,address)", 
+             _from, _to)
         ));
-        require(success, "Oracle: call to ChainLink contract failed");
-        return bytesToUint(result);
+        require(success, "Oracle: call to ChainLink contract failed (allowance)");
+        uint resultUint = bytesToUint(result);
+        return resultUint;
+    }
+
+    function transferFrom(address _from, address _to, uint _tokensToTransfer) private  {
+        (bool success, bytes memory result) = _token.call(
+            (abi.encodeWithSignature("transferFrom(address,address,uint256)", 
+             _from, _to, _tokensToTransfer)
+        ));
+        require(success, "Oracle: call to ChainLink contract failed (transferFrom)");
     }
     // ****** end util functions ******
 }

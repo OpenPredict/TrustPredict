@@ -9,7 +9,7 @@ const Utils = require('../utils.js');
 const ethers = require('ethers')
 let Constants = Utils.Constants
 
-async function mintTokensToAddresses(contracts, accounts, network) {
+async function mintTokensToAddresses(contracts, accounts) {
     // mint enough OPUSD for 10 tokens per account
     OPUSDTokenValue = ethers.utils.parseUnits((Constants.numTokens * 10 * Constants.OPUSDOptionRatio).toString())
     accounts.filter((account, index) => index > 0).forEach(async (account, index) => {
@@ -25,25 +25,26 @@ async function mintTokensToAddresses(contracts, accounts, network) {
     assert.equal(balance.valueOf().toString(), ChainLinkTokenValue.valueOf().toString());
 }
 
-async function deployContract(contracts, accounts, network) {
+async function deployContract(contracts, accounts) {
     // get deployer address nonce
     nonce = await Utils.getTransactionCount("1")
     // get contract deployment address
 
     OPEventAddress = Utils.getNextContractAddress(accounts[1], nonce+2)
-    OracleAddress  = Utils.getNextContractAddress(OPEventAddress, 3);
+    OracleAddress  = Utils.getNextContractAddress(OPEventAddress, 1);
 
     console.log("OPEventAddress: " + OPEventAddress);
     console.log("OracleAddress: " + OracleAddress);
 
-    console.log("ChainLink transfer..")
-    await contracts['ChainLink'].transfer(OracleAddress, 
+    console.log("ChainLink approve..")
+    await contracts['ChainLink'].approve(OracleAddress, 
                              ethers.utils.parseUnits((Constants.numTokens).toString()), 
                              {from: accounts[1]})
-    // assert transfer happened successfully
-    const oracleBalance = await contracts['ChainLink'].balanceOf(OracleAddress);
-    assert.equal(oracleBalance.valueOf().toString(), 
+     // assert approval happened successfully
+    const chainLinkAllowance = await contracts['ChainLink'].allowance(accounts[1], OracleAddress);
+    assert.equal(chainLinkAllowance.valueOf().toString(), 
                  ethers.utils.parseUnits((Constants.numTokens).toString()).toString());
+
 
     // approve contract address for 100 OPUSD (ie. 1 O Token) from deployer address
     console.log("OPUSD approve..")
@@ -51,8 +52,8 @@ async function deployContract(contracts, accounts, network) {
                         ethers.utils.parseUnits((Constants.numTokens * Constants.OPUSDOptionRatio).toString()), 
                         {from: accounts[1]})
     // assert approval happened successfully
-    const contractAllowance = await contracts['OPUSD'].allowance(accounts[1], OPEventAddress);
-    assert.equal(contractAllowance.valueOf().toString(), 
+    const OPUSDAllowance = await contracts['OPUSD'].allowance(accounts[1], OPEventAddress);
+    assert.equal(OPUSDAllowance.valueOf().toString(), 
                  ethers.utils.parseUnits((Constants.numTokens * Constants.OPUSDOptionRatio).toString()).toString());
                  
 

@@ -19,12 +19,12 @@
  */
 
 const HDWalletProvider = require('truffle-hdwallet-provider');
+require('dotenv').config()
 
 // const infuraKey = "fj4jll3k.....";
 //
 // const fs = require('fs');
 const privateKey = "18f53bff05faa130eb987e6a29c5956df1f2ebc71499d6757a935daa558e454e";
-const mnemonic="expire blast solar butter vague together glory warrior slim budget observe direct"
 module.exports = {
   /**
    * Networks define how you connect to your ethereum client and let you set the
@@ -47,7 +47,7 @@ module.exports = {
       host: "127.0.0.1",     // Localhost (default: none)
       port: 8545,            // Standard Ethereum port (default: none)
       network_id: "*",
-      secret : mnemonic,
+      secret : process.env.MNEMONIC,
     },
 
     kovan: {
