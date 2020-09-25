@@ -55,7 +55,7 @@ module.exports = {
       network_id: 42,
       gas: 10000000,
       skipDryRun: true,
-      secret : privateKey
+      secret : '0x' + privateKey
     }
     // Another network with more advanced options...
     // advanced: {

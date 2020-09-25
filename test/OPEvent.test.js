@@ -58,7 +58,7 @@ async function deployContract(contracts, accounts, network) {
 
     //encode constructor arguments
     args =[]
-    args[Constants.betPrice] = ethers.utils.parseUnits(Constants.ethBasePrice, Constants.priceFeedDecimals - 2);
+    args[Constants.betPrice] = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2);
     args[Constants.betSide] = Constants.Lower
     args[Constants.eventPeriod] = Constants[process.env.NETWORK].eventPeriodSeconds
     args[Constants.numTokensToMint] = ethers.utils.parseUnits(Constants.numTokens.toString());
@@ -136,7 +136,7 @@ contract("OPEvent", async (accounts) => {
         assert.equal(balanceAccounts4.valueOf().toString(), ethers.utils.parseUnits((Constants.numTokens).toString()).toString());
 
         // Ensure settlement price is higher
-        settlementPrice = ethers.utils.parseUnits(Constants.ethBasePrice, Constants.priceFeedDecimals - 2).add(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
+        settlementPrice = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2).add(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
 
         // assert failure to settle where minimum amount not yet reached
         await truffleAssert.reverts(
@@ -304,7 +304,7 @@ contract("OPEvent", async (accounts) => {
     //     assert.equal(balanceAccounts4.valueOf().toString(), ethers.utils.parseUnits((Constants.numTokens).toString()).toString());
 
     //     // Ensure settlement price is higher
-    //     settlementPrice = ethers.utils.parseUnits(Constants.ethBasePrice, Constants.priceFeedDecimals - 2).add(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
+    //     settlementPrice = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2).add(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
 
     //     // assert failure to settle where minimum amount not yet reached
     //     await truffleAssert.reverts(

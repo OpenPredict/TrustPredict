@@ -23,9 +23,13 @@ export class OpEventService {
     private _authQ: AuthQuery,
     @Inject(WEB3) private web3: Web3) { }
 
-  async eventWager(ethBasePrice: any,  betSide: boolean, eventPeriod: number, numTokensStakedToMint ): Promise<boolean | string>{
+  async eventWager(rawBetPrice: any,
+                   betSide: boolean,
+                   eventPeriod: number,
+                   numTokensStakedToMint: any,
+                   pairContract: string ): Promise<boolean | string>{
 
-    console.log(`Placing wager with | ethBasePrice: ${ethBasePrice}| betSide: ${betSide} | eventPeriod: ${eventPeriod} || numTokensStakedToMint: ${numTokensStakedToMint} `);
+    console.log(`Placing wager with | rawBetPrice: ${rawBetPrice}| betSide: ${betSide} | eventPeriod: ${eventPeriod} | numTokensStakedToMint: ${numTokensStakedToMint}  || pairContract: ${pairContract}`);
 
     return new Promise( async (resolve, reject) => {
 
@@ -52,43 +56,43 @@ export class OpEventService {
           new Error(`Please log in via Metamask!`)
         );
       }
-      const betPrice = ethers.utils.parseUnits((ethBasePrice * 100).toString(), priceFeedDecimals - 2);
-      const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / OPUSDOptionRatio).toString(), priceFeedDecimals - 2);
+      const betPrice        = ethers.utils.parseUnits((rawBetPrice           *              100).toString(), priceFeedDecimals - 2);
+      const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / OPUSDOptionRatio).toString());
 
       const nonce = await this.web3.eth.getTransactionCount(_wallet);
+      console.log('nonce:' + nonce);
       this.OPEventAddress = this.crypto.getNextContractAddress(_wallet, nonce + 2);
-      this.OracleAddress  = this.crypto.getNextContractAddress(this.OPEventAddress, 3);
+      this.OracleAddress  = this.crypto.getNextContractAddress(this.OPEventAddress, 1);
 
       contracts['ChainLink'] = new ethers.Contract(contractAddresses['ChainLink'], ChainLink.abi, _signer);
       contracts['OPUSD'] = new ethers.Contract(contractAddresses['OPUSD'], OPUSD.abi, _signer);
 
       try {
-        // var options = { gasLimit: 60000, gasPrice: ethers.utils.parseUnits('100', 'gwei') };
         const optionsCL = {};
-        const optionsSC = {};
-        const transfer = contracts['ChainLink'].transfer(this.OracleAddress,
+        const optionsOP = {};
+        const approveCL = contracts['ChainLink'].approve(this.OracleAddress,
                                                         ethers.utils.parseUnits('1'),
                                                         optionsCL );
 
-        const approve = contracts['OPUSD'].approve(this.OPEventAddress,
-                                                  ethers.utils.parseUnits(numTokensStakedToMint.toString()), 
-                                                  optionsSC );
+        const approveOP = contracts['OPUSD'].approve(this.OPEventAddress,
+                                                  ethers.utils.parseUnits(numTokensStakedToMint.toString()),
+                                                  optionsOP );
 
-        const waitForInteractions = Promise.all([transfer, approve]);
+        const waitForInteractions = Promise.all([approveCL, approveOP]);
         waitForInteractions.then( async (res) => {
-                const transferInteraction = await res[0].wait();
-                const approveInteraction = await res[1].wait();
-                if (transferInteraction.status === 1 && approveInteraction.status === 1) {
-                  const abi = new ethers.utils.Interface( OPEvent.abi )
+                const approveCL = await res[0].wait();
+                const approveOP = await res[1].wait();
+                if (approveCL.status === 1 && approveOP.status === 1) {
+                  const abi = new ethers.utils.Interface( OPEvent.abi );
                   const factory = new ethers.ContractFactory(abi, OPEvent.bytecode, _signer);
-                  console.log(`Deploying contract with =>> betPrice: ${betPrice} | betSide: ${Number(betSide)} | eventPeriod: ${eventPeriod} || numTokensToMint: ${numTokensToMint} `);
-                  const contract = await factory.deploy(betPrice, Number(betSide), eventPeriod, numTokensToMint );
+                  console.log(`Deploying contract with =>> betPrice: ${betPrice} | betSide: ${Number(betSide)} | eventPeriod: ${eventPeriod} | numTokensToMint: ${numTokensToMint} || pairContract: ${pairContract} `);
+                  const contract = await factory.deploy(betPrice, Number(betSide), eventPeriod, numTokensToMint, pairContract );
                   // The contract is not mined yet but check info
                   console.log(contract.address, contract.deployTransaction);
                   // You can wait for the contract to deploy... This will reject and error if the deployment
                   // fails, for example, gas limit was too low, or the constructor called `revert`
                   await contract.deployed();
-                  resolve(true)
+                  resolve(true);
                 }
               }).catch( err =>
                 reject(

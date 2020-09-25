@@ -1,31 +1,32 @@
-const OPEvent    = artifacts.require("OPEvent");
-const ChainLink  = artifacts.require("ChainLinkToken");
-const OPUSD = artifacts.require("OPUSDToken");
-const Utils = require('../utils.js');
+const OPEvent   = artifacts.require("OPEvent");
+const ChainLink = artifacts.require("ChainLinkToken");
+const OPUSD     = artifacts.require("OPUSDToken");
+const Utils  = require('../utils.js');
+const ethers = require('ethers')
 
 module.exports = async function (deployer, network, accounts) {
     if(network != "development"){
         let Constants = Utils.Constants
         console.log("Creating constructor argument list..")
         args = [] 
-        args[Constants.betPrice] = Utils.EncodeTokenAmount(Constants.ethBasePrice, Constants.priceFeedDecimals, 2);
+        args[Constants.betPrice] = ethers.utils.parseUnits(Constants.rawBetPrice.toString(), Constants.priceFeedDecimals - 2);
         args[Constants.betSide] = Constants.Higher
         args[Constants.eventPeriod] = Constants[network].eventPeriodSeconds
-        args[Constants.numTokensToMint] = Utils.EncodeTokenAmount(Constants.numTokens, Constants.tokenDecimals, 0);
+        args[Constants.numTokensToMint] = ethers.utils.parseUnits(Constants.numTokens.toString());
+        args[Constants.priceAggregator] = Constants.pairings["ETH/USD"]
     
         console.log("Getting contract address and Oracle address for setup transactions..")
-        //nonce = await Constants[network].web3.eth.getTransactionCount(accounts[0]);
         nonce = await new ethers.Wallet(Constants[network].secret, Constants[network].provider).getTransactionCount();
         OPEventAddress = Utils.getNextContractAddress(accounts[0], nonce+2)
-        OracleAddress  = Utils.getNextContractAddress(OPEventAddress, 3);
-    
-        console.log("ChainLink transfer..")
+        OracleAddress  = Utils.getNextContractAddress(OPEventAddress, 1);
+        
         contracts = []
         contracts['ChainLink'] = await ChainLink.at(Constants.contractAddresses.ChainLink);
         contracts['OPUSD'] = await OPUSD.at(Constants.contractAddresses.OPUSD);
-    
-        await contracts['ChainLink'].transfer(OracleAddress, 
-                                              ethers.utils.parseUnits((Constants.numTokens).toString()));
+
+        console.log("ChainLink approve..")
+        await contracts['ChainLink'].approve(OracleAddress, 
+                                             ethers.utils.parseUnits((Constants.numTokens).toString()));
     
         console.log("OPUSD approve..")
         await contracts['OPUSD'].approve(OPEventAddress, 
@@ -35,6 +36,7 @@ module.exports = async function (deployer, network, accounts) {
         await deployer.deploy(OPEvent, args[Constants.betPrice], 
                                        args[Constants.betSide], 
                                        args[Constants.eventPeriod], 
-                                       args[Constants.numTokensToMint]);
+                                       args[Constants.numTokensToMint],
+                                       args[Constants.priceAggregator]);
     }
 };
