@@ -46,20 +46,21 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
   
   async continue() {
 
-      const option_asset = this.form.controls['option_asset'].value
-      const option_stake = this.form.controls['option_stake'].value     
-      const item = { option_asset: option_asset.pair_contract, option_stake: option_stake }    
-      this.optStr.upsert(1, item) // update the state object first  
-      
+      const option_asset = this.form.controls['option_asset'].value;
+      const option_stake = this.form.controls['option_stake'].value;
+      const item = { option_asset: option_asset.pair_contract, option_stake: option_stake }
+      this.optStr.upsert(1, item); // update the state object first
+
       const currentOptions = this.optQry.getAll()
-      const betSide = currentOptions[0].condition
-      const eventPeriod = currentOptions[0].expiration_date     
-      const numTokensStakedToMint = currentOptions[0].option_stake
-      const ethBasePrice = currentOptions[0].condition_price      
+      const betSide = currentOptions[0].condition;
+      const eventPeriod = currentOptions[0].expiration_date;
+      const numTokensStakedToMint = currentOptions[0].option_stake;
+      const rawBetPrice = currentOptions[0].condition_price;
+      const pairContract = currentOptions[0].pair_contract;
 
       try {
        const interaction = await this.ui
-                               .loading(  this.opEvent.eventWager(ethBasePrice, betSide, eventPeriod, numTokensStakedToMint), "You will be prompted for 3 contract interactions, please approve all to successfully take part and please be patient as it may take a few moments to broadcast to the network." )
+                               .loading(  this.opEvent.eventWager(rawBetPrice, betSide, eventPeriod, numTokensStakedToMint, pairContract), "You will be prompted for 3 contract interactions, please approve all to successfully take part and please be patient as it may take a few moments to broadcast to the network." )
                                .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) )        
 
       if(interaction) {

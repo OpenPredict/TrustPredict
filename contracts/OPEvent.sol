@@ -125,10 +125,11 @@ contract OPEvent is Ownable {
         startTime = block.timestamp + depositPeriod;
         
         // contract creation/references
-        tokens.push(new OPOption("ETHUSD O Token", "EUO")); // Token.O
-        tokens.push(new OPOption("ETHUSD IO Token", "EUIO")); // Token.IO
         oracle = new Oracle(endTime + 2 minutes, _priceAggregator); // give the oracle callback some leeway
-        
+
+        tokens.push(new OPOption(string(abi.encodePacked(oracle.getPairing(), " O Token")), "O")); // Token.O
+        tokens.push(new OPOption(string(abi.encodePacked(oracle.getPairing(), " O Token")), "IO")); // Token.IO
+         
         // mint tokens
         tokens[uint(Token.O)].mint(msg.sender, numTokensToMint);
         transferFrom(msg.sender, address(this), convertToOPUSDAmount(numTokensToMint));

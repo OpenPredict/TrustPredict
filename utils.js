@@ -53,7 +53,7 @@ module.exports = {
         numTokensToMint : 3,
         priceAggregator : 4,
         // -- values --
-        ethBasePrice : "36015", // 360.15. Strings for BigNumber conversion
+        rawBetPrice : "36015", // 360.15. Strings for BigNumber conversion
         priceFeedDecimals : 8, // the return value for the base price
         // betSide selection
         Higher : 0,
