@@ -25,15 +25,12 @@ module.exports = async function (deployer, network, accounts) {
         contracts['OPUSD'] = await OPUSD.at(Constants.contractAddresses.OPUSD);
     
         await contracts['ChainLink'].transfer(OracleAddress, 
-                                              Utils.EncodeTokenAmount(Constants.numTokens, 
-                                              Constants.tokenDecimals, 
-                                              0));
+                                              ethers.utils.parseUnits((Constants.numTokens).toString()));
     
         console.log("OPUSD approve..")
         await contracts['OPUSD'].approve(OPEventAddress, 
-                                              Utils.EncodeTokenAmount(Constants.numTokens * Constants.OPUSDOptionRatio, 
-                                              Constants.tokenDecimals, 
-                                              0));
+                                         ethers.utils.parseUnits((Constants.numTokens * Constants.OPUSDOptionRatio).toString()));
+
         console.log("deploy..")
         await deployer.deploy(OPEvent, args[Constants.betPrice], 
                                        args[Constants.betSide], 
