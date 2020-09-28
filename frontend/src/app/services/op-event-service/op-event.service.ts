@@ -3,12 +3,99 @@ import { CryptoService } from '@services/crypto-service/crypto.service';
 import { AuthQuery } from '@services/auth-service/auth.service.query';
 import { ethers } from 'ethers';
 
+import { map, mapTo, tap } from 'rxjs/operators';
+import { ID, cacheable } from '@datorama/akita';
+import { Observable } from 'rxjs';
+import { timer } from 'rxjs/internal/observable/timer';
+
+
 import { WEB3 } from '@app/web3';
 import Web3 from 'web3';
+import { EventsStore } from './op-event.service.store';
+import { IEvent } from '@app/data-model';
 
 const OPEvent    = require('@truffle/build/contracts/OPEvent.json');
 const ChainLink  = require('@truffle/build/contracts/ChainLinkToken.json');
 const OPUSD      = require('@truffle/build/contracts/OPUSDToken.json');
+
+
+// Dummy data events - data should come from contract
+export const events: IEvent[] = [{
+  id: 1,
+  asset_name: "Orion Protocol",
+  asset_ticker: "ORN", 
+  asset_icon: "/assets/img/orn.svg", 
+  condition: true,  // true high / false low
+  condition_price: 10.25,
+  expiration: "21.10.2020",
+  created:  "20.09.2020",
+  value: "5,000 USD", 
+  event_contract: "0x0000000000000000000000000000000000000001",    
+  event_status: {
+    status_desc: "Pending"
+  },     
+},{
+  id: 2,  
+  asset_name: "Orion Protocol",
+  asset_ticker: "ORN", 
+  asset_icon: "/assets/img/orn.svg", 
+  condition: true,  // true high / false low
+  condition_price: 10.25,
+  expiration: "21.10.2020",
+  created:  "20.09.2020",    
+  value: "60,000 USD", 
+  event_contract: "0x0000000000000000000000000000000000000002",        
+  event_status: {
+    status_desc: "expired, withdraw deposit"
+  },        
+},{
+  id: 3,  
+  asset_name: "Orion Protocol",
+  asset_ticker: "ORN", 
+  asset_icon: "/assets/img/orn.svg", 
+  condition: true,  // true high / false low
+  condition_price: 10.25,
+  expiration: "21.10.2020",
+  created:  "20.09.2020",
+  value: "60,000 USD", 
+  event_contract: "0x0000000000000000000000000000000000000003",      
+  event_status: {
+    status_desc: "finished, claim rewards"
+  },     
+},{
+  id: 4,  
+  asset_name: "Ethereum",
+  asset_ticker: "ETH", 
+  asset_icon: "/assets/img/eth.svg", 
+  condition: false,  // true high / false low
+  condition_price: 50.00,    
+  expiration: "21.10.2020",
+  created:  "20.09.2020",
+  value: "120,000 USD", 
+  event_contract: "0x0000000000000000000000000000000000000004",          
+  event_status: {
+    status_desc: "\"O\" Tokens Minted, Lower",
+    status_value: "20,000 USD",
+    status_ratio: "120%"         
+  },   
+},{
+  id: 5,  
+  asset_name: "Bitcoin",
+  asset_ticker: "BTC", 
+  asset_icon: "/assets/img/btc.svg", 
+  condition: false,  // true high / false low
+  condition_price: 9000.00,    
+  expiration: "31.12.2020",
+  created:  "20.09.2020",
+  value: "120,000 USD", 
+  event_contract: "0x0000000000000000000000000000000000000005",     
+  event_status: {
+    status_desc: "\"OI\" Tokens Minted, Higher",
+    status_value: "20,000 USD",
+    status_ratio: "120%"         
+  },   
+}]
+
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +108,7 @@ export class OpEventService {
   constructor(
     private crypto: CryptoService,
     private _authQ: AuthQuery,
+    private opEventStr: EventsStore,
     @Inject(WEB3) private web3: Web3) { }
 
   async eventWager(rawBetPrice: any,
@@ -107,4 +195,26 @@ export class OpEventService {
       }
     });
   }
+
+  get(): Observable<void> {
+    const request = timer(500).pipe(
+      mapTo(events),
+      map(response => this.opEventStr.set(response))
+    );
+
+    return cacheable(this.opEventStr, request);
+  }
+  
+  
+  
+  getEvent(id: ID) {
+    const event = events.find(current => current.id === +id);
+    return timer(500).pipe(
+      mapTo(event),
+      map(() => this.opEventStr.add(event))
+    );
+  }  
+  
+  
+  
 }

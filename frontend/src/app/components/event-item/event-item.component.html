@@ -1,0 +1,45 @@
+
+  <div class="asset_itemWrap">                        
+    <div class="asset_icon" [ngClass]="'token-'+event.asset_ticker.toLowerCase()"></div>
+    <div class="asset_data">
+      <div class="asset_title">
+        {{ event.asset_name  }} ({{ event.asset_ticker }})           
+      </div>
+      <div class="asset_particulars">
+        <ul class="list-reset">
+          <li *ngIf="event.condition_price">
+            condition: 
+            <span [ngClass]="getClass(event.condition)">
+              <ng-template [ngIf]="!event.condition" [ngIfElse]="higher">
+                lower than 
+              </ng-template>
+              <ng-template #higher>              
+                higher than
+              </ng-template>
+              <span>
+                ${{ event.condition_price}}
+              </span>              
+            </span>
+          </li>
+          <li *ngIf="event.expiration">
+            expiration: {{ event.expiration}}
+          </li>    
+          <li *ngIf="event.value">
+            value: {{ event.value}}
+          </li>                    
+        </ul>
+        <div class="lb"></div>
+        <ul class="list-reset">
+          <li *ngIf="event.event_status.status_desc" class="status-status">
+            {{ event.event_status.status_desc }}
+          </li>
+          <li *ngIf="event.event_status.status_value">
+            value: {{ event.event_status.status_value }}
+          </li>
+          <li *ngIf="event.event_status.status_ratio">
+            win ratio: {{ event.event_status.status_ratio }}
+          </li>                           
+        </ul>        
+      </div>      
+    </div>
+  </div>

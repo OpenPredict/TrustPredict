@@ -17,3 +17,24 @@ export interface LedgerWallet {
     publicKey: string
     address: string
 }
+
+
+export interface IEvent {
+    id?: ID
+    asset_name?: string
+    asset_ticker?: string 
+    asset_icon?: string 
+    condition?: boolean 
+    condition_price?: number | string // whatever the contract returns     
+    expiration?: string | Date 
+    created?: string
+    value?: string 
+    event_contract?: string
+    event_status?: IEventStatus 
+  }
+  
+  export interface IEventStatus {
+    status_desc?: string
+    status_value?: string 
+    status_ratio?: string   
+  }
