@@ -1,0 +1,37 @@
+<app-app-header></app-app-header>
+<ion-content>
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <div class="darkBox">
+          <div class="assetOptions">
+            <div class="assetOptions__nav">
+              
+              
+              <div *ngIf="(event$ | async) as event">
+                <h1>{{ event.asset_name }}</h1>
+                <h6>{{ event.asset_ticker }}</h6>
+                <img [src]="event.asset_icon" alt="">  
+                <h6>{{ event.condition }}</h6>    
+                <h6>{{ event.condition_price }}</h6>     
+                <h6>{{ event.event_contract }}</h6>                                                                
+                <h6>{{ event.created }}</h6>      
+                <h6>{{ event.expiration }}</h6>                                     
+              </div>              
+              
+                  </div>
+  
+          </div>          
+        </div> 
+      </ion-col>      
+    </ion-row>
+    <ion-row>   
+      <ion-col>     
+        <div class="back__button" (click)="goBack()">
+          <div class="back__button--icon"></div>
+          <span>Go back</span>
+        </div>
+      </ion-col>      
+    </ion-row>       
+  </ion-grid>
+</ion-content>

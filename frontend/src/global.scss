@@ -106,6 +106,9 @@
         &.buffer {
         margin: 40px 0;      
         }
+        &.buffer\@20 {
+            margin: 20px 0;      
+        }        
         .form__select {
         margin: 10px auto 0; 
         }
@@ -155,6 +158,8 @@
     padding: 7px 0px;
     border-radius: 7px;
     overflow: hidden;
+    width: 100%;
+    align-items: flex-start;
     .highlight {
         position: absolute;
         width: 100%;
@@ -224,10 +229,11 @@
 
 
 .asset__list {
-    height: 40vh;
+    height: 65vh;
     overflow: hidden;  
     overflow-y: scroll;
     scrollbar-width: thin;
+    padding: 0 10px 0 0;
     // scrollbar-color: var(--ion-color-secondary) var(--ion-color-primary);     
     &::-webkit-scrollbar {
         width: 11px;
@@ -316,4 +322,12 @@
 
 .picker-wrapper {
     top:0;
+}
+
+
+.standardInputErr {
+    font-size: 12px;
+    color: #f30000;
+    margin: 7px;
+    line-height: 1;
 }

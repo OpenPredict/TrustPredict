@@ -9,12 +9,14 @@ import { ConnectWallet } from "@components/connect-wallet/connect-wallet.compone
 import { AppHeaderComponent } from "@components/app-header/app-header.component";
 import { WagerInformationOutputComponent } from "@components/wager-information-output/wager-information-output.component";
 import { WagerSelectedTokenComponent } from "@components/wager-selected-token/wager-selected-token.component";
+import { EventItemComponent } from "@components/event-item/event-item.component";
 
 const components = [
   ConnectWallet,
   AppHeaderComponent,
   WagerInformationOutputComponent,
-  WagerSelectedTokenComponent
+  WagerSelectedTokenComponent,
+  EventItemComponent
 ]
 
 @NgModule({
