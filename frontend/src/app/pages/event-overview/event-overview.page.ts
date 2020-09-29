@@ -48,4 +48,12 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     return this.eventsService.getClass(condition)
   }  
   
+  /**
+   * Opens the minting page
+   * @param mintCondition if true user selected mint higher / false lower
+   */
+  openMinter(mintCondition: boolean): void {
+    this.navCtrl.navigateForward(`/event-overview-mint/${this.eventId}/${mintCondition}`)
+  }    
+  
 }
