@@ -97,6 +97,23 @@
                         </div>                         
                       </div>                       
                     </div>
+
+                    <div class="form__item"> 
+                      <div class="checkboxSegment">   
+                        <div class="checkboxSegmentInner">
+                          <ion-checkbox 
+                          formControlName="agreedTerms" 
+                          color="eulaCheckboxes"
+                          slot="start">
+                        </ion-checkbox>   
+                        <div class="termsLink" (click)="openTnC()">
+                          I agree to the <span class="status-status">Terms & Conditions</span>
+                        </div>                          
+                        </div>         
+                      </div>                    
+                    </div>                      
+                    
+                 
                     
                     <div class="form__item">                 
                       <ion-button 
