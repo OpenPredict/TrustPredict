@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { IEvent } from '@app/data-model';
+import { OpEventService } from "@services/op-event-service/op-event.service";
 
 @Component({
   selector: 'app-event-item',
@@ -10,12 +11,12 @@ export class EventItemComponent implements OnInit {
 
   @Input() event: IEvent  
   
-  constructor() { }
+  constructor(private eventService: OpEventService ) { }
 
   ngOnInit() {}
 
-  getClass(condition: boolean) {
-    return (!condition) ? "status-red" : "status-green"
+  getClass(condition: boolean): string {
+    return this.eventService.getClass(condition)
   }
   
 }

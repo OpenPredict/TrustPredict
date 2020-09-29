@@ -216,5 +216,22 @@ export class OpEventService {
   }  
   
   
+  /**
+   * Return a class depending on if the conditionis true/false
+   * @param condition boolean
+   */
+  getClass(condition: boolean) {
+    return (!condition) ? "status-red" : "status-green"
+  }
+
+  /**
+   * Return text depending on if the conditionis true/false
+   * @param condition boolean
+   */  
+  getConditionText(condition: boolean) {
+    return (!condition) ? "lower than" : "higher than"
+  }      
+  
+  
   
 }

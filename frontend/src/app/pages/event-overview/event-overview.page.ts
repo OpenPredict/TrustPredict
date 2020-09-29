@@ -12,13 +12,13 @@ import { NavController } from '@ionic/angular';
   styleUrls: ['./event-overview.page.scss'],
 })
 export class EventOverviewPage implements OnInit, OnDestroy {
-    
-  event$ = this.eventsQuery.selectEntity(this.eventId);
-  
+
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
-  } 
+  }   
   
+  event$ = this.eventsQuery.selectEntity(this.eventId);
+
   constructor(
     private navCtrl: NavController,
     private activatedRoute: ActivatedRoute,
@@ -26,14 +26,12 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     private eventsQuery: OpEventQuery) {}
 
   ngOnInit() {
-    this.activatedRoute.paramMap
-      .pipe(
-        map(params => params.get('eventId')),
+    this.activatedRoute.paramMap.pipe(
+        map( params => params.get('eventId') ),
         filter(id => !this.eventsQuery.hasEntity(id)),
         untilDestroyed(this),
         switchMap(id => this.eventsService.getEvent(id))
-      )
-      .subscribe();
+      ).subscribe();
   }
   
   ngOnDestroy(){}
@@ -41,5 +39,13 @@ export class EventOverviewPage implements OnInit, OnDestroy {
   goBack() {
     this.navCtrl.back()
   }    
+  
+  getConditionText(condition: boolean): string {
+    return this.eventsService.getConditionText(condition)
+  }  
+  
+  getClass(condition: boolean): string {
+    return this.eventsService.getClass(condition)
+  }  
   
 }
