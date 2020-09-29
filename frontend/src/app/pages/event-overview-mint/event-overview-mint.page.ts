@@ -8,6 +8,7 @@ import { NavController } from '@ionic/angular';
 import { BaseForm } from '@app/helpers/BaseForm';
 import { FormBuilder, Validators } from '@angular/forms';
 import { OptionService } from '@app/services/option-service/option.service';
+import { UiService } from '@app/services/ui-service/ui.service';
 
 @Component({
   selector: 'app-event-overview-mint',
@@ -29,6 +30,7 @@ export class EventOverviewMintPage extends BaseForm implements OnInit {
     return (!this.mint) ? "OI" : "O";
   }    
 
+  termsAndConditions: string = "https://openpredict.io"
   event$ = this.eventsQuery.selectEntity(this.eventId);
   availableOptions: any[]
   
@@ -37,6 +39,7 @@ export class EventOverviewMintPage extends BaseForm implements OnInit {
     private navCtrl: NavController,
     private activatedRoute: ActivatedRoute,
     private optService: OptionService,
+    private ui: UiService,
     private eventsService: OpEventService,
     private eventsQuery: OpEventQuery) {
       super()
@@ -45,6 +48,7 @@ export class EventOverviewMintPage extends BaseForm implements OnInit {
       this.form = this.fb.group({
         option_asset: [this.availableOptions[0], Validators.compose([Validators.required])],  
         option_stake: [null, Validators.compose([Validators.required, Validators.min(100), Validators.pattern('^[1-9]+[0-9]*00$')])],           
+        agreedTerms: [false, Validators.requiredTrue ],    
       });     
     }
 
@@ -70,9 +74,10 @@ export class EventOverviewMintPage extends BaseForm implements OnInit {
   getClass(): string {
     return this.eventsService.getClass(this.mint)
   }  
-  
-  
-  
-  
+  // replace with live terms and conditons url
+  openTnC() {
+    this.ui.openIAB(this.termsAndConditions)
+  }
+
   
 }

@@ -10,15 +10,7 @@
           <li *ngIf="event.condition_price">
             condition: 
             <span [ngClass]="getClass(event.condition)">
-              <ng-template [ngIf]="!event.condition" [ngIfElse]="higher">
-                lower than 
-              </ng-template>
-              <ng-template #higher>              
-                higher than
-              </ng-template>
-              <span>
-                ${{ event.condition_price}}
-              </span>              
+              {{ getConditionText(event.condition) }} ${{ event.condition_price}}              
             </span>
           </li>
           <li *ngIf="event.expiration">

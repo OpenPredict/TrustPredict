@@ -474,3 +474,25 @@ ul.mintOptionList {
 
 
 /** RELATED TO THE MINTING PAGES END */
+
+
+
+
+
+ion-checkbox {
+    border-radius: 0!important;
+    --border-radius: 0!important;    
+}
+
+
+.ion-color-eulaCheckboxes {
+    --border-color: var(--ion-color-primary);
+    --ion-color-base: var(--ion-color-primary);
+    --ion-color-base-rgb: var(--ion-color-primary);
+    --ion-color-contrast: black;
+    --ion-color-contrast-rgb: transparent;
+    --ion-color-shade: transparent;
+    height: 25px;
+    width: 25px;
+    --ion-color-tint: transparent;
+    }

@@ -19,6 +19,10 @@ export class EventItemComponent implements OnInit {
     return this.eventService.getClass(condition)
   }
   
+  getConditionText(condition: boolean): string {
+    return this.eventService.getConditionText(condition)
+  }    
+  
 }
 
 
