@@ -26,6 +26,14 @@
 @import "~@ionic/angular/css/flex-utils.css";
 
 
+html, body {
+    font-family: Montserrat, 'sans-serif';
+}
+
+:root {
+    --ion-font-family: Montserrat, 'sans-serif';
+}
+
 .o-container {
     width: 900px;
     margin: 0 auto;
@@ -331,3 +339,19 @@
     margin: 7px;
     line-height: 1;
 }
+
+
+
+.status-green {
+    color: #24F67D;
+}
+.status-red {
+    color: #FE4A49;
+}
+.status-orange {
+    color: #F2C94C;
+}
+.status-status {
+    color: #89F4ED;
+}
+

@@ -4,25 +4,93 @@
     <ion-row>
       <ion-col>
         <div class="darkBox">
-          <div class="assetOptions">
-            <div class="assetOptions__nav">
+          <div class="eventOverview" *ngIf="(event$ | async) as event">
+              <h2 class="eventHeader bolder status-status">
+                EVENT OVERVIEW
+              </h2>
+              <div class="eventOverviewData"> 
+                <ul class="list-reset">
+                  <li>
+                    <div class="eventInfoTxt bolder eventTokenInfo"> 
+                      <img [src]="event.asset_icon" alt="">  
+                      {{ event.asset_name }}
+                      ({{ event.asset_ticker }})
+                    </div>     
+                    <div class="eventInfoTxt--small"> 
+                      Created: {{ event.created }}
+                    </div>                                    
+                  </li>
+                  <li>
+                    <div class="eventInfoTxt--small"> 
+                      Event success condition:
+                    </div>                
+                    <div class="eventInfoTxt bolder"> 
+                      {{ event.asset_ticker }}
+                      <span [ngClass]="getClass(event.condition)">
+                          {{ getConditionText(event.condition) }}
+                      </span>
+                      ${{ event.condition_price }}&nbsp;USD
+                    </div>                     
+                  </li>  
+                  <li>
+                    <div class="eventInfoTxt--small"> 
+                      Event expiration date:
+                    </div>                
+                    <div class="eventInfoTxt bolder"> 
+                      {{ event.expiration }}
+                    </div>                     
+                  </li>                                    
+                </ul>
+              </div>
               
+              <div class="eventOverviewData"> 
+                <ul class="list-reset mintOptionList">
+                  
+                  <li class="mintOption">
+                    <div class="mintOptionWrap border--green">
+                      <div class="mintOption--token bolder status-status">
+                        “O” Token
+                      </div>
+                      <div class="eventInfoTxt highLow bolder status-green">
+                        Higher
+                      </div>                      
+                      <div class="eventInfoTxt--small">
+                        Current win ratio:
+                      </div>          
+                      <div class="eventInfoTxt bolder">
+                        120%
+                      </div>                                         
+                    </div>
+                    <div class="btnMint green bolder border--green">
+                      <span>Mint “O”</span>
+                    </div>
+                  </li>
+                  
+                  <li class="mintOption">
+                    <div class="mintOptionWrap border--red">
+                      <div class="mintOption--token bolder status-status">
+                        “OI” Token
+                      </div>
+                      <div class="eventInfoTxt highLow bolder status-red">
+                        Lower
+                      </div>                      
+                      <div class="eventInfoTxt--small">
+                        Current win ratio:
+                      </div>          
+                      <div class="eventInfoTxt bolder">
+                        500%
+                      </div>                                         
+                    </div>
+                    <div class="btnMint red bolder border--red">
+                      <span>Mint “OI”</span>
+                    </div>
+                  </li>                  
+                  
+                </ul>              
+              </div>
               
-              <div *ngIf="(event$ | async) as event">
-                <h1>{{ event.asset_name }}</h1>
-                <h6>{{ event.asset_ticker }}</h6>
-                <img [src]="event.asset_icon" alt="">  
-                <h6>{{ event.condition }}</h6>    
-                <h6>{{ event.condition_price }}</h6>     
-                <h6>{{ event.event_contract }}</h6>                                                                
-                <h6>{{ event.created }}</h6>      
-                <h6>{{ event.expiration }}</h6>                                     
-              </div>              
-              
-                  </div>
-  
+            </div>
           </div>          
-        </div> 
       </ion-col>      
     </ion-row>
     <ion-row>   
