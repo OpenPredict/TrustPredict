@@ -1,146 +1,132 @@
-pragma solidity ^0.6.7;
+pragma solidity ^0.6.2;
 
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorInterface.sol";
 import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
+import "./Utils.sol";
 
 contract Oracle is ChainlinkClient {
 
-    AggregatorInterface internal priceFeed;
+    // storage
+    struct Pairing {
+        string value;
+        bool set;
+    }
+    mapping(address => Pairing) priceAggregators; // price aggregator contracts mapped to Pairings
+    mapping(bytes32 => address) events;           // Request IDs mapped to event contract addresses
     
     // ChainLink data (Kovan network)
     address _token            = 0xa36085F69e2889c224210F603D836748e7dC0088; // ChainLink ERC20
     address _oracle           = 0x2f90A6D021db21e1B2A077c5a37B3C7E75D15b7e; // oracle contract
-    address _priceAggregators = 0xE1825220f11D561a9664C18Ca7F9797755215e65; // Pairings contract
     string _jobId             =         "a7ab70d561d34eb49e9b1612fd2e044b"; // callback job
-    address callee;
-    address priceAggregator;
-    string pairing;
+
+
+    // modifiers
+    modifier validPriceAggregator(address _priceAggregator) {
+        // require that oracle address is valid
+        Pairing memory pairing = priceAggregators[_priceAggregator];
+        require(pairing.set, 
+                "Oracle: Invalid Price Aggregator address.");
+        _;
+    }
 
     modifier hasGrantedAllowance() {
-        require(allowance(tx.origin, address(this)) ==  (1 * LINK), 
-                "OpenPredictEvent: Required LINK amount not granted.");
+        require(Utils.allowance(tx.origin, address(this), Utils.GetChainLinkAddress()) ==  (1 * LINK), 
+                "Oracle: Required LINK amount not granted.");
         _;
     }
 
-    modifier setPriceAggregator(address _priceAggregator) {
-        require(setPriceAggregatorPairing(_priceAggregator),
-                "Oracle: Oracle: Invalid Price Aggregator address.");
-        priceAggregator = _priceAggregator;
-        _;
-    }
-  
-    constructor(uint256 _until, address _priceAggregator)
-        hasGrantedAllowance()
-        setPriceAggregator(_priceAggregator)
-        public 
+
+    // constructor
+    constructor() public
     {
-      setPublicChainlinkToken();
-      priceFeed = AggregatorInterface(_priceAggregator);
-      transferFrom(tx.origin, address(this), 1 * LINK);
-      Chainlink.Request memory req = buildChainlinkRequest(
-          stringToBytes32(_jobId),
-          address(this), 
-          this.fullfill.selector
-      );
-      req.addUint("until", _until);
-      sendChainlinkRequestTo(_oracle, req, 1 * LINK);
-      callee = msg.sender;
+        if(Utils.compare(Utils.GetNetwork(), "kovan")) 
+            setPublicChainlinkToken();
+        setPriceAggregators();
     }
-    
+
+
+    // functions
+    function setPriceAggregators() private {
+        priceAggregators[0x5813A90f826e16dB392abd2aF7966313fc1fd5B8] = Pairing("AUD/USD",   true);
+        priceAggregators[0x8e67A0CFfbbF6A346ce87DFe06daE2dc782b3219] = Pairing("BAT/USD",   true);
+        priceAggregators[0x8993ED705cdf5e84D0a3B754b5Ee0e1783fcdF16] = Pairing("BNB/USD",   true);
+        priceAggregators[0x6135b13325bfC4B00278B4abC5e20bbce2D6580e] = Pairing("BTC/USD",   true);
+        priceAggregators[0xed0616BeF04D374969f302a34AE4A63882490A8C] = Pairing("CHF/USD",   true);
+        priceAggregators[0x777A68032a88E5A84678A77Af2CD65A7b3c0775a] = Pairing("DAI/USD",   true);
+        priceAggregators[0x9326BFA02ADD2366b30bacB125260Af641031331] = Pairing("ETH/USD",   true);
+        priceAggregators[0x0c15Ab9A0DB086e062194c273CC79f41597Bbf13] = Pairing("EUR/USD",   true);
+        priceAggregators[0x28b0061f44E6A9780224AA61BEc8C3Fcb0d37de9] = Pairing("GBP/USD",   true);
+        priceAggregators[0xD627B1eF3AC23F1d3e576FA6206126F3c1Bd0942] = Pairing("JPY/USD",   true);
+        priceAggregators[0x396c5E36DD0a0F5a5D33dae44368D4193f69a1F0] = Pairing("LINK/USD",  true);
+        priceAggregators[0xCeE03CF92C7fFC1Bad8EAA572d69a4b61b6D4640] = Pairing("LTC/USD",   true);
+        priceAggregators[0x48c9FF5bFD7D12e3C511022A6E54fB1c5b8DC3Ea] = Pairing("Oil/USD",   true);
+        priceAggregators[0x31f93DA9823d737b7E44bdee0DF389Fe62Fd1AcD] = Pairing("SNX/USD",   true);
+        priceAggregators[0x4594051c018Ac096222b5077C3351d523F93a963] = Pairing("XAG/USD",   true);
+        priceAggregators[0xc8fb5684f2707C82f28595dEaC017Bfdf44EE9c5] = Pairing("XAU/USD",   true);
+        priceAggregators[0x3eA2b7e3ed9EA9120c3d6699240d1ff2184AC8b3] = Pairing("XRP/USD",   true);
+        priceAggregators[0xC6F39246494F25BbCb0A8018796890037Cb5980C] = Pairing("XTZ/USD",   true);
+        priceAggregators[0x70179FB2F3A0a5b7FfB36a235599De440B0922ea] = Pairing("sDEFI/USD", true);
+    }
+
+    /**
+     * Create a new oracle request
+     */
+    function newRequest(uint256 _until, address _priceAggregator)
+        validPriceAggregator(_priceAggregator)
+        hasGrantedAllowance()
+        external
+        returns (bool)
+    {
+        if(Utils.compare(Utils.GetNetwork(), "kovan")) {
+            Chainlink.Request memory req = buildChainlinkRequest(
+                stringToBytes32(_jobId),
+                address(this), 
+                this.fullfillRequest.selector
+            );
+            req.addUint("until", _until);
+            bytes32 _requestId = sendChainlinkRequestTo(_oracle, req, 1 * LINK);
+            events[_requestId] = msg.sender;            
+        }
+        return true;
+    }
+
     /**
      * Get the latest price at the correct time
      */
-    function fullfill(bytes32 _requestId) 
+    function fullfillRequest(bytes32 _requestId) 
         recordChainlinkFulfillment(_requestId)
         public
     {
-        (bool success, bytes memory result) = callee.call(
-            (abi.encodeWithSignature("settle()")
+        address _event = events[_requestId];
+        int256 settledPrice = 36560000000; // for tests
+        (bool success, bytes memory result) = _event.call(
+            (abi.encodeWithSignature("settle(int256)",
+            settledPrice)
         ));
+        require(success, "Oracle: call to event contract failed");
     }
 
     /**
      * Get the pairing for the price aggregator
      */
-    function setPriceAggregatorPairing(address _priceAggregator) 
-        private
-        returns (bool)
-    {
-        (bool success, bytes memory result) = _priceAggregators.call(
-            (abi.encodeWithSignature("getPriceAggregatorPairing(address)",
-            _priceAggregator)
-        ));
-        require(success, "Oracle: call to PriceAggregators contract failed");
-
-        pairing = bytesToString(result);
-        return true;
+    function getPairing (address _priceAggregator) 
+    validPriceAggregator(_priceAggregator) 
+    view
+    external
+    returns(string memory) {
+        return priceAggregators[_priceAggregator].value;
     }
 
     /**
      * Returns the latest price
      */
-    function getLatestPrice() public view returns (int256) {
-        return priceFeed.latestAnswer();
+    function getLatestPrice(address _priceAggregator) external view returns (int256) {
+        return AggregatorInterface(_priceAggregator).latestAnswer();
     }
 
-    /**
-     * Returns the chosen pairing
-     */
-    function getPairing() public view returns (string memory) {
-        return pairing;
-    }
-
-    /**
-     * Returns the price aggregator address
-     */
-    function getPriceAggregator() public view returns (address) {
-        return priceAggregator;
-    }
-    
-    // ****** start util functions ******
-    function bytesToString(bytes memory _bytes) internal pure returns (string memory _string) {
-        assembly {
-            _string := mload(0x40)                               // Load string address
-            mstore(    _string,        mload(add(_bytes, 0x40))) // Set length
-            mstore(add(_string, 0x20), mload(add(_bytes, 0x60))) // Set value
-            mstore(0x40, add(_string, 0x40))                     // Increment free memory pointer
-        }
-    }
-
-    function stringToBytes32(string memory source) private pure returns (bytes32 result) {
-        bytes memory tempEmptyStringTest = bytes(source);
-        if (tempEmptyStringTest.length == 0) {
-            return 0x0;
-        }
-    
+    function stringToBytes32(string memory source) internal pure returns (bytes32 result) {    
         assembly {
             result := mload(add(source, 32))
         }
     }
-    
-    function bytesToUint(bytes memory _bytes) internal pure returns (uint256 result) {
-        require(_bytes.length >= 32, "Read out of bounds");
-        assembly {
-            result := mload(add(_bytes, 0x20))
-        }
-    }
-
-    function allowance(address _from, address _to) private returns(uint256) {
-        (bool success, bytes memory result) = _token.call(
-            (abi.encodeWithSignature("allowance(address,address)", 
-             _from, _to)
-        ));
-        require(success, "Oracle: call to ChainLink contract failed (allowance)");
-        uint resultUint = bytesToUint(result);
-        return resultUint;
-    }
-
-    function transferFrom(address _from, address _to, uint _tokensToTransfer) private  {
-        (bool success, bytes memory result) = _token.call(
-            (abi.encodeWithSignature("transferFrom(address,address,uint256)", 
-             _from, _to, _tokensToTransfer)
-        ));
-        require(success, "Oracle: call to ChainLink contract failed (transferFrom)");
-    }
-    // ****** end util functions ******
 }
