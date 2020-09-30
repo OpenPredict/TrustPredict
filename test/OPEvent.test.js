@@ -3,7 +3,7 @@ const ChainLinkToken = artifacts.require('ChainLinkToken');
 const Utils = artifacts.require('Utils');
 const Oracle = artifacts.require('Oracle');
 const OPEventFactory = artifacts.require('OPEventFactory');
-const OPEvent = artifacts.require('OPEvent');
+const TrustPredictToken = artifacts.require('TrustPredictToken');
 
 const assert = require("chai").assert;
 const truffleAssert = require('truffle-assertions');
@@ -63,7 +63,7 @@ async function deployContract(contracts, accounts) {
     args[Constants.numTokensToMint] = ethers.utils.parseUnits(Constants.numTokens.toString());
     args[Constants.priceAggregator] = Constants.pairings['ETH/USD']
 
-    // deploy contract
+    // deploy event
     await contracts['OPEventFactory'].createOPEvent(args[Constants.betPrice], 
                                                     args[Constants.betSide], 
                                                     args[Constants.eventPeriod], 
@@ -99,13 +99,13 @@ contract("OPEvent", async (accounts) => {
         contracts['OPUSD'] = await OPUSDToken.new();
         contracts['ChainLink'] = await ChainLinkToken.new();
         contracts['Utils'] = await Utils.new();
-
         // Link Utils to Oracle and OPEventFactory
         await Oracle.link("Utils", contracts['Utils'].address);
         contracts['Oracle'] = await Oracle.new();
+        await TrustPredictToken.link("Utils", contracts['Utils'].address);
+        contracts['TrustPredictToken'] = await TrustPredictToken.new("");
         await OPEventFactory.link("Utils", contracts['Utils'].address);
         contracts['OPEventFactory'] = await OPEventFactory.new("");
-
         Object.keys(contracts).forEach((key) => {
             console.log(key + " address:" + contracts[key].address)
         })

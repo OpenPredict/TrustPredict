@@ -12,7 +12,7 @@ contract Oracle is ChainlinkClient {
         bool set;
     }
     mapping(address => Pairing) priceAggregators; // price aggregator contracts mapped to Pairings
-    mapping(bytes32 => address) events;           // Request IDs mapped to event contract addresses
+    mapping(bytes32 => address) eventIDs;         // Request IDs mapped to event IDs
     
     // ChainLink data (Kovan network)
     address _token            = 0xa36085F69e2889c224210F603D836748e7dC0088; // ChainLink ERC20
@@ -71,7 +71,7 @@ contract Oracle is ChainlinkClient {
     /**
      * Create a new oracle request
      */
-    function newRequest(uint256 _until, address _priceAggregator)
+    function newRequest(uint256 _until, address _priceAggregator, address _eventId)
         validPriceAggregator(_priceAggregator)
         hasGrantedAllowance()
         external
@@ -85,7 +85,7 @@ contract Oracle is ChainlinkClient {
             );
             req.addUint("until", _until);
             bytes32 _requestId = sendChainlinkRequestTo(_oracle, req, 1 * LINK);
-            events[_requestId] = msg.sender;            
+            eventIDs[_requestId] = _eventId;            
         }
         return true;
     }
@@ -97,11 +97,11 @@ contract Oracle is ChainlinkClient {
         recordChainlinkFulfillment(_requestId)
         public
     {
-        address _event = events[_requestId];
+        address _event = eventIDs[_requestId];
         int256 settledPrice = 36560000000; // for tests
-        (bool success, bytes memory result) = _event.call(
-            (abi.encodeWithSignature("settle(int256)",
-            settledPrice)
+        (bool success, bytes memory result) = Utils.GetOPEventFactoryAddress().call(
+            (abi.encodeWithSignature("settle(int256,address)",
+            settledPrice, _event)
         ));
         require(success, "Oracle: call to event contract failed");
     }
