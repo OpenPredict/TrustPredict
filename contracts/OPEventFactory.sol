@@ -9,9 +9,9 @@ contract OPEventFactory {
 
     // addresses
     address _oracle = Utils.GetOracleAddress();
-    address _factory = Utils.GetOPEventFactoryAddress();
+    address _token = Utils.GetTrustPredictAddress();
     
-    // constructor
+    // event data
     struct EventData {
         int betPrice;
         Utils.Side betSide;
@@ -41,17 +41,17 @@ contract OPEventFactory {
         // require that event takes place within maxEventPeriod time
         uint _endTime = SafeMath.add(block.timestamp, _eventPeriod);
         require(SafeMath.add(block.timestamp, maxEventPeriod) > _endTime, 
-                "OpenPredictEvent: event end is out of bounds");
+                "OPEventFactory: event end is out of bounds");
 
         // require that event end happens after deposit period
         require(SafeMath.add(block.timestamp, Utils.GetDepositPeriod()) < _endTime, 
-                "OpenPredictEvent: event initiation is out of bounds"); 
+                "OPEventFactory: event initiation is out of bounds"); 
         _;
     }
     
     modifier hasGrantedAllowance(uint numTokens) {
         require(Utils.allowance(msg.sender, address(this), Utils.GetOPUSDAddress()) ==  numTokens, 
-                "OpenPredictEvent: OPUSD balance not granted");
+                "OPEventFactory: OPUSD balance not granted");
         _;
     }
      
@@ -61,20 +61,20 @@ contract OPEventFactory {
         
         // (((selection + new) * 100) / (total + new)) >= 10 && <= 90.
         uint newWeightSelection = SafeMath.div(
-            SafeMath.mul(SafeMath.add(Utils.getTokenBalance(_eventId, selection, _factory), numTokensToMint), 100),
-            SafeMath.add(Utils.getTotalSupply(_eventId, _factory), numTokensToMint)
+            SafeMath.mul(SafeMath.add(Utils.getTokenBalance(_eventId, selection, _token), numTokensToMint), 100),
+            SafeMath.add(Utils.getTotalSupply(_eventId, _token), numTokensToMint)
         );
 
         require(newWeightSelection >= 10 && newWeightSelection <= 90, 
-               "OpenPredictEvent: requested tokens would result in invalid weight on one side of the draw.");
+               "OPEventFactory: requested tokens would result in invalid weight on one side of the draw.");
         _;
      }
 
     modifier minimumTimeReached(bool reached) {
         if(reached){
-            require(block.timestamp >= tempData.startTime, "OpenPredictEvent: Event not yet started. Minting of new tokens is enabled.");
+            require(block.timestamp >= tempData.startTime, "OPEventFactory: Event not yet started. Minting of new tokens is enabled.");
         }else {
-            require(block.timestamp < tempData.startTime, "OpenPredictEvent: Event started. Minting of new tokens is disabled.");
+            require(block.timestamp < tempData.startTime, "OPEventFactory: Event started. Minting of new tokens is disabled.");
         }
         _;
      }
@@ -82,25 +82,25 @@ contract OPEventFactory {
     modifier minimumAmountReached(address _eventId, bool reached) {
         uint totalSupply = Utils.getTotalSupply(_eventId, Utils.GetTrustPredictAddress());
         if(reached)
-            require(totalSupply >= Utils.GetMinimumTokenAmountPerEvent(), "OpenPredictEvent: minimum amount not yet reached.");
+            require(totalSupply >= Utils.GetMinimumTokenAmountPerEvent(), "OPEventFactory: minimum amount not yet reached.");
         else
-            require(totalSupply < Utils.GetMinimumTokenAmountPerEvent(), "OpenPredictEvent: minimum amount reached.");
+            require(totalSupply < Utils.GetMinimumTokenAmountPerEvent(), "OPEventFactory: minimum amount reached.");
         _;
     }
     
     modifier settled(bool _settled) {
         if(_settled)
-            require(tempData.eventSettled, "OpenPredictEvent: Event not yet settled.");
+            require(tempData.eventSettled, "OPEventFactory: Event not yet settled.");
         else
-            require(!tempData.eventSettled, "OpenPredictEvent: Event settled.");
+            require(!tempData.eventSettled, "OPEventFactory: Event settled.");
         _;
     }
     
     modifier concluded(bool _concluded) {
         if(_concluded)
-            require(block.timestamp >= tempData.endTime, "OpenPredictEvent: Event not yet concluded.");
+            require(block.timestamp >= tempData.endTime, "OPEventFactory: Event not yet concluded.");
         else
-            require(block.timestamp < tempData.endTime, "OpenPredictEvent: Event concluded.");
+            require(block.timestamp < tempData.endTime, "OPEventFactory: Event concluded.");
         _;
      }
     
@@ -129,11 +129,11 @@ contract OPEventFactory {
         Utils.newRequest(data.endTime + 2 minutes, _priceAggregator, _oracle, OPEventID); 
         
         // Create event entry in TrustPredictToken.
-        Utils.createTokens(OPEventID, numTokensToMint, Utils.GetTrustPredictAddress());
+        Utils.createTokens(OPEventID, _token);
         // Transfer OPUSD to this contract
         Utils.transferFrom(msg.sender, address(this), Utils.convertToOPUSDAmount(numTokensToMint), Utils.GetOPUSDAddress());        
         // mint tokens to sender
-        Utils.mint(OPEventID, msg.sender, numTokensToMint, Utils.Token.O, Utils.GetTrustPredictAddress());
+        Utils.mint(OPEventID, msg.sender, numTokensToMint, Utils.Token.O, _token);
     }
 
     // ************************************ start external functions ****************************************************
@@ -146,7 +146,7 @@ contract OPEventFactory {
         external 
     {
         Utils.transferFrom(msg.sender, address(this), Utils.convertToOPUSDAmount(numTokensToMint), Utils.GetOPUSDAddress());
-        Utils.mint(eventId, msg.sender, numTokensToMint, selection, _factory);
+        Utils.mint(eventId, msg.sender, numTokensToMint, selection, _token);
     }
 
     function settle(address _eventId, int _settledPrice) 
@@ -156,7 +156,7 @@ contract OPEventFactory {
         settled(false)
         external
     {
-        EventData memory data = events[_eventId];
+        EventData storage data = events[_eventId];
         int settledPrice = Utils.compare("kovan", Utils.GetNetwork()) ? Utils.getLatestPrice(data.priceAggregator, _oracle) : _settledPrice;
 
         if((settledPrice >= data.betPrice &&  data.betSide == Utils.Side.Higher) || 
@@ -167,8 +167,8 @@ contract OPEventFactory {
         }
         
         // next, calculate payment per winning token.
-        uint winnerAmount = Utils.getTokenBalance(_eventId, data.winner, _factory);
-        uint  loserAmount = Utils.getTokenBalance(_eventId, Utils.getOtherToken(data.winner), _factory);
+        uint winnerAmount = Utils.getTokenBalance(_eventId, data.winner, _token);
+        uint  loserAmount = Utils.getTokenBalance(_eventId, Utils.getOtherToken(data.winner), _token);
         
         // (loser * (10 ^ 18)) / winner (valid uint division)
         data.amountPerWinningToken = SafeMath.div(
@@ -183,13 +183,13 @@ contract OPEventFactory {
         settled(true)
         external
     {
-        EventData memory data = events[_eventId];
-        uint tokenHoldings = Utils.balanceOf(_eventId, msg.sender, data.winner, _factory);
+        EventData storage data = events[_eventId];
+        uint tokenHoldings = Utils.balanceOfAddress(_eventId, msg.sender, data.winner, _token);
         // sender has winnings
-        require(tokenHoldings > 0, "OpenPredictEvent: no holdings for sender in winning token.");
+        require(tokenHoldings > 0, "OPEventFactory: no holdings for sender in winning token.");
         // sender has granted allowance to the contract to handle the deposit
         require(Utils.isApprovedForAll(msg.sender, address(this), Utils.GetTrustPredictAddress()),
-                "OpenPredictEvent: sender has not granted allowance for tokens.");
+                "OPEventFactory: sender has not granted allowance for tokens.");
         
         // first return OPUSD holdings (deposited amount of OPUSD on winning side)
         uint OPUSDHoldings = Utils.convertToOPUSDAmount(tokenHoldings);
@@ -203,7 +203,7 @@ contract OPEventFactory {
         Utils.transfer(msg.sender, senderWinnings, Utils.GetOPUSDAddress());
 
         // Completed, burn winning event tokens.
-        Utils.burn(_eventId, msg.sender, tokenHoldings, data.winner, _factory);
+        Utils.burn(_eventId, msg.sender, tokenHoldings, data.winner, _token);
     }
 
     function revoke(address _eventId) 
@@ -213,20 +213,20 @@ contract OPEventFactory {
         external 
     {
         // send OPUSD holdings back to the sending party if they have funds deposited.
-        uint OHoldings = Utils.balanceOf(_eventId, msg.sender, Utils.Token.O, _factory);
-        uint IOHoldings = Utils.balanceOf(_eventId, msg.sender, Utils.Token.IO, _factory);
-        require(OHoldings > 0 || IOHoldings > 0, "OpenPredictEvent: no holdings for sender in any token.");
+        uint OHoldings = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.O, _token);
+        uint IOHoldings = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.IO, _token);
+        require(OHoldings > 0 || IOHoldings > 0, "OPEventFactory: no holdings for sender in any token.");
 
-        require(Utils.isApprovedForAll(msg.sender, address(this), _factory),
-        "OpenPredictEvent: sender has not granted allowance for tokens.");
+        require(Utils.isApprovedForAll(msg.sender, address(this), _token),
+        "OPEventFactory: sender has not granted allowance for tokens.");
 
         if(OHoldings > 0){
             Utils.transfer(msg.sender, Utils.convertToOPUSDAmount(OHoldings), Utils.GetOPUSDAddress());
-            Utils.burn(_eventId, msg.sender, OHoldings, Utils.Token.O, _factory);
+            Utils.burn(_eventId, msg.sender, OHoldings, Utils.Token.O, _token);
         }
         if(IOHoldings > 0){
             Utils.transfer(msg.sender, Utils.convertToOPUSDAmount(IOHoldings), Utils.GetOPUSDAddress());
-            Utils.burn(_eventId, msg.sender, IOHoldings, Utils.Token.IO, _factory);
+            Utils.burn(_eventId, msg.sender, IOHoldings, Utils.Token.IO, _token);
         }
     }
     // ************************************ start external functions ****************************************************
@@ -255,17 +255,16 @@ contract OPEventFactory {
        return events[_eventId].endTime;
     }
     
-    function getWinner(address _eventId) settled(true) view external returns(Utils.Token){
-
+    function getWinner(address _eventId) view external returns(Utils.Token){
        return events[_eventId].winner;
     }
     
-    function getAmountPerWinningToken(address _eventId) settled(true) view external returns(uint) {
+    function getAmountPerWinningToken(address _eventId) view external returns(uint) {
 
        return events[_eventId].amountPerWinningToken;
     }
     
-    function getSettledPrice(address _eventId) settled(true) view external returns(int) {
+    function getSettledPrice(address _eventId) view external returns(int) {
 
        return events[_eventId].settledPrice;
     }

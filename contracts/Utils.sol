@@ -43,7 +43,7 @@ library Utils {
     }
 
     function GetMinimumTokenAmountPerEvent() external pure returns (uint _minimumTokenAmountPerEvent) {
-        _minimumTokenAmountPerEvent = compare(network, "kovan") ? 500000000000000000000 : 100000000000000000000;
+        _minimumTokenAmountPerEvent = compare(network, "kovan") ? 500000000000000000000 : 10000000000000000000;
     }
     //************ variables that differ between networks (development, kovan) **********************************
 
@@ -195,10 +195,10 @@ library Utils {
 
 
     //**************  Start ERC1155 helper functions for TrustPredictToken *****************************************
-   function createTokens(address _eventId, uint256 _amount, address _token) external {
+   function createTokens(address _eventId, address _token) external {
         (bool success, bytes memory result) = _token.call(
-            (abi.encodeWithSignature("createTokens(address,uint256)", 
-             _eventId, _amount)
+            (abi.encodeWithSignature("createTokens(address)", 
+             _eventId)
         ));
         require(success && bytesToBool(result), "Utils: call to TrustPredictToken contract failed (createTokens)");
     }
@@ -243,12 +243,12 @@ library Utils {
         return SafeMath.add(getTokenBalance(_eventId, Token.O, _token), getTokenBalance(_eventId, Token.IO, _token));
     }
 
-    function balanceOf(address _eventId, address _address, Token _selection, address _token) external returns(uint256 result) {
+    function balanceOfAddress(address _eventId, address _address, Token _selection, address _token) external returns(uint256 result) {
         (bool success, bytes memory res) = _token.call(
-            (abi.encodeWithSignature("balanceOf(address,address,uint8)", 
+            (abi.encodeWithSignature("balanceOfAddress(address,address,uint8)", 
             _eventId, _address, uint8(_selection))
         ));
-        require(success, "Utils: call to TrustPredictToken contract failed (balanceOf)");
+        require(success, "Utils: call to TrustPredictToken contract failed (balanceOfAddress)");
         assembly {
             result := mload(add(res, 0x20))
         }
