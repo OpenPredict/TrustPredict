@@ -1,8 +1,9 @@
 pragma solidity 0.6.7;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20Burnable.sol";
 
-contract OPUSDToken is ERC20 {
+contract OPUSDToken is ERC20, ERC20Burnable  {
     uint8 public constant DECIMALS = 18;
     uint256 public constant INITIAL_SUPPLY = 10000 * (10 ** uint256(DECIMALS));
 
@@ -18,5 +19,10 @@ contract OPUSDToken is ERC20 {
         _mint(to, value);
         return true;
     }
+
+    function burn(address account, uint256 value) public returns (bool) {
+        _burn(account, value);
+        return true;
+    }    
 
 }
