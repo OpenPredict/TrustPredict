@@ -256,7 +256,7 @@ library Utils {
 
     function isApprovedForAll(address _from, address _to, address _token) external returns(bool result) {
         (bool success, bytes memory res) = _token.call(
-            (abi.encodeWithSignature("isApprovedForAll(address,address,address)", 
+            (abi.encodeWithSignature("isApprovedForAll(address,address)", 
             _from, _to)
         ));
         require(success, "Utils: call to TrustPredictToken contract failed (isApprovedForAll)");

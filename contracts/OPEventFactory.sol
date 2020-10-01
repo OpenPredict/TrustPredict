@@ -25,7 +25,7 @@ contract OPEventFactory {
     }
     mapping(address => EventData) events;
 
-    uint nonce; // have to keep track of nonce independently. Used for event ID generation.
+    uint nonce; // have to keep track of nonce independently. Used for deterministic event ID generation.
 
     EventData tempData;
 
@@ -137,7 +137,7 @@ contract OPEventFactory {
     }
 
     // ************************************ start external functions ****************************************************
-    function wager(address eventId, uint numTokensToMint, Utils.Token selection)
+    function stake(address eventId, uint numTokensToMint, Utils.Token selection)
         setData(eventId)
         settled(false)
         minimumTimeReached(false)
@@ -272,6 +272,10 @@ contract OPEventFactory {
     function getEventSettled(address _eventId) view external returns(bool) {
 
        return events[_eventId].eventSettled;
+    }
+
+    function getNonce() view external returns(uint256) {
+       return nonce;
     }
    // ************************************ end local util functions **************************************************
 }
