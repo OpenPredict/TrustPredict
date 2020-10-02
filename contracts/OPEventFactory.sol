@@ -27,8 +27,6 @@ contract OPEventFactory {
 
     uint nonce; // have to keep track of nonce independently. Used for deterministic event ID generation.
 
-    EventData tempData;
-
     // ********** end state vars **********
 
     // ********** start gatekeeping functions *********
