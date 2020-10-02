@@ -1,14 +1,18 @@
-const OPEvent   = artifacts.require("OPEvent");
+const OPEventFactory   = artifacts.require("OPEventFactory");
 const ChainLink = artifacts.require("ChainLinkToken");
 const OPUSD     = artifacts.require("OPUSDToken");
-const Utils  = require('../utils.js');
+const Oracle     = artifacts.require("Oracle");
+const Utils     = artifacts.require("Utils");
+const utils  = require('../utils.js');
 const ethers = require('ethers')
 
 module.exports = async function (deployer, network, accounts) {
+    console.log("network: " + network)
+    process.env.NETWORK = network
     if(network != "development"){
-        let Constants = Utils.Constants
+        let Constants = utils.Constants
         console.log("Creating constructor argument list..")
-        args = [] 
+        args = []
         args[Constants.betPrice] = ethers.utils.parseUnits(Constants.rawBetPrice.toString(), Constants.priceFeedDecimals - 2);
         args[Constants.betSide] = Constants.Higher
         args[Constants.eventPeriod] = Constants[network].eventPeriodSeconds

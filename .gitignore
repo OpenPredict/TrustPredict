@@ -1,2 +1,6 @@
 build/
 node_modules/
+frontend/www
+.vscode
+coverage.json
+notes.txt
