@@ -13,23 +13,23 @@ library Utils {
 
     //************ variables that differ between networks (development, kovan) **********************************
     function GetOPUSDAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0xB876a52ABD933a02426C31d8231e9B9352864214 : 0xc6ACe392cE166D3f2013302d751Bfc26C166048e;
+        _address = compare(network, "kovan") ? 0xB876a52ABD933a02426C31d8231e9B9352864214 : 0xBf610614CaA08d9fe7a4F61082cc32951e547a91;
     }
 
     function GetChainLinkAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0xa36085F69e2889c224210F603D836748e7dC0088 : 0x30690193C75199fdcBb7F588eF3F966402249315;
+        _address = compare(network, "kovan") ? 0xa36085F69e2889c224210F603D836748e7dC0088 : 0x4C6f9E62b4EDB743608757D9D5F16B0B67B41285;
     }
 
     function GetOracleAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0x4eb24Db3F49F82A475281d49D3d327f623B6e3dA : 0x4eb24Db3F49F82A475281d49D3d327f623B6e3dA;
+        _address = compare(network, "kovan") ? 0x4eb24Db3F49F82A475281d49D3d327f623B6e3dA : 0xc6ACe392cE166D3f2013302d751Bfc26C166048e;
     }
 
     function GetTrustPredictAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0xd620622a91Ad6F1b25Acc8Dca502a577068F48B7 : 0xd620622a91Ad6F1b25Acc8Dca502a577068F48B7;
+        _address = compare(network, "kovan") ? 0xd620622a91Ad6F1b25Acc8Dca502a577068F48B7 : 0x30690193C75199fdcBb7F588eF3F966402249315;
     }
 
     function GetOPEventFactoryAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0xd620622a91Ad6F1b25Acc8Dca502a577068F48B7 : 0xf2ebd3F6Ee189151577A4446964265152aA6206B;
+        _address = compare(network, "kovan") ? 0xd620622a91Ad6F1b25Acc8Dca502a577068F48B7 : 0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C;
     }
 
 

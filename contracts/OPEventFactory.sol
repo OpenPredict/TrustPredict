@@ -31,13 +31,8 @@ contract OPEventFactory {
 
     // ********** end state vars **********
 
-    // ********** start modifiers *********
-    modifier setData(address eventId) {
-        tempData = events[eventId];
-        _;
-    }
-
-    modifier validEventPeriod(uint _eventPeriod) {
+    // ********** start gatekeeping functions *********
+    function _validEventPeriod(uint _eventPeriod) view internal {
         // require that event takes place within maxEventPeriod time
         uint _endTime = SafeMath.add(block.timestamp, _eventPeriod);
         require(SafeMath.add(block.timestamp, maxEventPeriod) > _endTime, 
@@ -46,16 +41,14 @@ contract OPEventFactory {
         // require that event end happens after deposit period
         require(SafeMath.add(block.timestamp, Utils.GetDepositPeriod()) < _endTime, 
                 "OPEventFactory: event initiation is out of bounds"); 
-        _;
     }
     
-    modifier hasGrantedAllowance(uint numTokens) {
+    function _hasGrantedAllowance(uint numTokens) internal {
         require(Utils.allowance(msg.sender, address(this), Utils.GetOPUSDAddress()) ==  numTokens, 
                 "OPEventFactory: OPUSD balance not granted");
-        _;
     }
      
-    modifier correctWeight(address _eventId, uint numTokensToMint, Utils.Token selection) {
+    function _correctWeight(address _eventId, uint numTokensToMint, Utils.Token selection) internal {
         // ensure that minting this number of tokens will result in less than 90% holdings on one side.
         // We also enforce that the weight be >= 10% to ensure that the proper ratio is held following the first deposit.
         
@@ -67,53 +60,50 @@ contract OPEventFactory {
 
         require(newWeightSelection >= 10 && newWeightSelection <= 90, 
                "OPEventFactory: requested tokens would result in invalid weight on one side of the draw.");
-        _;
      }
 
-    modifier minimumTimeReached(bool reached) {
+    function _minimumTimeReached(address _eventId, bool reached) view internal {
         if(reached){
-            require(block.timestamp >= tempData.startTime, "OPEventFactory: Event not yet started. Minting of new tokens is enabled.");
+            require(block.timestamp >= events[_eventId].startTime, "OPEventFactory: Event not yet started. Minting of new tokens is enabled.");
         }else {
-            require(block.timestamp < tempData.startTime, "OPEventFactory: Event started. Minting of new tokens is disabled.");
+            require(block.timestamp < events[_eventId].startTime, "OPEventFactory: Event started. Minting of new tokens is disabled.");
         }
-        _;
      }
      
-    modifier minimumAmountReached(address _eventId, bool reached) {
+    function _minimumAmountReached(address _eventId, bool reached) internal {
         uint totalSupply = Utils.getTotalSupply(_eventId, Utils.GetTrustPredictAddress());
         if(reached)
             require(totalSupply >= Utils.GetMinimumTokenAmountPerEvent(), "OPEventFactory: minimum amount not yet reached.");
         else
             require(totalSupply < Utils.GetMinimumTokenAmountPerEvent(), "OPEventFactory: minimum amount reached.");
-        _;
     }
     
-    modifier settled(bool _settled) {
+    function _isSettled(address _eventId, bool _settled) view internal {
         if(_settled)
-            require(tempData.eventSettled, "OPEventFactory: Event not yet settled.");
+            require(events[_eventId].eventSettled, "OPEventFactory: Event not yet settled.");
         else
-            require(!tempData.eventSettled, "OPEventFactory: Event settled.");
-        _;
+            require(!events[_eventId].eventSettled, "OPEventFactory: Event settled.");
     }
     
-    modifier concluded(bool _concluded) {
+    function _isConcluded(address _eventId, bool _concluded) view internal {
         if(_concluded)
-            require(block.timestamp >= tempData.endTime, "OPEventFactory: Event not yet concluded.");
+            require(block.timestamp >= events[_eventId].endTime, "OPEventFactory: Event not yet concluded.");
         else
-            require(block.timestamp < tempData.endTime, "OPEventFactory: Event concluded.");
-        _;
+            require(block.timestamp < events[_eventId].endTime, "OPEventFactory: Event concluded.");
      }
     
-    // ********** end modifiers *********
+    // ********** end gatekeeping functions *********
 
     function createOPEvent(int _betPrice, 
                            int8 _betSide, 
                            uint _eventPeriod,
                            uint numTokensToMint,
                            address _priceAggregator)
-            hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint)) 
             external 
     {
+        _validEventPeriod(_eventPeriod);
+        _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
+
         // get next OPEvent ID
         address OPEventID = Utils.addressFrom(address(this), ++nonce);
         // set event data
@@ -138,24 +128,24 @@ contract OPEventFactory {
 
     // ************************************ start external functions ****************************************************
     function stake(address eventId, uint numTokensToMint, Utils.Token selection)
-        setData(eventId)
-        settled(false)
-        minimumTimeReached(false)
-        correctWeight(eventId, numTokensToMint, selection) 
-        hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint))
         external 
     {
+        _isSettled(eventId, false);
+        _minimumTimeReached(eventId, false);
+        _correctWeight(eventId, numTokensToMint, selection);
+        _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
+
         Utils.transferFrom(msg.sender, address(this), Utils.convertToOPUSDAmount(numTokensToMint), Utils.GetOPUSDAddress());
         Utils.mint(eventId, msg.sender, numTokensToMint, selection, _token);
     }
 
     function settle(address _eventId, int _settledPrice) 
-        setData(_eventId)
-        minimumAmountReached(_eventId, true) 
-        concluded(true)
-        settled(false)
         external
     {
+        _minimumAmountReached(_eventId, true);
+        _isConcluded(_eventId, true);
+        _isSettled(_eventId, false);
+
         EventData storage data = events[_eventId];
         int settledPrice = Utils.compare("kovan", Utils.GetNetwork()) ? Utils.getLatestPrice(data.priceAggregator, _oracle) : _settledPrice;
 
@@ -179,10 +169,10 @@ contract OPEventFactory {
     }
     
     function claim(address _eventId)
-        setData(_eventId)
-        settled(true)
         external
     {
+        _isSettled(_eventId, true);
+
         EventData storage data = events[_eventId];
         uint tokenHoldings = Utils.balanceOfAddress(_eventId, msg.sender, data.winner, _token);
         // sender has winnings
@@ -207,11 +197,11 @@ contract OPEventFactory {
     }
 
     function revoke(address _eventId) 
-        setData(_eventId)
-        minimumAmountReached(_eventId, false) 
-        minimumTimeReached(true) 
         external 
     {
+        _minimumAmountReached(_eventId, false);
+        _minimumTimeReached(_eventId, true);
+
         // send OPUSD holdings back to the sending party if they have funds deposited.
         uint OHoldings = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.O, _token);
         uint IOHoldings = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.IO, _token);

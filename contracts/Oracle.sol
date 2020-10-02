@@ -20,19 +20,17 @@ contract Oracle is ChainlinkClient {
     string _jobId             =         "a7ab70d561d34eb49e9b1612fd2e044b"; // callback job
 
 
-    // modifiers
-    modifier validPriceAggregator(address _priceAggregator) {
+    // gatekeepers
+    function _validPriceAggregator(address _priceAggregator) view internal {
         // require that oracle address is valid
         Pairing memory pairing = priceAggregators[_priceAggregator];
         require(pairing.set, 
                 "Oracle: Invalid Price Aggregator address.");
-        _;
     }
 
-    modifier hasGrantedAllowance() {
+    function _hasGrantedAllowance() internal {
         require(Utils.allowance(tx.origin, address(this), Utils.GetChainLinkAddress()) ==  (1 * LINK), 
                 "Oracle: Required LINK amount not granted.");
-        _;
     }
 
 
@@ -72,11 +70,12 @@ contract Oracle is ChainlinkClient {
      * Create a new oracle request
      */
     function newRequest(uint256 _until, address _priceAggregator, address _eventId)
-        validPriceAggregator(_priceAggregator)
-        hasGrantedAllowance()
         external
         returns (bool)
     {
+        _validPriceAggregator(_priceAggregator);
+        _hasGrantedAllowance();
+
         if(Utils.compare(Utils.GetNetwork(), "kovan")) {
             Chainlink.Request memory req = buildChainlinkRequest(
                 stringToBytes32(_jobId),
@@ -109,11 +108,9 @@ contract Oracle is ChainlinkClient {
     /**
      * Get the pairing for the price aggregator
      */
-    function getPairing (address _priceAggregator) 
-    validPriceAggregator(_priceAggregator) 
-    view
-    external
-    returns(string memory) {
+    function getPairing (address _priceAggregator) view external returns(string memory) {
+        _validPriceAggregator(_priceAggregator);
+
         return priceAggregators[_priceAggregator].value;
     }
 

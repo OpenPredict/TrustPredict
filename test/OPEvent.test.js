@@ -135,7 +135,7 @@ contract("OPEvent", async (accounts) => {
         await OPEventFactory.link("Utils", contracts['Utils'].address);
         contracts['OPEventFactory'] = await OPEventFactory.new("");
         Object.keys(contracts).forEach((key) => {
-            console.log(key + " address:" + contracts[key].address)
+            console.log(key + " address: " + contracts[key].address)
         })
         // Give all accounts 1000 OPUSD
         await sendTokensToAddresses(contracts, accounts);

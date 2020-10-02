@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/TrustPredictToken.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> TrustPredictToken.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">86.36% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>19/22</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">50% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>1/2</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">90% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>9/10</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">86.36% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>19/22</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11×</span>
+<span class="cline-any cline-yes">11×</span>
+<span class="cline-any cline-yes">11×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">28×</span>
+<span class="cline-any cline-yes">28×</span>
+<span class="cline-any cline-yes">28×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">32×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">61×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
+&nbsp;
+import "./Utils.sol";
+import "openzeppelin-solidity/contracts/token/ERC1155/ERC1155.sol";
+import "openzeppelin-solidity/contracts/token/ERC1155/ERC1155Burnable.sol";
+&nbsp;
+contract TrustPredictToken is ERC1155, ERC1155Burnable {
+&nbsp;
+    event Id(uint256);
+&nbsp;
+    // Token data
+    struct Token {
+        uint256 id;
+        uint256 balance;
+    }
+&nbsp;
+    uint test = 0;
+&nbsp;
+    // Event data
+    struct TokenPair {
+        mapping(Utils.Token =&gt; Token) tokens;
+        bool set;
+    }
+    // only store as mapping. contract address creation is deterministic so don't need to track keys.
+    mapping(address =&gt; TokenPair) TokenPairs;
+&nbsp;
+    // ********** start modifiers ******************************
+    function onlyEvent() internal view {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(msg.sender==Utils.GetOPEventFactoryAddress(),
+                "TrustPredictToken: Caller is not designated OPEventFactory.");
+    }
+    // ********** end modifiers ******************************
+&nbsp;
+    constructor(string memory uri) public ERC1155(uri) {}
+&nbsp;
+    function createTokens(address _eventId) external returns(bool){
+        onlyEvent();
+&nbsp;
+        // Create IDs for O/IO tokens.
+        TokenPairs[_eventId].tokens[Utils.Token.O]  = Token(uint256(keccak256(abi.encodePacked(_eventId, Utils.Token.O))), 0);
+        TokenPairs[_eventId].tokens[Utils.Token.IO] = Token(uint256(keccak256(abi.encodePacked(_eventId, Utils.Token.IO))), 0);
+        TokenPairs[_eventId].set = true;
+        return true;
+    }
+&nbsp;
+    function mint(address _eventId, address beneficiary, uint amount, uint8 selection) external returns(bool) {
+        onlyEvent();
+&nbsp;
+        _mint(beneficiary, getTokenID(_eventId, Utils.Token(selection)), amount, "");
+        TokenPairs[_eventId].tokens[Utils.Token(selection)].balance += amount;
+        return true;
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function transferFrom(address _eventId, address from, address to, uint256 amount, uint8 selection) external returns(bool) {</span>
+<span class="cstat-no" title="statement not covered" >        onlyEvent()</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        safeTransferFrom(from, to, getTokenID(_eventId, Utils.Token(selection)), amount, "")</span>;
+<span class="cstat-no" title="statement not covered" >        return true;</span>
+    }
+&nbsp;
+    function balanceOfAddress(address _eventId, address _address, uint8 selection) external returns(uint256) {
+        Token memory _token = getToken(_eventId, selection);
+        emit Id(_token.id);
+        return balanceOf(_address, _token.id);
+    }
+&nbsp;
+    function burn(address _eventId, address _address, uint amount, uint8 selection) external returns(bool) {
+        onlyEvent();
+&nbsp;
+        _burn(_address, getTokenID(_eventId, Utils.Token(selection)), amount);
+        return true;
+    }
+&nbsp;
+&nbsp;
+    /************** Start view functions *****************/
+    function getTokenID(address _eventId, Utils.Token selection) internal view returns (uint256){
+        return TokenPairs[_eventId].tokens[selection].id;
+    }
+&nbsp;
+    function getToken(address _eventId, uint8 selection) public view returns(Token memory){
+        return TokenPairs[_eventId].tokens[Utils.Token(selection)];
+    }
+&nbsp;
+    function getTokenBalance(address _eventId, uint8 selection) external view returns (uint256){
+        return TokenPairs[_eventId].tokens[Utils.Token(selection)].balance;
+    }
+    /************** End view functions *****************/
+}</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Oct 02 2020 16:34:30 GMT+0700 (Indochina Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

@@ -26,16 +26,17 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
     mapping(address => TokenPair) TokenPairs;
 
     // ********** start modifiers ******************************
-    modifier onlyEvent {
+    function onlyEvent() internal view {
         require(msg.sender==Utils.GetOPEventFactoryAddress(),
                 "TrustPredictToken: Caller is not designated OPEventFactory.");
-        _;
     }
     // ********** end modifiers ******************************
 
     constructor(string memory uri) public ERC1155(uri) {}
 
-    function createTokens(address _eventId) onlyEvent external returns(bool){
+    function createTokens(address _eventId) external returns(bool){
+        onlyEvent();
+
         // Create IDs for O/IO tokens.
         TokenPairs[_eventId].tokens[Utils.Token.O]  = Token(uint256(keccak256(abi.encodePacked(_eventId, Utils.Token.O))), 0);
         TokenPairs[_eventId].tokens[Utils.Token.IO] = Token(uint256(keccak256(abi.encodePacked(_eventId, Utils.Token.IO))), 0);
@@ -43,13 +44,17 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
         return true;
     }
 
-    function mint(address _eventId, address beneficiary, uint amount, uint8 selection) onlyEvent external returns(bool) {
+    function mint(address _eventId, address beneficiary, uint amount, uint8 selection) external returns(bool) {
+        onlyEvent();
+
         _mint(beneficiary, getTokenID(_eventId, Utils.Token(selection)), amount, "");
         TokenPairs[_eventId].tokens[Utils.Token(selection)].balance += amount;
         return true;
     }
 
-    function transferFrom(address _eventId, address from, address to, uint256 amount, uint8 selection) onlyEvent external returns(bool) {
+    function transferFrom(address _eventId, address from, address to, uint256 amount, uint8 selection) external returns(bool) {
+        onlyEvent();
+
         safeTransferFrom(from, to, getTokenID(_eventId, Utils.Token(selection)), amount, "");
         return true;
     }
@@ -60,7 +65,9 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
         return balanceOf(_address, _token.id);
     }
 
-    function burn(address _eventId, address _address, uint amount, uint8 selection) onlyEvent external returns(bool) {
+    function burn(address _eventId, address _address, uint amount, uint8 selection) external returns(bool) {
+        onlyEvent();
+
         _burn(_address, getTokenID(_eventId, Utils.Token(selection)), amount);
         return true;
     }
