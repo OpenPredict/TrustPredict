@@ -30,7 +30,7 @@ async function sendTokensToAddresses(contracts, accounts) {
     assert.equal(balance.valueOf().toString(), ChainLinkTokenValue.valueOf().toString());
 }
 
-async function deployContract(contracts, accounts) {
+async function deployEvent(contracts, accounts) {
     // get deployer address nonce
     nonce = await contracts['OPEventFactory'].getNonce();
 
@@ -120,7 +120,26 @@ async function OPEventFactory_stake(contracts, accounts, arguments, start, end){
     }));
 }
 
-contract("OPEvent", async (accounts) => {
+async function OPEventFactory_claim(contracts, accounts, start, end, eventId, success, revertMsg) {
+    const range = (account,index) => index >= start && index <= end;
+    await Promise.all(accounts.filter(range).map(async (account) => {
+        await contracts['TrustPredict'].setApprovalForAll(contracts['OPEventFactory'].address, true, {from: account })
+        const call = contracts['OPEventFactory'].claim(eventId, {from: account })
+        success ? await call : await truffleAssert.reverts(call, revertMsg);
+        console.log("finish claim for " + account)
+    }));
+}
+
+async function OPEventFactory_revoke(contracts, accounts, start, end, eventId, success, revertMsg) {
+    const range = (account,index) => index >= start && index <= end;
+    await Promise.all(accounts.filter(range).map(async (account) => {
+        const call = contracts['OPEventFactory'].revoke(eventId, {from: account })
+        success ? await call : await truffleAssert.reverts(call, revertMsg);
+        console.log("finish revoke for " + account)
+    }));
+}
+
+contract("TrustPredict", async (accounts) => {
     let contracts = []
 
     before( async () => {
@@ -152,7 +171,7 @@ contract("OPEvent", async (accounts) => {
     })
 
     // test case A:
-    // - valid contract deployment
+    // - valid event deployment
     // - 3 more valid stakes: 2 on IO side, one on O side.
     // - failed attempt to settle before minimum amount reached
     // - 6 more stakes, 3 either side. minimum amount reached
@@ -165,7 +184,7 @@ contract("OPEvent", async (accounts) => {
     it("Should pass for test case A", async () => {
 
         // Mint tokens to addresses
-        IDs = await deployContract(contracts, accounts);
+        IDs = await deployEvent(contracts, accounts);
         OPEventID = IDs[0]
         OToken = IDs[1]
         IOToken = IDs[2]
@@ -311,7 +330,7 @@ contract("OPEvent", async (accounts) => {
     })
 
     // test case B:
-    // - valid contract deployment
+    // - valid event deployment
     // - failed mint on same side as deployer (incorrect weight)
     // - 3 more valid stakes: 2 on IO side, one on O side.
     // - wait for event deposit period to pass - invalid amount for event
@@ -321,7 +340,7 @@ contract("OPEvent", async (accounts) => {
     // - invalid follow-up revokes
     it("Should pass for test case B", async () => {
         // - valid contract deployment
-        IDs = await deployContract(contracts, accounts);
+        IDs = await deployEvent(contracts, accounts);
         OPEventID = IDs[0]
         OToken = IDs[1]
         IOToken = IDs[2]
@@ -343,6 +362,7 @@ contract("OPEvent", async (accounts) => {
         stake[accounts[4]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.OTokenSelection };
         await OPEventFactory_stake(contracts, accounts, stake, 2, 3); // we require this call to be semi-syncronous so first call 2 and 3, and then 4
         await OPEventFactory_stake(contracts, accounts, stake, 4, 4);
+        
 
         // - wait for event deposit period to pass, resulting in invalid amount for event
         console.log("waiting for deposit period to pass..")
@@ -357,27 +377,53 @@ contract("OPEvent", async (accounts) => {
 
         // - attempt claims from minters, assert failure
         const range = (account, index) => { index >= 1 && index <= 4 };
+        await OPEventFactory_claim(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: Event not yet settled.");
 
-        await Promise.all(accounts.filter(range).map(async (account) => {
-            await contracts['TrustPredict'].setApprovalForAll(contracts['OPEventFactory'].address, true, {from: account })
-            await truffleAssert.reverts(
-                contracts['OPEventFactory'].claim(OPEventID, {from: account }),
-                "OPEventFactory: Event not yet settled."
-            );
-        }));
 
         // - valid revokes from all minters
-        await Promise.all(accounts.filter(range).map(async (account) => {
-            contracts['OPEventFactory'].revoke(OPEventID, {from: account})
-        }));
+        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, true);
 
         // - invalid follow-up revokes
-        await Promise.all(accounts.filter(range).map(async (account) => {
-            await truffleAssert.reverts
-            (
-                contracts['OPEventFactory'].revoke(OPEventID, {from: account }), 
-                "OPEventFactory: no holdings for sender in any token."
-            )
-        }));
+        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: no holdings for sender in any token.");
+    })
+
+
+    // test case C:
+    // - valid event deployment
+    // - attempt revoke during deposit period
+    // - valid wagers to reach minimum amount
+    // - attempt revoke before deposit period ends
+    // - wait for event deposit period to pass, valid event started
+    // - attempt revoke after deposit period ends
+    it("Should pass for test case C", async () => {
+
+        // - valid contract deployment
+        IDs = await deployEvent(contracts, accounts);
+        OPEventID = IDs[0]
+        OToken = IDs[1]
+        IOToken = IDs[2]
+
+        // - attempt revoke during deposit period
+        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: Event not yet started. Minting of new tokens is enabled.");
+        
+        // -  valid wagers to reach minimum amount
+        await OPUSD_approve(contracts, accounts, 2, 4, 5 * Constants.numTokens * Constants.OPUSDOptionRatio);
+        stake = {}
+        stake[accounts[2]] = {"eventId": OPEventID, "numTokensToMint": 5 * Constants.numTokens, "selection": Constants.IOTokenSelection};
+        stake[accounts[3]] = {"eventId": OPEventID, "numTokensToMint": 5 * Constants.numTokens, "selection": Constants.IOTokenSelection};
+        stake[accounts[4]] = {"eventId": OPEventID, "numTokensToMint": 5 * Constants.numTokens, "selection": Constants.OTokenSelection };
+        await OPEventFactory_stake(contracts, accounts, stake, 2, 3); // we require this call to be semi-syncronous so first call 2 and 3, and then 4
+        await OPEventFactory_stake(contracts, accounts, stake, 4, 4);
+    
+        // - attempt revoke before deposit period ends
+        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
+
+        // - wait for event deposit period to pass, valid event started
+        console.log("waiting for deposit period to pass..")
+        await new Promise(r => setTimeout(r, Constants[process.env.NETWORK].depositPeriodSeconds * 1000));
+
+        // - attempt revoke after deposit period ends
+        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
+
     })
 })
