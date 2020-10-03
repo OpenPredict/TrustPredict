@@ -27,7 +27,7 @@ export class EventOverviewMintPage extends BaseForm implements OnInit {
   }     
   
   get tokenName() {
-    return (!this.mint) ? "OI" : "O";
+    return (!this.mint) ? "IO" : "O";
   }    
 
   termsAndConditions: string = "https://openpredict.io"
