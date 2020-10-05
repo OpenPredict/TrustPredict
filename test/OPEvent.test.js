@@ -143,19 +143,13 @@ contract("TrustPredict", async (accounts) => {
     let contracts = []
 
     before( async () => {
-        contracts['OPUSD'] = await OPUSDToken.new();
-        contracts['ChainLink'] = await ChainLinkToken.new();
-        contracts['Utils'] = await Utils.new();
-        // Link Utils to Oracle and OPEventFactory
-        await Oracle.link("Utils", contracts['Utils'].address);
-        contracts['Oracle'] = await Oracle.new();
-        await TrustPredictToken.link("Utils", contracts['Utils'].address);
-        contracts['TrustPredict'] = await TrustPredictToken.new("");
-        await OPEventFactory.link("Utils", contracts['Utils'].address);
-        contracts['OPEventFactory'] = await OPEventFactory.new("");
-        Object.keys(contracts).forEach((key) => {
-            console.log(key + " address: " + contracts[key].address)
-        })
+        let accountIndex = 0
+        contracts['OPUSD']          = await OPUSDToken.at(       utils.getNextContractAddress(accounts[0], accountIndex++));
+        contracts['ChainLink']      = await ChainLinkToken.at(   utils.getNextContractAddress(accounts[0], accountIndex++));
+        contracts['Utils']          = await Utils.at(            utils.getNextContractAddress(accounts[0], accountIndex++));
+        contracts['Oracle']         = await Oracle.at(           utils.getNextContractAddress(accounts[0], accountIndex++));
+        contracts['TrustPredict']   = await TrustPredictToken.at(utils.getNextContractAddress(accounts[0], accountIndex++));
+        contracts['OPEventFactory'] = await OPEventFactory.at(   utils.getNextContractAddress(accounts[0], accountIndex++));
         // Give all accounts 1000 OPUSD
         await sendTokensToAddresses(contracts, accounts);
     })
