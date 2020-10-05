@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { NavController } from '@ionic/angular';
 
 @Component({
   selector: 'app-app-header',
@@ -7,8 +8,18 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AppHeaderComponent implements OnInit {
 
-  constructor() { }
+  constructor(private navCtrl: NavController) { }
 
   ngOnInit() {}
 
+  
+  openOptions() {
+    this.navCtrl.navigateForward('landing')
+  }
+  
+  openEvents() {
+    this.navCtrl.navigateForward('my-events')
+  }  
+  
+  
 }

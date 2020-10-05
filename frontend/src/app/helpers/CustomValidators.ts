@@ -59,10 +59,10 @@ export class CustomValidators {
      */
     static isAddress(c: FormControl) {
         if (!c.value) {
-          return { invalid_sho_token_address: true };
+          return { invalid_address: true };
         }
         if (!new RegExp('^(0x)[0-9a-fA-F]{40}$').test(c.value)) {
-          return { invalid_sho_token_address: true };
+          return { invalid_address: true };
         }
         return null;
       }    

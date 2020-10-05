@@ -1,0 +1,56 @@
+<app-app-header></app-app-header>
+<ion-content>
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <div class="darkBox">
+          <div class="assetOptions">
+            <div class="assetOptions__nav">
+              <div class="assetOptions__option">
+                Pending Events
+              </div>     
+              <div class="assetOptions__option assetOptions__selected">
+                Active Events
+              </div>     
+              <div class="assetOptions__option">
+                My Events
+              </div>                                             
+            </div>                
+                <div class="formWrapper"> 
+                    
+                  <form [formGroup]="form">     
+                    <div class="form__item buffer@20"> 
+                      <div class="form__label"> 
+                        Select Event or input contract
+                      </div>
+                      <ion-input class="form__input" type="text" formControlName="contract_address" placeholder="0x000000...0000"></ion-input>                     
+                      <div *ngIf="hasError('contract_address', 'invalid_address')" class="standardInputErr">
+                        This address is not a valid Ethereum address.
+                      </div>  
+                      <div *ngIf="hasError('contract_address', 'required')" class="standardInputErr">
+                        A valid Ethereum address is required.
+                      </div>
+                      <div *ngIf="hasError('contract_address', 'maxlength')" class="standardInputErr">
+                        A valid Ethereum address must not be more than 42 chars, including 0x prefix.
+                      </div>  
+                      <div *ngIf="hasError('contract_address', 'minlength')" class="standardInputErr">
+                        A valid Ethereum address must be at least 42 chars, including 0x prefix.
+                      </div>                                                                                        
+                    </div>                     
+                  </form>
+                 
+                  <div class="form__item buffer@20 asset__listLine"> 
+                    <div class="asset__list">
+                      <div class="asset_item" *ngFor="let e of events$ | async" (click)="openEvent(e)">
+                        <app-event-item [event]="e"></app-event-item>
+                      </div>                      
+                    </div>                     
+                  </div>                                      
+                  </div>
+  
+          </div>          
+        </div> 
+      </ion-col>      
+    </ion-row>
+  </ion-grid>
+</ion-content>
