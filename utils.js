@@ -14,12 +14,11 @@ module.exports = {
             provider : new ethers.providers.JsonRpcProvider('https://kovan.infura.io/v3/fb44167f83e740898c90737b6ec456d8'),
             //eventPeriod
             eventPeriodSeconds : 100000,
-            secret: truffleConfig.networks.kovan.secret
-        },
-        // contract addresses for existing ERC20s on Kovan
-        contractAddresses : {
-            'OPUSD'      : '0xB876a52ABD933a02426C31d8231e9B9352864214',
-            'ChainLink'  : '0xa36085F69e2889c224210F603D836748e7dC0088'
+            secret: truffleConfig.networks.kovan.secret,
+            contractAddresses: {
+                'OPUSD'      : '0xB876a52ABD933a02426C31d8231e9B9352864214',
+                'ChainLink'  : '0xa36085F69e2889c224210F603D836748e7dC0088'
+            }
         },
         pairings: {
             "AUD/USD"   : "0x5813A90f826e16dB392abd2aF7966313fc1fd5B8",

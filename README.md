@@ -1,5 +1,6 @@
 # Installation
 `npm install`
+`truffle compile`
 
 
 # Run tests + Create Coverage Report

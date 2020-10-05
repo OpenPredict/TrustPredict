@@ -14,85 +14,87 @@ import Web3 from 'web3';
 import { EventsStore } from './op-event.service.store';
 import { IEvent } from '@app/data-model';
 
-const OPEvent    = require('@truffle/build/contracts/OPEvent.json');
-const ChainLink  = require('@truffle/build/contracts/ChainLinkToken.json');
-const OPUSD      = require('@truffle/build/contracts/OPUSDToken.json');
-
+const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
+const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
+const Utils             = require('@truffle/build/contracts/Utils.json');
+const Oracle            = require('@truffle/build/contracts/Oracle.json');
+const TrustPredictToken = require('@truffle/build/contracts/TrustPredictToken.json');
+const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json');
 
 // Dummy data events - data should come from contract
 export const events: IEvent[] = [{
   id: 1,
-  asset_name: "Orion Protocol",
-  asset_ticker: "ORN", 
-  asset_icon: "/assets/img/orn.svg", 
+  asset_name: 'Orion Protocol',
+  asset_ticker: 'ORN', 
+  asset_icon: '/assets/img/orn.svg', 
   condition: true,  // true high / false low
   condition_price: 10.25,
-  expiration: "21.10.2020",
-  created:  "20.09.2020",
-  value: "5,000 USD", 
-  event_contract: "0x0000000000000000000000000000000000000001",    
+  expiration: '21.10.2020',
+  created:  '20.09.2020',
+  value: '5,000 USD', 
+  event_contract: '0x0000000000000000000000000000000000000001',    
   event_status: {
-    status_desc: "Pending"
+    status_desc: 'Pending'
   },     
 },{
   id: 2,  
-  asset_name: "Orion Protocol",
-  asset_ticker: "ORN", 
-  asset_icon: "/assets/img/orn.svg", 
+  asset_name: 'Orion Protocol',
+  asset_ticker: 'ORN', 
+  asset_icon: '/assets/img/orn.svg', 
   condition: true,  // true high / false low
   condition_price: 10.25,
-  expiration: "21.10.2020",
-  created:  "20.09.2020",    
-  value: "60,000 USD", 
-  event_contract: "0x0000000000000000000000000000000000000002",        
+  expiration: '21.10.2020',
+  created:  '20.09.2020',    
+  value: '60,000 USD', 
+  event_contract: '0x0000000000000000000000000000000000000002',        
   event_status: {
-    status_desc: "expired, withdraw deposit"
+    status_desc: 'expired, withdraw deposit'
   },        
 },{
   id: 3,  
-  asset_name: "Orion Protocol",
-  asset_ticker: "ORN", 
-  asset_icon: "/assets/img/orn.svg", 
+  asset_name: 'Orion Protocol',
+  asset_ticker: 'ORN', 
+  asset_icon: '/assets/img/orn.svg', 
   condition: true,  // true high / false low
   condition_price: 10.25,
-  expiration: "21.10.2020",
-  created:  "20.09.2020",
-  value: "60,000 USD", 
-  event_contract: "0x0000000000000000000000000000000000000003",      
+  expiration: '21.10.2020',
+  created:  '20.09.2020',
+  value: '60,000 USD', 
+  event_contract: '0x0000000000000000000000000000000000000003',      
   event_status: {
-    status_desc: "finished, claim rewards"
+    status_desc: 'finished, claim rewards'
   },     
 },{
   id: 4,  
-  asset_name: "Ethereum",
-  asset_ticker: "ETH", 
-  asset_icon: "/assets/img/eth.svg", 
+  asset_name: 'Ethereum',
+  asset_ticker: 'ETH', 
+  asset_icon: '/assets/img/eth.svg', 
   condition: false,  // true high / false low
   condition_price: 50.00,    
-  expiration: "21.10.2020",
-  created:  "20.09.2020",
-  value: "120,000 USD", 
-  event_contract: "0x0000000000000000000000000000000000000004",          
+  expiration: '21.10.2020',
+  created:  '20.09.2020',
+  value: '120,000 USD', 
+  event_contract: '0x0000000000000000000000000000000000000004',          
   event_status: {
-    status_desc: "\"O\" Tokens Minted, Lower",
-    status_value: "20,000 USD",
-    status_ratio: "120%"         
+    status_desc: '\'O\' Tokens Minted, Lower',
+    status_value: '20,000 USD',
+    status_ratio: '120%'         
   },   
 },{
   id: 5,  
-  asset_name: "Bitcoin",
-  asset_ticker: "BTC", 
-  asset_icon: "/assets/img/btc.svg", 
+  asset_name: 'Bitcoin',
+  asset_ticker: 'BTC', 
+  asset_icon: '/assets/img/btc.svg', 
   condition: false,  // true high / false low
   condition_price: 9000.00,    
-  expiration: "31.12.2020",
-  created:  "20.09.2020",
-  value: "120,000 USD", 
-  event_contract: "0x0000000000000000000000000000000000000005",     
+  expiration: '31.12.2020',
+  created:  '20.09.2020',
+  value: '120,000 USD', 
+  event_contract: '0x0000000000000000000000000000000000000005',     
   event_status: {
-    status_desc: "\"OI\" Tokens Minted, Higher",
-    status_value: "20,000 USD",
-    status_ratio: "120%"         
+    status_desc: '\'OI\' Tokens Minted, Higher',
+    status_value: '20,000 USD',
+    status_ratio: '120%'         
   },   
 }]
 
@@ -130,8 +132,16 @@ export class OpEventService {
       // constants
       const contracts = [];
       const contractAddresses = [];
-      contractAddresses['OPUSD'] = '0xB876a52ABD933a02426C31d8231e9B9352864214';
-      contractAddresses['ChainLink'] = '0xa36085F69e2889c224210F603D836748e7dC0088';
+      // Contract Addresses (local)
+      contractAddresses['OPUSD'] = '0xBf610614CaA08d9fe7a4F61082cc32951e547a91';
+      contractAddresses['ChainLink'] = '0x4C6f9E62b4EDB743608757D9D5F16B0B67B41285';
+      contractAddresses['Utils'] = '0x6c6387F01EddCd8fEcb674332D22d665c5313a90';
+      contractAddresses['Oracle'] = '0xc6ACe392cE166D3f2013302d751Bfc26C166048e';
+      contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
+      contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
+
+      // contractAddresses['OPUSD'] = '0xB876a52ABD933a02426C31d8231e9B9352864214';
+      // contractAddresses['ChainLink'] = '0xa36085F69e2889c224210F603D836748e7dC0088';
       const OPUSDOptionRatio = 100;
       const priceFeedDecimals = 8;
 
@@ -147,22 +157,18 @@ export class OpEventService {
       const betPrice        = ethers.utils.parseUnits((rawBetPrice           *              100).toString(), priceFeedDecimals - 2);
       const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / OPUSDOptionRatio).toString());
 
-      const nonce = await this.web3.eth.getTransactionCount(_wallet);
-      console.log('nonce:' + nonce);
-      this.OPEventAddress = this.crypto.getNextContractAddress(_wallet, nonce + 2);
-      this.OracleAddress  = this.crypto.getNextContractAddress(this.OPEventAddress, 1);
-
       contracts['ChainLink'] = new ethers.Contract(contractAddresses['ChainLink'], ChainLink.abi, _signer);
       contracts['OPUSD'] = new ethers.Contract(contractAddresses['OPUSD'], OPUSD.abi, _signer);
+      contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, _signer);
 
       try {
         const optionsCL = {};
         const optionsOP = {};
-        const approveCL = contracts['ChainLink'].approve(this.OracleAddress,
+        const approveCL = contracts['ChainLink'].approve(contractAddresses['Oracle'],
                                                         ethers.utils.parseUnits('1'),
                                                         optionsCL );
 
-        const approveOP = contracts['OPUSD'].approve(this.OPEventAddress,
+        const approveOP = contracts['OPUSD'].approve(contractAddresses['OPEventFactory'],
                                                   ethers.utils.parseUnits(numTokensStakedToMint.toString()),
                                                   optionsOP );
 
@@ -171,15 +177,12 @@ export class OpEventService {
                 const approveCL = await res[0].wait();
                 const approveOP = await res[1].wait();
                 if (approveCL.status === 1 && approveOP.status === 1) {
-                  const abi = new ethers.utils.Interface( OPEvent.abi );
-                  const factory = new ethers.ContractFactory(abi, OPEvent.bytecode, _signer);
-                  console.log(`Deploying contract with =>> betPrice: ${betPrice} | betSide: ${Number(betSide)} | eventPeriod: ${eventPeriod} | numTokensToMint: ${numTokensToMint} || pairContract: ${pairContract} `);
-                  const contract = await factory.deploy(betPrice, Number(betSide), eventPeriod, numTokensToMint, pairContract );
-                  // The contract is not mined yet but check info
-                  console.log(contract.address, contract.deployTransaction);
-                  // You can wait for the contract to deploy... This will reject and error if the deployment
-                  // fails, for example, gas limit was too low, or the constructor called `revert`
-                  await contract.deployed();
+                  console.log(`Deploying event with =>> betPrice: ${betPrice} | betSide: ${Number(betSide)} | eventPeriod: ${eventPeriod} | numTokensToMint: ${numTokensToMint} || pairContract: ${pairContract} `);
+                  await contracts['OPEventFactory'].createOPEvent(betPrice, 
+                                                                  Number(betSide), 
+                                                                  eventPeriod, 
+                                                                  numTokensToMint,
+                                                                  pairContract );
                   resolve(true);
                 }
               }).catch( err =>
