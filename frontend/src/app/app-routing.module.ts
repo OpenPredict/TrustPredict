@@ -39,6 +39,18 @@ const routes: Routes = [
     canActivate : [AuthGuardGuard],         
     loadChildren: () => import('./pages/launch-option/launch-option.module').then( m => m.LaunchOptionPageModule)
   },
+  {
+    path: 'my-events',
+    loadChildren: () => import('./pages/my-events/my-events.module').then( m => m.MyEventsPageModule)
+  },
+  {
+    path: 'event-overview/:eventId',
+    loadChildren: () => import('./pages/event-overview/event-overview.module').then( m => m.EventOverviewPageModule)
+  },
+  {
+    path: 'event-overview-mint/:eventId/:mint',
+    loadChildren: () => import('./pages/event-overview-mint/event-overview-mint.module').then( m => m.EventOverviewMintPageModule)
+  }
 ];
 
 @NgModule({

@@ -1,0 +1,49 @@
+.separator {
+    height: 1px;
+    width: 90%;
+    margin: 0 auto;
+    background-color: #A6AEBE;
+}
+
+
+.winRatioEstimator {
+    width: 310px;
+    height: auto;
+    padding: 13px;
+    background: #182640;
+    box-shadow: -10px -10px 15px -5px #203151, 10px 10px 15px -5px #0E182C;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 30px;
+    align-items: center; 
+    &.red {
+        border: 1px solid #FE4A49;        
+    }
+    &.green {
+        border: 1px solid #24F67D;        
+    }    
+    .winRatioEstimatorInner {
+        margin: 0 auto;
+        text-align: center;          
+    }  
+    
+}
+
+
+.checkboxSegment {
+    text-align: center;
+    margin: 0 auto 30px;
+    .checkboxSegmentInner {
+        display: inline-flex;
+        align-items: center;     
+        .termsLink {
+            margin-left: 10px;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 14px;
+            line-height: 17px;        
+        }        
+    }
+    
+}

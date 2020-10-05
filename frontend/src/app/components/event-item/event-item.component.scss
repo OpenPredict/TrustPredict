@@ -1,0 +1,35 @@
+:host {
+    display: flex;
+    border: 1px solid #89F4ED;
+    border-radius: 20px;
+    padding: 10px 10px 0;
+    margin-bottom: 10px;
+    width: 100%;
+    // max-width: 95%;
+}
+
+
+.asset_data {
+    flex: 1;
+    .asset_title {
+        font-size: 18px;
+        line-height: 1;
+    }
+    .asset_particulars {
+        ul {
+            font-size: 12px;
+            line-height: 1;
+            color: #A6AEBE;
+        }
+        
+        .lb {
+            width: 100%;
+            height: 1px;
+            background-color: #A6AEBE;
+            margin: 10px auto;
+        }
+        
+    }
+}
+
+

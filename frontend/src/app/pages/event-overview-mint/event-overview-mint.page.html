@@ -1,0 +1,147 @@
+<app-app-header></app-app-header>
+<ion-content>
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <div class="darkBox">
+          <div class="eventOverview" *ngIf="(event$ | async) as event">
+              <h2 class="eventHeader bolder status-status">
+                EVENT OVERVIEW
+              </h2>
+              <div class="eventOverviewData"> 
+                <ul class="list-reset">
+                  <li>
+                    <div class="eventInfoTxt bolder eventTokenInfo"> 
+                      <img [src]="event.asset_icon" alt="">  
+                      {{ event.asset_name }}
+                      ({{ event.asset_ticker }})
+                    </div>     
+                    <div class="eventInfoTxt--small"> 
+                      Created: {{ event.created }}
+                    </div>                                    
+                  </li>
+                  <li>
+                    <div class="eventInfoTxt--small"> 
+                      “{{ tokenName }}” Token success condition:
+                    </div>                
+                    <div class="eventInfoTxt bolder"> 
+                      {{ event.asset_ticker }}
+                      <span [ngClass]="getClass()">
+                          {{ getConditionText() }}
+                      </span>
+                      ${{ event.condition_price }}&nbsp;USD
+                    </div>                     
+                  </li>  
+                  <li>
+                    <div class="eventInfoTxt--small"> 
+                      Event expiration date:
+                    </div>                
+                    <div class="eventInfoTxt bolder"> 
+                      {{ event.expiration }}
+                    </div>                     
+                  </li>                                    
+                </ul>
+              </div>
+              
+              <div class="mintingFormWrap"> 
+                
+                <div class="separator"></div>
+                
+                <form [formGroup]="form">     
+                  <div class="formWrapper">   
+
+                    <h2 class="eventHeader">
+                      Choose asset and amount being staked for the Option
+                    </h2>
+                    
+                    <div class="form__item buffer"> 
+                      <div class="form__label"> 
+                        Select asset
+                      </div>
+                      <ion-select class="form__input form__select" formControlName="option_asset" >
+                        <ion-select-option *ngFor="let t of availableOptions" [value]="t" >
+                          {{ t.name  }} ( {{ t.ticker  }} )
+                        </ion-select-option>
+                      </ion-select>                     
+                      <div *ngIf="hasError('option_asset', 'required')" class="standardInputErr">
+                        option_asset is required
+                      </div>                                      
+                    </div> 
+                    
+                    <div class="form__item buffer"> 
+                      <div class="form__label"> 
+                        Select amount 
+                      </div>
+                      <ion-input class="form__input" type="number" formControlName="option_stake" placeholder="0.00"></ion-input>                     
+                      <div class="form__label form__label--sub"> 
+                        Minimum amount: $100.00
+                      </div>                    
+                      <div *ngIf="hasError('option_stake', 'required')" class="standardInputErr">
+                        Amount is required
+                      </div>           
+                      <div *ngIf="hasError('option_stake', 'min')" class="standardInputErr">
+                        Amount must be greater than 100
+                      </div>                        
+                      <div *ngIf="hasError('option_stake', 'pattern')" class="standardInputErr">
+                        Amount must be a multiple of 100
+                      </div>                        
+                    </div>                  
+                    
+                    <div class="winRatioEstimator"  [ngClass]="{'red': !mint, 'green': mint}">
+                      <div class="winRatioEstimatorInner">
+                        <div class="eventInfoTxt--small"> 
+                          Estimated “{{ tokenName }}” Token win ratio:
+                        </div>                
+                        <div class="eventInfoTxt bolder"> 
+                          400%
+                        </div>                         
+                      </div>                       
+                    </div>
+
+                    <div class="form__item"> 
+                      <div class="checkboxSegment">   
+                        <div class="checkboxSegmentInner">
+                          <ion-checkbox 
+                          formControlName="agreedTerms" 
+                          color="eulaCheckboxes"
+                          slot="start">
+                        </ion-checkbox>   
+                        <div class="termsLink" (click)="openTnC()">
+                          I agree to the <span class="status-status">Terms & Conditions</span>
+                        </div>                          
+                        </div>         
+                      </div>                    
+                    </div>                      
+                    
+                 
+                    
+                    <div class="form__item">                 
+                      <ion-button 
+                       [ngClass]="{'red border--red': !mint, 'green border--green': mint}"
+                       class="btnMint btnMint--lg bolder "
+                       [disabled]="form.invalid" 
+                       type="submit">
+                          <span>Mint “{{ tokenName }}”</span>
+                      </ion-button>
+                    </div>  
+                    
+                                      
+                    </div>
+              </form>            
+                    
+              </div>
+              
+            </div>
+          </div>          
+      </ion-col>      
+    </ion-row>
+    <ion-row>   
+      <ion-col>     
+        <div class="back__button" (click)="goBack()">
+          <div class="back__button--icon"></div>
+          <span>Go back</span>
+        </div>
+      </ion-col>      
+    </ion-row>       
+  </ion-grid>
+</ion-content>
