@@ -15,41 +15,44 @@ import { OptionsStore } from '@app/services/option-service/option.service.store'
 export class LandingPage extends BaseForm implements OnInit {
 
   loading$: Observable<boolean>;
-  availablePairs: any[]
-  
-  constructor( 
+  availablePairs: {};
+
+  constructor(
     private fb: FormBuilder,
     private optService: OptionService,
     private optQry: OptionQuery,
-    private optStr: OptionsStore,    
+    private optStr: OptionsStore,
     public navCtrl: NavController ) {
-      super()
-      
-      this.availablePairs = this.optService.availablePairs
-      
+      super();
+
+      this.availablePairs = this.optService.availablePairs;
+
       this.form = this.fb.group({
-        asset: [this.availablePairs[0], Validators.compose([Validators.required])],   
-      });         
+        asset: [
+                this.availablePairs['0x5813A90f826e16dB392abd2aF7966313fc1fd5B8'],
+                Validators.compose([Validators.required])
+        ]
+      });
     }
-  
+
   ngOnInit() {}
 
   continue() {
-    this.setSubmitted()
-    const selectedPair = this.form.controls['asset'].value
-    const pair = selectedPair.pair
-    const pair_contract = selectedPair.pair_contract   
-    
+    this.setSubmitted();
+    const selectedPair = this.form.controls['asset'].value;
+    const pair = selectedPair.pair;
+    const pair_contract = selectedPair.pair_contract;
+
     const item = { pair: pair, pair_contract: pair_contract }
     if (!this.form.valid && pair && pair_contract ) {
-      return
+      return;
     }
     try {
       this.optStr.upsert(1, item)
-      this.navCtrl.navigateForward([`/event-condition`])      
+      this.navCtrl.navigateForward([`/event-condition`]);
     } catch (error) {
-      console.log(`Error: ${error}`)
-      }           
+      console.log(`Error: ${error}`);
+      }
   }
 
 }

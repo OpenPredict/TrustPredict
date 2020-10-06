@@ -14,6 +14,7 @@ let Constants = utils.Constants
 
 OPUSDTokenValue = ethers.utils.parseUnits((Constants.numTokens * 10 * Constants.OPUSDOptionRatio).toString())
 
+
 async function sendTokensToAddresses(contracts, accounts) {
     // send enough OPUSD for 10 tokens per account
     const range = (account,index) => index > 0;
@@ -81,6 +82,10 @@ async function deployEvent(contracts, accounts) {
     console.log('OPEventID: ' + OPEventID);
     console.log('OToken: ' + OToken);
     console.log('IOToken: ' + IOToken);
+
+    eventData = await contracts['OPEventFactory'].getEventData(OPEventID)
+    console.log('EventData: ' + eventData);
+
     return [OPEventID, OToken, IOToken];
 }
 

@@ -26,32 +26,32 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
     private optService: OptionService,
     private optQry: OptionQuery,
     public opEvent: OpEventService,
-    private optStr: OptionsStore,    
+    private optStr: OptionsStore,
     public ui: UiService,
     private crypto: CryptoService,
     public navCtrl: NavController ) {
-      super()
-      
-      this.availableOptions = this.optService.availableOptions      
-      
+      super();
+
+      this.availableOptions = this.optService.availableOptions;
+
       this.form = this.fb.group({
-        option_asset: [this.availableOptions[0], Validators.compose([Validators.required])],  
-        option_stake: [null, Validators.compose([Validators.required, Validators.min(100), Validators.pattern('^[1-9]+[0-9]*00$')])],           
-      });         
+        option_asset: [this.availableOptions[0], Validators.compose([Validators.required])],
+        option_stake: [null, Validators.compose([Validators.required, Validators.min(100), Validators.pattern('^[1-9]+[0-9]*00$')])],
+      });
     }
-  
-  ngOnInit() {    
+
+  ngOnInit() {
   }
-  
-  
+
+
   async continue() {
 
       const option_asset = this.form.controls['option_asset'].value;
-      const option_stake = this.form.controls['option_stake'].value;
+      const option_stake = parseInt(this.form.controls['option_stake'].value);
       const item = { option_asset: option_asset.pair_contract, option_stake: option_stake }
       this.optStr.upsert(1, item); // update the state object first
 
-      const currentOptions = this.optQry.getAll()
+      const currentOptions = this.optQry.getAll();
       const betSide = currentOptions[0].condition;
       const eventPeriod = currentOptions[0].expiration_date;
       const numTokensStakedToMint = currentOptions[0].option_stake;
@@ -60,8 +60,9 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
 
       try {
        const interaction = await this.ui
-                               .loading(  this.opEvent.eventWager(rawBetPrice, betSide, eventPeriod, numTokensStakedToMint, pairContract), "You will be prompted for 3 contract interactions, please approve all to successfully take part and please be patient as it may take a few moments to broadcast to the network." )
-                               .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) )        
+                               .loading(  this.opEvent.eventWager(rawBetPrice, betSide, eventPeriod, numTokensStakedToMint, pairContract), 
+                               "You will be prompted for 3 contract interactions, please approve all to successfully take part and please be patient as it may take a few moments to broadcast to the network." )
+                               .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) );
 
       if(interaction) {
         alert("Success ! Your wager has been placed")

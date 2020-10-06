@@ -1,8 +1,13 @@
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
     
 import "./Utils.sol";
 
 contract OPEventFactory {
+    // ********** Events ***************
+
+    event EventUpdate(address);
+
     // ********** start state vars **********    
     // constants
     uint constant maxEventPeriod = 315360000; // max time any one event can last for (10y in seconds)
@@ -26,8 +31,6 @@ contract OPEventFactory {
     mapping(address => EventData) events;
 
     uint nonce; // have to keep track of nonce independently. Used for deterministic event ID generation.
-
-    // ********** end state vars **********
 
     // ********** start gatekeeping functions *********
     function _validEventPeriod(uint _eventPeriod) view internal {
@@ -103,7 +106,7 @@ contract OPEventFactory {
         _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
 
         // get next OPEvent ID
-        address OPEventID = Utils.addressFrom(address(this), ++nonce);
+        address _eventId = Utils.addressFrom(address(this), ++nonce);
         // set event data
         EventData memory data;
         data.betPrice = _betPrice;
@@ -111,17 +114,19 @@ contract OPEventFactory {
         data.endTime = block.timestamp + _eventPeriod;
         data.startTime = block.timestamp + Utils.GetDepositPeriod();
         data.priceAggregator = _priceAggregator;
-        events[OPEventID] = data;
+        events[_eventId] = data;
 
         // Create Oracle request. give the callback some leeway
-        Utils.newRequest(data.endTime + 2 minutes, _priceAggregator, _oracle, OPEventID); 
+        Utils.newRequest(data.endTime + 2 minutes, _priceAggregator, _oracle, _eventId); 
         
         // Create event entry in TrustPredictToken.
-        Utils.createTokens(OPEventID, _token);
+        Utils.createTokens(_eventId, _token);
         // Transfer OPUSD to this contract
         Utils.transferFrom(msg.sender, address(this), Utils.convertToOPUSDAmount(numTokensToMint), Utils.GetOPUSDAddress());        
         // mint tokens to sender
-        Utils.mint(OPEventID, msg.sender, numTokensToMint, Utils.Token.O, _token);
+        Utils.mint(_eventId, msg.sender, numTokensToMint, Utils.Token.O, _token);
+
+        emit EventUpdate(_eventId);
     }
 
     // ************************************ start external functions ****************************************************
@@ -164,6 +169,8 @@ contract OPEventFactory {
             winnerAmount
         );
         data.eventSettled = true;
+
+        emit EventUpdate(_eventId);
     }
     
     function claim(address _eventId)
@@ -192,6 +199,8 @@ contract OPEventFactory {
 
         // Completed, burn winning event tokens.
         Utils.burn(_eventId, msg.sender, tokenHoldings, data.winner, _token);
+
+        emit EventUpdate(_eventId);
     }
 
     function revoke(address _eventId) 
@@ -216,6 +225,8 @@ contract OPEventFactory {
             Utils.transfer(msg.sender, Utils.convertToOPUSDAmount(IOHoldings), Utils.GetOPUSDAddress());
             Utils.burn(_eventId, msg.sender, IOHoldings, Utils.Token.IO, _token);
         }
+
+        emit EventUpdate(_eventId);
     }
     // ************************************ start external functions ****************************************************
     
@@ -223,43 +234,8 @@ contract OPEventFactory {
 
 
     // ************************************ start local util functions **************************************************
-    function getBetPrice(address _eventId) view external returns(int) {
-
-       return events[_eventId].betPrice;
-    }
-    
-    function getBetSide(address _eventId) view external returns(Utils.Side) {
-
-       return events[_eventId].betSide;
-    }
-    
-    function getStartTime(address _eventId) view external returns(uint) {
-
-       return events[_eventId].startTime;
-    }
-    
-    function getEndTime(address _eventId) view external returns(uint) {
-
-       return events[_eventId].endTime;
-    }
-    
-    function getWinner(address _eventId) view external returns(Utils.Token){
-       return events[_eventId].winner;
-    }
-    
-    function getAmountPerWinningToken(address _eventId) view external returns(uint) {
-
-       return events[_eventId].amountPerWinningToken;
-    }
-    
-    function getSettledPrice(address _eventId) view external returns(int) {
-
-       return events[_eventId].settledPrice;
-    }
-
-    function getEventSettled(address _eventId) view external returns(bool) {
-
-       return events[_eventId].eventSettled;
+    function getEventData(address _eventId) view public returns(EventData memory) {
+        return events[_eventId];
     }
 
     function getNonce() view external returns(uint256) {

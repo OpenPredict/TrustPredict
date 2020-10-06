@@ -1,6 +1,8 @@
 import { Injectable, Inject } from '@angular/core';
 import { CryptoService } from '@services/crypto-service/crypto.service';
+import { OptionService } from '@services/option-service/option.service';
 import { AuthQuery } from '@services/auth-service/auth.service.query';
+
 import { ethers } from 'ethers';
 
 import { map, mapTo, tap } from 'rxjs/operators';
@@ -22,81 +24,81 @@ const TrustPredictToken = require('@truffle/build/contracts/TrustPredictToken.js
 const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json');
 
 // Dummy data events - data should come from contract
-export const events: IEvent[] = [{
-  id: 1,
-  asset_name: 'Orion Protocol',
-  asset_ticker: 'ORN', 
-  asset_icon: '/assets/img/orn.svg', 
-  condition: true,  // true high / false low
-  condition_price: 10.25,
-  expiration: '21.10.2020',
-  created:  '20.09.2020',
-  value: '5,000 USD', 
-  event_contract: '0x0000000000000000000000000000000000000001',    
-  event_status: {
-    status_desc: 'Pending'
-  },     
-},{
-  id: 2,  
-  asset_name: 'Orion Protocol',
-  asset_ticker: 'ORN', 
-  asset_icon: '/assets/img/orn.svg', 
-  condition: true,  // true high / false low
-  condition_price: 10.25,
-  expiration: '21.10.2020',
-  created:  '20.09.2020',    
-  value: '60,000 USD', 
-  event_contract: '0x0000000000000000000000000000000000000002',        
-  event_status: {
-    status_desc: 'expired, withdraw deposit'
-  },        
-},{
-  id: 3,  
-  asset_name: 'Orion Protocol',
-  asset_ticker: 'ORN', 
-  asset_icon: '/assets/img/orn.svg', 
-  condition: true,  // true high / false low
-  condition_price: 10.25,
-  expiration: '21.10.2020',
-  created:  '20.09.2020',
-  value: '60,000 USD', 
-  event_contract: '0x0000000000000000000000000000000000000003',      
-  event_status: {
-    status_desc: 'finished, claim rewards'
-  },     
-},{
-  id: 4,  
-  asset_name: 'Ethereum',
-  asset_ticker: 'ETH', 
-  asset_icon: '/assets/img/eth.svg', 
-  condition: false,  // true high / false low
-  condition_price: 50.00,    
-  expiration: '21.10.2020',
-  created:  '20.09.2020',
-  value: '120,000 USD', 
-  event_contract: '0x0000000000000000000000000000000000000004',          
-  event_status: {
-    status_desc: '\'O\' Tokens Minted, Lower',
-    status_value: '20,000 USD',
-    status_ratio: '120%'         
-  },   
-},{
-  id: 5,  
-  asset_name: 'Bitcoin',
-  asset_ticker: 'BTC', 
-  asset_icon: '/assets/img/btc.svg', 
-  condition: false,  // true high / false low
-  condition_price: 9000.00,    
-  expiration: '31.12.2020',
-  created:  '20.09.2020',
-  value: '120,000 USD', 
-  event_contract: '0x0000000000000000000000000000000000000005',     
-  event_status: {
-    status_desc: '\'OI\' Tokens Minted, Higher',
-    status_value: '20,000 USD',
-    status_ratio: '120%'         
-  },   
-}]
+// export const events: IEvent[] = [{
+//   id: 1,
+//   asset_name: 'Orion Protocol',
+//   asset_ticker: 'ORN', 
+//   asset_icon: '/assets/img/orn.svg', 
+//   condition: true,  // true high / false low
+//   condition_price: 10.25,
+//   expiration: '21.10.2020',
+//   created:  '20.09.2020',
+//   value: '5,000 USD', 
+//   event_contract: '0x0000000000000000000000000000000000000001',    
+//   event_status: {
+//     status_desc: 'Pending'
+//   },     
+// },{
+//   id: 2,  
+//   asset_name: 'Orion Protocol',
+//   asset_ticker: 'ORN', 
+//   asset_icon: '/assets/img/orn.svg', 
+//   condition: true,  // true high / false low
+//   condition_price: 10.25,
+//   expiration: '21.10.2020',
+//   created:  '20.09.2020',    
+//   value: '60,000 USD', 
+//   event_contract: '0x0000000000000000000000000000000000000002',        
+//   event_status: {
+//     status_desc: 'expired, withdraw deposit'
+//   },        
+// },{
+//   id: 3,  
+//   asset_name: 'Orion Protocol',
+//   asset_ticker: 'ORN', 
+//   asset_icon: '/assets/img/orn.svg', 
+//   condition: true,  // true high / false low
+//   condition_price: 10.25,
+//   expiration: '21.10.2020',
+//   created:  '20.09.2020',
+//   value: '60,000 USD', 
+//   event_contract: '0x0000000000000000000000000000000000000003',      
+//   event_status: {
+//     status_desc: 'finished, claim rewards'
+//   },     
+// },{
+//   id: 4,  
+//   asset_name: 'Ethereum',
+//   asset_ticker: 'ETH', 
+//   asset_icon: '/assets/img/eth.svg', 
+//   condition: false,  // true high / false low
+//   condition_price: 50.00,    
+//   expiration: '21.10.2020',
+//   created:  '20.09.2020',
+//   value: '120,000 USD', 
+//   event_contract: '0x0000000000000000000000000000000000000004',          
+//   event_status: {
+//     status_desc: '\'O\' Tokens Minted, Lower',
+//     status_value: '20,000 USD',
+//     status_ratio: '120%'         
+//   },   
+// },{
+//   id: 5,  
+//   asset_name: 'Bitcoin',
+//   asset_ticker: 'BTC', 
+//   asset_icon: '/assets/img/btc.svg', 
+//   condition: false,  // true high / false low
+//   condition_price: 9000.00,    
+//   expiration: '31.12.2020',
+//   created:  '20.09.2020',
+//   value: '120,000 USD', 
+//   event_contract: '0x0000000000000000000000000000000000000005',     
+//   event_status: {
+//     status_desc: '\'OI\' Tokens Minted, Higher',
+//     status_value: '20,000 USD',
+//     status_ratio: '120%'         
+//   },   
+// }]
 
 
 @Injectable({
@@ -104,19 +106,120 @@ export const events: IEvent[] = [{
 })
 export class OpEventService {
 
-  OPEventAddress: string;
-  OracleAddress: string;
+  events: IEvent[];
 
   constructor(
     private crypto: CryptoService,
     private _authQ: AuthQuery,
+    private optService: OptionService,
     private opEventStr: EventsStore,
-    @Inject(WEB3) private web3: Web3) { }
+    @Inject(WEB3) private web3: Web3) {
+      this.events = [];
+    }
 
-  async eventWager(rawBetPrice: any,
+    timeConverter(timestamp) {
+      const a = new Date(timestamp * 1000);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const year = a.getFullYear();
+      const month = months[a.getMonth()];
+      const date = a.getDate();
+      const hour = a.getHours();
+      const min = a.getMinutes() < 10 ? '0' + a.getMinutes() : a.getMinutes();
+      const sec = a.getSeconds() < 10 ? '0' + a.getSeconds() : a.getSeconds();
+      const time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+      return time.toString();
+    }
+
+    parseEventStatus(eventData) {
+      // normal status: event active.
+      // status_desc: Lower|Higher than x usd',
+      // status_value: '20,000 USD',
+      // status_ratio: '120%'
+
+      /* event can be - 
+      "pending" - created but during deposit period. time < startTime. 
+      'settled, claim rewards' - settled==true
+      'expired, withdraw deposit' - time > startTime and minimum amount not reached.
+      'Active - Lower|Higher than x usd',
+
+      // status_value: '20,000 USD',
+      // status_ratio: '120%'
+
+      */
+
+    }
+
+    async parseEventData(eventId, eventData, tokenBalances){
+
+      const pairing = this.optService.availablePairs[eventData['priceAggregator']];
+      const ticker = pairing.pair.replace('/USD', '');
+      const asset = this.optService.availableAssets[ticker];
+
+      console.log(tokenBalances);
+
+      this.events.push({
+        id: eventId,
+        asset_name: asset.name,
+        asset_ticker: ticker,
+        asset_icon: asset.icon,
+        condition: !!Number(eventData['betSide']),
+        condition_price: ethers.utils.formatUnits(eventData['betPrice'].valueOf().toString(), 8).toString(),
+        expiration: this.timeConverter(eventData['endTime']),
+        created:  this.timeConverter(eventData['startTime']),
+        value: '5,000 USD',
+        event_status: {
+          status_desc: 'Pending'
+        }
+      });
+    }
+
+    async setupEventSubscriber(){
+      // OPEventFactory initial data gathering
+      const _USER: any       = this._authQ.getValue();
+      const _wallet: any = _USER.wallet;
+      const _signer: any = _USER.signer;
+
+      const contracts = [];
+      const contractAddresses = [];
+      contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
+      contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
+      contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, _signer);
+      contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, _signer);
+
+      contracts['OPEventFactory'].getNonce().then(async (lastNonce) => {
+        console.log("lastNonce: " + lastNonce);
+        const nonceRange = [...Array(parseInt(lastNonce)).keys()];
+        await Promise.all(nonceRange
+                          .filter(nonce => nonce > 0)
+                          .map(async (nonce) => {
+            const eventID = this.crypto.getNextContractAddress(contracts['OPEventFactory'].address, nonce);
+            console.log('\nEvent ID: ' + eventID);
+            contracts['OPEventFactory'].getEventData(eventID).then(eventData => {
+                contracts['TrustPredict'].getTokenBalances(eventID).then(balances => {
+                  this.parseEventData(eventID, eventData, balances);
+                });
+            });
+        }))
+      });
+
+      // OPEventFactory subscriber
+      this.crypto.provider().on({
+        address: contracts['OPEventFactory'].address,
+        topics: [ethers.utils.id("EventUpdate(address)")], // OPEventFactory
+      }, (eventIdRaw) => {
+        const eventID = '0x' + eventIdRaw.data.substring(26);
+        contracts['OPEventFactory'].getEventData(eventID).then(eventData => {
+          contracts['TrustPredict'].getTokenBalances(eventID).then(balances => {
+            this.parseEventData(eventID, eventData, balances);
+          });
+      });
+      });
+    }
+
+  async eventWager(rawBetPrice: number,
                    betSide: boolean,
                    eventPeriod: number,
-                   numTokensStakedToMint: any,
+                   numTokensStakedToMint: number,
                    pairContract: string ): Promise<boolean | string>{
 
     console.log(`Placing wager with | rawBetPrice: ${rawBetPrice}| betSide: ${betSide} | eventPeriod: ${eventPeriod} | numTokensStakedToMint: ${numTokensStakedToMint}  || pairContract: ${pairContract}`);
@@ -140,8 +243,6 @@ export class OpEventService {
       contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
       contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
 
-      // contractAddresses['OPUSD'] = '0xB876a52ABD933a02426C31d8231e9B9352864214';
-      // contractAddresses['ChainLink'] = '0xa36085F69e2889c224210F603D836748e7dC0088';
       const OPUSDOptionRatio = 100;
       const priceFeedDecimals = 8;
 
@@ -154,9 +255,12 @@ export class OpEventService {
           new Error(`Please log in via Metamask!`)
         );
       }
-      const betPrice        = ethers.utils.parseUnits((rawBetPrice           *              100).toString(), priceFeedDecimals - 2);
-      const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / OPUSDOptionRatio).toString());
 
+      //console.log(rawBetPrice);
+      const betPrice        = ethers.utils.parseUnits((rawBetPrice           *              100).toString(), priceFeedDecimals - 2);
+      //console.log(betPrice);
+      const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / OPUSDOptionRatio).toString());
+      console.log(numTokensToMint);
       contracts['ChainLink'] = new ethers.Contract(contractAddresses['ChainLink'], ChainLink.abi, _signer);
       contracts['OPUSD'] = new ethers.Contract(contractAddresses['OPUSD'], OPUSD.abi, _signer);
       contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, _signer);
@@ -201,7 +305,7 @@ export class OpEventService {
 
   get(): Observable<void> {
     const request = timer(500).pipe(
-      mapTo(events),
+      mapTo(this.events),
       map(response => this.opEventStr.set(response))
     );
 
@@ -211,16 +315,16 @@ export class OpEventService {
   
   
   getEvent(id: ID) {
-    const event = events.find(current => current.id === +id);
+    const event = this.events.find(current => current.id === +id);
     return timer(500).pipe(
-      mapTo(event),
+      mapTo(this.events),
       map(() => this.opEventStr.add(event))
     );
   }  
   
   
   /**
-   * Return a class depending on if the conditionis true/false
+   * Return a class depending on if the condition is true/false
    * @param condition boolean
    */
   getClass(condition: boolean) {

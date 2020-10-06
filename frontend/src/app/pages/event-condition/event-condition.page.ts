@@ -16,52 +16,52 @@ import { CurrencyPipe, DecimalPipe} from '@angular/common';
 export class EventConditionPage  extends BaseForm implements OnInit {
 
   loading$: Observable<boolean>;
-  formattedAmount: any
-  
-  constructor( 
+  formattedAmount: any;
+
+  constructor(
     private fb: FormBuilder,
     private optService: OptionService,
     private optQry: OptionQuery,
-    private optStr: OptionsStore,    
-    private currencyPipe : CurrencyPipe,
-    private decimalPipe : DecimalPipe,    
+    private optStr: OptionsStore,
+    private currencyPipe: CurrencyPipe,
+    private decimalPipe: DecimalPipe,
     public navCtrl: NavController ) {
-      super()
+      super();
       this.form = this.fb.group({
-        wager: [null, Validators.compose([Validators.required, Validators.minLength(1)])],   
-        condition: ["1", Validators.compose([Validators.required])],   
-      }); 
+        wager: [null, Validators.compose([Validators.required, Validators.minLength(1)])],
+        condition: ["1", Validators.compose([Validators.required])],
+      });
     }
 
     ngOnInit() {}
-    
+
     clearAmount() {
-      this.form.controls['wager'].patchValue(null) 
+      this.form.controls['wager'].patchValue(null);
     }
-    
+
     transformAmount(element){
       this.formattedAmount = this.decimalPipe.transform(this.form.controls['wager'].value, "0.2-2" );
-      this.form.controls['wager'].patchValue(this.formattedAmount)
-  }    
-   
-  
+      this.form.controls['wager'].patchValue(this.formattedAmount);
+  }
+
+
     continue() {
-      this.setSubmitted()
+      this.setSubmitted();
       if (!this.form.valid) {
-        return
+        return;
       }
       try {
-        const condition_price = this.form.controls['wager'].value
-        const condition = (this.form.controls['condition'].value == "1") ? true : false
-        this.optStr.upsert(1, { condition_price, condition } )       
-        this.navCtrl.navigateForward([`/event-expiration`])
+        const condition_price = parseInt(this.form.controls['wager'].value);
+        const condition = (this.form.controls['condition'].value == "1") ? true : false;
+        this.optStr.upsert(1, { condition_price, condition } );
+        this.navCtrl.navigateForward([`/event-expiration`]);
       } catch (error) {
-        console.log(`Error: ${error}`)
-       }           
-    }    
+        console.log(`Error: ${error}`);
+       }
+    }
 
     goBack() {
-      this.navCtrl.back()
-    }    
+      this.navCtrl.back();
+    }
 
 }

@@ -7,8 +7,6 @@ import "openzeppelin-solidity/contracts/token/ERC1155/ERC1155Burnable.sol";
 
 contract TrustPredictToken is ERC1155, ERC1155Burnable {
 
-    event Id(uint256);
-
     // Token data
     struct Token {
         uint256 id;
@@ -59,9 +57,8 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
         return true;
     }
 
-    function balanceOfAddress(address _eventId, address _address, uint8 selection) external returns(uint256) {
+    function balanceOfAddress(address _eventId, address _address, uint8 selection) view external returns(uint256) {
         Token memory _token = getToken(_eventId, selection);
-        emit Id(_token.id);
         return balanceOf(_address, _token.id);
     }
 
@@ -82,8 +79,9 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
         return TokenPairs[_eventId].tokens[Utils.Token(selection)];
     }
 
-    function getTokenBalance(address _eventId, uint8 selection) external view returns (uint256){
-        return TokenPairs[_eventId].tokens[Utils.Token(selection)].balance;
+    function getTokenBalances(address _eventId) external view returns (uint, uint){
+        return (TokenPairs[_eventId].tokens[Utils.Token.O ].balance,
+                TokenPairs[_eventId].tokens[Utils.Token.IO].balance);
     }
     /************** End view functions *****************/
 }
