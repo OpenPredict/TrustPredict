@@ -37,9 +37,8 @@
                        Select asset
                     </div>
                     <ion-select class="form__input form__select" formControlName="asset" >
-                      <ion-select-option *ngFor="let t of availablePairs" [value]="t" >
-                        <!-- {{ t.name  }} {{ t.ticker  }} -->
-                        {{ t.pair }}
+                      <ion-select-option *ngFor="let p of availablePairs | keyvalue" [value]="p.value" >
+                        {{p.value.pair}}
                       </ion-select-option>
                     </ion-select>                     
                     <div *ngIf="hasError('asset', 'required')" class="standardInputErr">

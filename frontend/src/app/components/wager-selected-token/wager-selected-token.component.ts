@@ -15,25 +15,22 @@ import { IOptionsPriceWager } from '@app/data-model';
 })
 export class WagerSelectedTokenComponent implements OnInit {
 
-  wager: IOptionsPriceWager
-  selectedToken: any
-  
+  wager: IOptionsPriceWager;
+  selectedToken: any;
+
   constructor(
     private optService: OptionService,
     private optQry: OptionQuery,
-    private optStr: OptionsStore,        
+    private optStr: OptionsStore,
   ) { }
 
   ngOnInit() {
     this.optQry.selectAll().subscribe( (opt: IOptionsPriceWager[]) => {
-      this.selectedToken = opt[0].pair
-    })             
+      this.selectedToken = opt[0].pair;
+    });
   }
 
-  
   conditionTxt( wagerCondition: boolean  ): string {
-    return ( wagerCondition = true ) ? "more than" : "less than"
+    return ( wagerCondition === true ) ? 'more than' : 'less than';
   }
-  
-  
 }
