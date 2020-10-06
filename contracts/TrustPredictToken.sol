@@ -79,9 +79,13 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
         return TokenPairs[_eventId].tokens[Utils.Token(selection)];
     }
 
+    function getTokenBalance(address _eventId, uint8 selection) public view returns (uint256){
+        return TokenPairs[_eventId].tokens[Utils.Token(selection)].balance;
+    }
+
     function getTokenBalances(address _eventId) external view returns (uint, uint){
-        return (TokenPairs[_eventId].tokens[Utils.Token.O ].balance,
-                TokenPairs[_eventId].tokens[Utils.Token.IO].balance);
+        return (getTokenBalance(_eventId, uint8(Utils.Token.O)), 
+                getTokenBalance(_eventId, uint8(Utils.Token.IO)));
     }
     /************** End view functions *****************/
 }

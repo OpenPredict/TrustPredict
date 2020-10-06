@@ -29,7 +29,7 @@ export class EventConditionPage  extends BaseForm implements OnInit {
       super();
       this.form = this.fb.group({
         wager: [null, Validators.compose([Validators.required, Validators.minLength(1)])],
-        condition: ["1", Validators.compose([Validators.required])],
+        condition: ['1', Validators.compose([Validators.required])],
       });
     }
 
@@ -51,8 +51,8 @@ export class EventConditionPage  extends BaseForm implements OnInit {
         return;
       }
       try {
-        const condition_price = parseInt(this.form.controls['wager'].value);
-        const condition = (this.form.controls['condition'].value == "1") ? true : false;
+        const condition_price = parseFloat(this.form.controls['wager'].value);
+        const condition = (this.form.controls['condition'].value === '1') ? true : false;
         this.optStr.upsert(1, { condition_price, condition } );
         this.navCtrl.navigateForward([`/event-expiration`]);
       } catch (error) {

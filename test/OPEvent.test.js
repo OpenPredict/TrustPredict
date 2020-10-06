@@ -34,6 +34,7 @@ async function sendTokensToAddresses(contracts, accounts) {
 async function deployEvent(contracts, accounts) {
     // get deployer address nonce
     nonce = await contracts['OPEventFactory'].getNonce();
+    console.log('nonce: ' + nonce);
 
     // contract address creation starts at nonce 1, so we emulate that for the Event ID.
     OPEventID = utils.getNextContractAddress(contracts['OPEventFactory'].address, ++nonce)
@@ -249,7 +250,8 @@ contract("TrustPredict", async (accounts) => {
         // settle event
         contracts['OPEventFactory'].settle(OPEventID, settlementPrice);
         // validate price per winning token as 2/3 of a token for each IO holder
-        amountPerWinningTokenContract = await contracts['OPEventFactory'].getAmountPerWinningToken(OPEventID);
+        eventData = await contracts['OPEventFactory'].getEventData(OPEventID);
+        amountPerWinningTokenContract = eventData['amountPerWinningToken'];
         amountPerWinningToken = ethers.utils.parseUnits("0666666666666666666", 0);
 
         assert.equal(amountPerWinningTokenContract.valueOf().toString(),
