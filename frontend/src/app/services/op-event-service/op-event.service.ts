@@ -23,84 +23,6 @@ const Oracle            = require('@truffle/build/contracts/Oracle.json');
 const TrustPredictToken = require('@truffle/build/contracts/TrustPredictToken.json');
 const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json');
 
-// Dummy data events - data should come from contract
-// export const events: IEvent[] = [{
-//   id: 1,
-//   asset_name: 'Orion Protocol',
-//   asset_ticker: 'ORN', 
-//   asset_icon: '/assets/img/orn.svg', 
-//   condition: true,  // true high / false low
-//   condition_price: 10.25,
-//   expiration: '21.10.2020',
-//   created:  '20.09.2020',
-//   value: '5,000 USD', 
-//   event_contract: '0x0000000000000000000000000000000000000001',    
-//   event_status: {
-//     status_desc: 'Pending'
-//   },     
-// },{
-//   id: 2,  
-//   asset_name: 'Orion Protocol',
-//   asset_ticker: 'ORN', 
-//   asset_icon: '/assets/img/orn.svg', 
-//   condition: true,  // true high / false low
-//   condition_price: 10.25,
-//   expiration: '21.10.2020',
-//   created:  '20.09.2020',    
-//   value: '60,000 USD', 
-//   event_contract: '0x0000000000000000000000000000000000000002',        
-//   event_status: {
-//     status_desc: 'expired, withdraw deposit'
-//   },        
-// },{
-//   id: 3,  
-//   asset_name: 'Orion Protocol',
-//   asset_ticker: 'ORN', 
-//   asset_icon: '/assets/img/orn.svg', 
-//   condition: true,  // true high / false low
-//   condition_price: 10.25,
-//   expiration: '21.10.2020',
-//   created:  '20.09.2020',
-//   value: '60,000 USD', 
-//   event_contract: '0x0000000000000000000000000000000000000003',      
-//   event_status: {
-//     status_desc: 'finished, claim rewards'
-//   },     
-// },{
-//   id: 4,  
-//   asset_name: 'Ethereum',
-//   asset_ticker: 'ETH', 
-//   asset_icon: '/assets/img/eth.svg', 
-//   condition: false,  // true high / false low
-//   condition_price: 50.00,    
-//   expiration: '21.10.2020',
-//   created:  '20.09.2020',
-//   value: '120,000 USD', 
-//   event_contract: '0x0000000000000000000000000000000000000004',          
-//   event_status: {
-//     status_desc: '\'O\' Tokens Minted, Lower',
-//     status_value: '20,000 USD',
-//     status_ratio: '120%'         
-//   },   
-// },{
-//   id: 5,  
-//   asset_name: 'Bitcoin',
-//   asset_ticker: 'BTC', 
-//   asset_icon: '/assets/img/btc.svg', 
-//   condition: false,  // true high / false low
-//   condition_price: 9000.00,    
-//   expiration: '31.12.2020',
-//   created:  '20.09.2020',
-//   value: '120,000 USD', 
-//   event_contract: '0x0000000000000000000000000000000000000005',     
-//   event_status: {
-//     status_desc: '\'OI\' Tokens Minted, Higher',
-//     status_value: '20,000 USD',
-//     status_ratio: '120%'         
-//   },   
-// }]
-
-
 @Injectable({
   providedIn: 'root'
 })
@@ -108,9 +30,12 @@ export class OpEventService {
 
   events: IEvent[];
 
+  depositPeriod = 10;
+  minimumTokenAmountPerEvent = ethers.BigNumber.from(ethers.utils.parseUnits('100'));
+
   constructor(
     private crypto: CryptoService,
-    private _authQ: AuthQuery,
+    private authQ: AuthQuery,
     private optService: OptionService,
     private opEventStr: EventsStore,
     @Inject(WEB3) private web3: Web3) {
@@ -130,23 +55,22 @@ export class OpEventService {
       return time.toString();
     }
 
-    parseEventStatus(eventData) {
-      // normal status: event active.
-      // status_desc: Lower|Higher than x usd',
-      // status_value: '20,000 USD',
-      // status_ratio: '120%'
+    parseEventStatus(eventData, totalBalance: ethers.BigNumber) {
 
-      /* event can be - 
-      "pending" - created but during deposit period. time < startTime. 
-      'settled, claim rewards' - settled==true
-      'expired, withdraw deposit' - time > startTime and minimum amount not reached.
-      'Active - Lower|Higher than x usd',
+      const date = new Date();
+      const betPrice = ethers.utils.formatUnits(eventData['betPrice'].valueOf().toString(), 8).toString();
 
-      // status_value: '20,000 USD',
-      // status_ratio: '120%'
-
-      */
-
+      return {
+        status_desc : (date < new Date(this.timeConverter(eventData['startTime'])))
+                      ? 'Pending' :
+                      (eventData['eventSettled'] === true)
+                      ? 'Settled, claim rewards' :
+                      (date > new Date(this.timeConverter(eventData['startTime'])) && totalBalance.lt(this.minimumTokenAmountPerEvent))
+                      ? 'Expired, withdraw deposit' :
+                      'Active: ' + (eventData['betSide'] === 1 ? 'Higher ' : 'Lower ') + 'than ' + betPrice + ' USD',
+        status_value : ethers.utils.formatUnits(totalBalance.mul(100).toString()).toString() + ' USD',
+        status_ratio : ''
+      };
     }
 
     async parseEventData(eventId, eventData, tokenBalances){
@@ -157,6 +81,10 @@ export class OpEventService {
 
       console.log(tokenBalances);
 
+      const totalBalance = ethers.BigNumber.from(tokenBalances[0]).add(ethers.BigNumber.from(tokenBalances[1]));
+
+      ethers.utils.formatUnits(tokenBalances[0].add(tokenBalances[1]).valueOf().toString());
+
       this.events.push({
         id: eventId,
         asset_name: asset.name,
@@ -166,28 +94,25 @@ export class OpEventService {
         condition_price: ethers.utils.formatUnits(eventData['betPrice'].valueOf().toString(), 8).toString(),
         expiration: this.timeConverter(eventData['endTime']),
         created:  this.timeConverter(eventData['startTime']),
-        value: '5,000 USD',
-        event_status: {
-          status_desc: 'Pending'
-        }
+        value: ethers.utils.formatUnits(totalBalance.mul(100).toString()).toString() + ' USD',
+        event_status: this.parseEventStatus(eventData, totalBalance)
       });
     }
 
     async setupEventSubscriber(){
       // OPEventFactory initial data gathering
-      const _USER: any       = this._authQ.getValue();
-      const _wallet: any = _USER.wallet;
-      const _signer: any = _USER.signer;
+      const _USER: any       = this.authQ.getValue();
+      const signer: any = _USER.signer;
 
       const contracts = [];
       const contractAddresses = [];
       contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
       contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
-      contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, _signer);
-      contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, _signer);
+      contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, signer);
+      contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
 
       contracts['OPEventFactory'].getNonce().then(async (lastNonce) => {
-        console.log("lastNonce: " + lastNonce);
+        console.log('lastNonce: ' + lastNonce);
         const nonceRange = [...Array(parseInt(lastNonce)).keys()];
         await Promise.all(nonceRange
                           .filter(nonce => nonce > 0)
@@ -199,20 +124,21 @@ export class OpEventService {
                   this.parseEventData(eventID, eventData, balances);
                 });
             });
-        }))
+        }));
       });
 
       // OPEventFactory subscriber
       this.crypto.provider().on({
         address: contracts['OPEventFactory'].address,
-        topics: [ethers.utils.id("EventUpdate(address)")], // OPEventFactory
+        topics: [ethers.utils.id('EventUpdate(address)')], // OPEventFactory
       }, (eventIdRaw) => {
         const eventID = '0x' + eventIdRaw.data.substring(26);
+        console.log('eventID subscriber: ' + eventID);
         contracts['OPEventFactory'].getEventData(eventID).then(eventData => {
           contracts['TrustPredict'].getTokenBalances(eventID).then(balances => {
             this.parseEventData(eventID, eventData, balances);
           });
-      });
+        });
       });
     }
 
@@ -246,7 +172,7 @@ export class OpEventService {
       const OPUSDOptionRatio = 100;
       const priceFeedDecimals = 8;
 
-      const _USER: any       = this._authQ.getValue();
+      const _USER: any       = this.authQ.getValue();
       const _wallet: any = _USER.wallet;
       const _signer: any = _USER.signer;
 
@@ -256,9 +182,7 @@ export class OpEventService {
         );
       }
 
-      //console.log(rawBetPrice);
       const betPrice        = ethers.utils.parseUnits((rawBetPrice           *              100).toString(), priceFeedDecimals - 2);
-      //console.log(betPrice);
       const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / OPUSDOptionRatio).toString());
       console.log(numTokensToMint);
       contracts['ChainLink'] = new ethers.Contract(contractAddresses['ChainLink'], ChainLink.abi, _signer);
@@ -278,22 +202,22 @@ export class OpEventService {
 
         const waitForInteractions = Promise.all([approveCL, approveOP]);
         waitForInteractions.then( async (res) => {
-                const approveCL = await res[0].wait();
-                const approveOP = await res[1].wait();
-                if (approveCL.status === 1 && approveOP.status === 1) {
-                  console.log(`Deploying event with =>> betPrice: ${betPrice} | betSide: ${Number(betSide)} | eventPeriod: ${eventPeriod} | numTokensToMint: ${numTokensToMint} || pairContract: ${pairContract} `);
-                  await contracts['OPEventFactory'].createOPEvent(betPrice, 
-                                                                  Number(betSide), 
-                                                                  eventPeriod, 
-                                                                  numTokensToMint,
-                                                                  pairContract );
-                  resolve(true);
-                }
-              }).catch( err =>
-                reject(
-                  `Error during contract deployment ${JSON.stringify(err)}`
-                )
-              );
+          const approveCL = await res[0].wait();
+          const approveOP = await res[1].wait();
+          if (approveCL.status === 1 && approveOP.status === 1) {
+            console.log(`Deploying event with =>> betPrice: ${betPrice} | betSide: ${Number(betSide)} | eventPeriod: ${eventPeriod} | numTokensToMint: ${numTokensToMint} || pairContract: ${pairContract} `);
+            await contracts['OPEventFactory'].createOPEvent(betPrice,
+                                                            Number(betSide),
+                                                            eventPeriod,
+                                                            numTokensToMint,
+                                                            pairContract );
+            resolve(true);
+          }
+        }).catch( err =>
+          reject(
+            `Error during transaction creation: ${JSON.stringify(err)}`
+          )
+        );
       } catch (error) {
         console.log();
         reject(
@@ -311,34 +235,31 @@ export class OpEventService {
 
     return cacheable(this.opEventStr, request);
   }
-  
-  
-  
+
+
+
   getEvent(id: ID) {
     const event = this.events.find(current => current.id === +id);
     return timer(500).pipe(
       mapTo(this.events),
       map(() => this.opEventStr.add(event))
     );
-  }  
-  
-  
+  }
+
+
   /**
    * Return a class depending on if the condition is true/false
    * @param condition boolean
    */
   getClass(condition: boolean) {
-    return (!condition) ? "status-red" : "status-green"
+    return (!condition) ? 'status-red' : 'status-green'
   }
 
   /**
    * Return text depending on if the conditionis true/false
    * @param condition boolean
-   */  
+   */
   getConditionText(condition: boolean) {
-    return (!condition) ? "lower than" : "higher than"
-  }      
-  
-  
-  
+    return (!condition) ? 'lower than' : 'higher than'
+  }
 }
