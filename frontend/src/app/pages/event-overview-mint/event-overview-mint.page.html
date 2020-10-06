@@ -120,7 +120,8 @@
                        [ngClass]="{'red border--red': !mint, 'green border--green': mint}"
                        class="btnMint btnMint--lg bolder "
                        [disabled]="form.invalid" 
-                       type="submit">
+                       type="submit"
+                       (click)="continue()">>
                           <span>Mint “{{ tokenName }}”</span>
                       </ion-button>
                     </div>  

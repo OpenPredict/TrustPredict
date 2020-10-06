@@ -19,21 +19,21 @@ export class EventOverviewMintPage extends BaseForm implements OnInit {
 
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
-  }  
-  
+  }
+
   get mint() {
     const mint = this.activatedRoute.snapshot.params.mint; // get the mint boolean from url
-    return (mint == "0") ? false : true;
-  }     
-  
-  get tokenName() {
-    return (!this.mint) ? "IO" : "O";
-  }    
+    return (mint === '0') ? false : true;
+  }
 
-  termsAndConditions: string = "https://openpredict.io"
+  get tokenName() {
+    return (!this.mint) ? 'IO' : 'O';
+  }
+
+  termsAndConditions = 'https://openpredict.io';
   event$ = this.eventsQuery.selectEntity(this.eventId);
-  availableOptions: any[]
-  
+  availableOptions: any[];
+
   constructor(
     private fb: FormBuilder,
     private navCtrl: NavController,
@@ -42,14 +42,14 @@ export class EventOverviewMintPage extends BaseForm implements OnInit {
     private ui: UiService,
     private eventsService: OpEventService,
     private eventsQuery: OpEventQuery) {
-      super()
-      this.availableOptions = this.optService.availableOptions      
-      
+      super();
+      this.availableOptions = this.optService.availableOptions;
+
       this.form = this.fb.group({
-        option_asset: [this.availableOptions[0], Validators.compose([Validators.required])],  
-        option_stake: [null, Validators.compose([Validators.required, Validators.min(100), Validators.pattern('^[1-9]+[0-9]*00$')])],           
-        agreedTerms: [false, Validators.requiredTrue ],    
-      });     
+        option_asset: [this.availableOptions[0], Validators.compose([Validators.required])],
+        option_stake: [null, Validators.compose([Validators.required, Validators.min(100), Validators.pattern('^[1-9]+[0-9]*00$')])],
+        agreedTerms: [false, Validators.requiredTrue ],
+      });
     }
 
   ngOnInit() {
@@ -60,24 +60,43 @@ export class EventOverviewMintPage extends BaseForm implements OnInit {
         switchMap(id => this.eventsService.getEvent(id))
       ).subscribe();
   }
-  
+
   ngOnDestroy(){}
-  
+
+  async continue() {
+    const eventId = this.activatedRoute.snapshot.params.eventId;
+    const numTokensStakedToMint = parseFloat(this.form.controls['option_stake'].value);
+    const selection = this.activatedRoute.snapshot.params.mint;
+
+    try {
+     const interaction = await this.ui
+                             .loading(  this.eventsService.stake(eventId, numTokensStakedToMint, selection),
+                             'You will be prompted for 2 contract interactions, please approve both to successfully take part and please be patient as it may take a few moments to broadcast to the network.' )
+                             .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) );
+
+     if (interaction) {
+      alert('Success ! Your stake has been placed');
+    }
+    } catch (error) {
+      alert(`Error ! ${error}`);
+    }
+}
+
   goBack() {
-    this.navCtrl.back()
-  }    
-  
-  getConditionText(): string {
-    return this.eventsService.getConditionText(this.mint)
-  }  
-  
-  getClass(): string {
-    return this.eventsService.getClass(this.mint)
-  }  
-  // replace with live terms and conditons url
-  openTnC() {
-    this.ui.openIAB(this.termsAndConditions)
+    this.navCtrl.back();
   }
 
-  
+  getConditionText(): string {
+    return this.eventsService.getConditionText(this.mint);
+  }
+
+  getClass(): string {
+    return this.eventsService.getClass(this.mint);
+  }
+  // replace with live terms and conditons url
+  openTnC() {
+    this.ui.openIAB(this.termsAndConditions);
+  }
+
+
 }
