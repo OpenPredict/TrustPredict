@@ -15,8 +15,8 @@ export class EventOverviewPage implements OnInit, OnDestroy {
 
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
-  }   
-  
+  }
+
   event$ = this.eventsQuery.selectEntity(this.eventId);
 
   constructor(
@@ -33,27 +33,27 @@ export class EventOverviewPage implements OnInit, OnDestroy {
         switchMap(id => this.eventsService.getEvent(id))
       ).subscribe();
   }
-  
+
   ngOnDestroy(){}
-  
+
   goBack() {
     this.navCtrl.back()
-  }    
-  
+  }
+
   getConditionText(condition: boolean): string {
     return this.eventsService.getConditionText(condition)
-  }  
-  
+  }
+
   getClass(condition: boolean): string {
     return this.eventsService.getClass(condition)
-  }  
-  
+  }
+
   /**
    * Opens the minting page
    * @param mintCondition if true user selected mint higher / false lower
    */
   openMinter(mintCondition: boolean): void {
     this.navCtrl.navigateForward(`/event-overview-mint/${this.eventId}/${mintCondition}`)
-  }    
-  
+  }
+
 }

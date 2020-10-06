@@ -142,13 +142,13 @@ export class OpEventService {
       });
     }
 
-  async eventWager(rawBetPrice: number,
+  async launchEvent(rawBetPrice: number,
                    betSide: boolean,
                    eventPeriod: number,
                    numTokensStakedToMint: number,
                    pairContract: string ): Promise<boolean | string>{
 
-    console.log(`Placing wager with | rawBetPrice: ${rawBetPrice}| betSide: ${betSide} | eventPeriod: ${eventPeriod} | numTokensStakedToMint: ${numTokensStakedToMint}  || pairContract: ${pairContract}`);
+    console.log(`Launch event with | rawBetPrice: ${rawBetPrice}| betSide: ${betSide} | eventPeriod: ${eventPeriod} | numTokensStakedToMint: ${numTokensStakedToMint}  || pairContract: ${pairContract}`);
 
     return new Promise( async (resolve, reject) => {
 
@@ -226,6 +226,66 @@ export class OpEventService {
       }
     });
   }
+
+  async stake(eventId: string,
+              numTokensStakedToMint: number,
+              selection: number){
+
+          console.log(`Placing stake with | eventId: ${eventId}| numTokensStakedToMint: ${numTokensStakedToMint} || selection: ${selection}`);
+
+          return new Promise( async (resolve, reject) => {
+
+            // constants
+            const contracts = [];
+            const contractAddresses = [];
+            // Contract Addresses (local)
+            contractAddresses['OPUSD'] = '0xBf610614CaA08d9fe7a4F61082cc32951e547a91';
+            contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
+
+            const OPUSDOptionRatio = 100;
+            const priceFeedDecimals = 8;
+
+            const _USER: any       = this.authQ.getValue();
+            const _wallet: any = _USER.wallet;
+            const _signer: any = _USER.signer;
+
+            if (!_wallet || !_signer) {
+              reject(
+                new Error(`Please log in via Metamask!`)
+              );
+            }
+
+            const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / OPUSDOptionRatio).toString());
+            console.log(numTokensToMint);
+            contracts['OPUSD'] = new ethers.Contract(contractAddresses['OPUSD'], OPUSD.abi, _signer);
+            contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, _signer);
+
+            try {
+              const optionsOP = {};
+              const approveOP = contracts['OPUSD'].approve(contractAddresses['OPEventFactory'],
+                                                        ethers.utils.parseUnits(numTokensStakedToMint.toString()),
+                                                        optionsOP );
+
+              const waitForInteractions = Promise.all([approveOP]);
+              waitForInteractions.then( async (res) => {
+                const approveOP = await res[1].wait();
+                if (approveOP.status === 1) {
+                  await contracts['OPEventFactory'].stake(eventId, numTokensToMint, selection);
+                  resolve(true);
+                }
+              }).catch( err =>
+                reject(
+                  `Error during transaction creation: ${JSON.stringify(err)}`
+                )
+              );
+            } catch (error) {
+              console.log();
+              reject(
+                new Error(error)
+              );
+            }
+          });
+        }
 
   get(): Observable<void> {
     const request = timer(500).pipe(
