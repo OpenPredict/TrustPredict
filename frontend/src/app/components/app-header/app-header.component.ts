@@ -21,5 +21,9 @@ export class AppHeaderComponent implements OnInit {
     this.navCtrl.navigateForward('my-events');
   }
 
+  openEventsFinished() {
+    this.navCtrl.navigateForward('event-completed');
+  }  
+  
 
 }

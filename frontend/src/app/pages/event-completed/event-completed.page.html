@@ -39,56 +39,61 @@
                     <div class="eventInfoTxt bolder"> 
                       {{ event.completion }}
                     </div>                     
-                  </li>                                    
+                  </li> 
+                  <li>
+                    <div class="eventInfoTxt--small"> 
+                      Event settlement price:
+                    </div>                
+                    <div class="eventInfoTxt bolder"> 
+                      22.43 USD
+                    </div>                     
+                  </li>                                                      
                 </ul>
               </div>
               
-              <div class="eventOverviewData"> 
+              <!-- Change this according to whatever data comes back from the contract  -->
+              <div class="eventOverviewData" *ngIf="!HARD_EXPIRED_OR_WINNER"> 
                 <ul class="list-reset mintOptionList">
-                  
-                  <li class="mintOption">
-                    <div class="mintOptionWrap border--green">
-                      <div class="mintOption--token bolder status-status">
-                        “O” Token
-                      </div>
-                      <div class="eventInfoTxt highLow bolder status-green">
-                        Higher
-                      </div>                      
-                      <div class="eventInfoTxt--small">
-                        Current win ratio:
-                      </div>          
-                      <div class="eventInfoTxt bolder">
-                        120%
-                      </div>                                         
-                    </div>
-                    <div class="btnMint green bolder border--green" (click)="openMinter(1)">
-                      <span>Mint “O”</span>
-                    </div>
-                  </li>
-                  
                   <li class="mintOption">
                     <div class="mintOptionWrap border--red">
-                      <div class="mintOption--token bolder status-status">
-                        “IO” Token
-                      </div>
                       <div class="eventInfoTxt highLow bolder status-red">
-                        Lower
+                        Event Expired
+                      </div>                                                             
+                    </div>
+                    
+                    <div class="btnMint smokey bolder">
+                      <span>Withdraw Deposit</span>
+                    </div>                    
+                    
+                  </li>                 
+                </ul>              
+              </div>                  
+
+              <!-- Change this according to whatever data comes back from the contract  -->              
+              <div class="eventOverviewData" *ngIf="HARD_EXPIRED_OR_WINNER"> 
+                <ul class="list-reset mintOptionList">
+                  <li class="mintOption">
+                    <div class="mintOptionWrap border--orange">
+                      <div class="mintOption--token bolder status-status">
+                        “O” <br>Token
+                      </div>
+                      <div class="eventInfoTxt highLow bolder status-orange">
+                        Winner
                       </div>                      
                       <div class="eventInfoTxt--small">
-                        Current win ratio:
+                        Estimated “OI” Token Win Ratio:
                       </div>          
                       <div class="eventInfoTxt bolder">
-                        500%
+                        400%
                       </div>                                         
                     </div>
-                    <div class="btnMint red bolder border--red" (click)="openMinter(0)">
-                      <span>Mint “IO”</span>
+                    <div class="btnMint orange bolder border--orange">
+                      <span>Withdraw Rewards</span>
                     </div>
-                  </li>                  
-                  
+                  </li>                 
                 </ul>              
               </div>
-              
+                                          
             </div>
           </div>          
       </ion-col>      

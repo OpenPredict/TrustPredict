@@ -50,6 +50,10 @@ const routes: Routes = [
   {
     path: 'event-overview-mint/:eventId/:mint',
     loadChildren: () => import('./pages/event-overview-mint/event-overview-mint.module').then( m => m.EventOverviewMintPageModule)
+  },
+  {
+    path: 'event-completed',
+    loadChildren: () => import('./pages/event-completed/event-completed.module').then( m => m.EventCompletedPageModule)
   }
 ];
 
