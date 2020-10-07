@@ -12,14 +12,14 @@ export class AppHeaderComponent implements OnInit {
 
   ngOnInit() {}
 
-  
+
   openOptions() {
-    this.navCtrl.navigateForward('landing')
+    this.navCtrl.navigateForward('landing');
   }
-  
+
   openEvents() {
-    this.navCtrl.navigateForward('my-events')
-  }  
-  
-  
+    this.navCtrl.navigateForward('my-events');
+  }
+
+
 }

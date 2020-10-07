@@ -39,7 +39,7 @@ library Utils {
     }
     
     function GetDepositPeriod() external pure returns (uint _depositPeriod) {
-        _depositPeriod = compare(network, "kovan") ? 86400 : 10;
+        _depositPeriod = compare(network, "kovan") ? 86400 : 100;
     }
 
     function GetMinimumTokenAmountPerEvent() external pure returns (uint _minimumTokenAmountPerEvent) {

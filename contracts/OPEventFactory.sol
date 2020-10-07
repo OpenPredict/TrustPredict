@@ -130,16 +130,18 @@ contract OPEventFactory {
     }
 
     // ************************************ start external functions ****************************************************
-    function stake(address eventId, uint numTokensToMint, Utils.Token selection)
+    function stake(address _eventId, uint numTokensToMint, Utils.Token selection)
         external 
     {
-        _isSettled(eventId, false);
-        _minimumTimeReached(eventId, false);
-        _correctWeight(eventId, numTokensToMint, selection);
+        _isSettled(_eventId, false);
+        _minimumTimeReached(_eventId, false);
+        _correctWeight(_eventId, numTokensToMint, selection);
         _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
 
         Utils.transferFrom(msg.sender, address(this), Utils.convertToOPUSDAmount(numTokensToMint), Utils.GetOPUSDAddress());
-        Utils.mint(eventId, msg.sender, numTokensToMint, selection, _token);
+        Utils.mint(_eventId, msg.sender, numTokensToMint, selection, _token);
+
+        emit EventUpdate(_eventId);
     }
 
     function settle(address _eventId, int _settledPrice) 

@@ -20,16 +20,15 @@ export interface LedgerWallet {
 
 
 export interface IEvent {
-    id?: ID;
+    id?: string;
     asset_name?: string;
     asset_ticker?: string;
     asset_icon?: string;
     condition?: boolean;
     condition_price?: number | string; // whatever the contract returns
-    expiration?: string | Date;
+    completion?: string | Date;
     created?: string;
     value?: string;
-    event_contract?: string;
     event_status?: IEventStatus;
   }
 
