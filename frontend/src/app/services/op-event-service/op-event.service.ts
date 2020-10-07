@@ -62,12 +62,12 @@ export class OpEventService {
 
       return {
         status_desc : (date < new Date(this.timeConverter(eventData['startTime'])))
-                      ? 'Pending' :
+                      ? 'Stake' :
                       (eventData['eventSettled'] === true)
                       ? 'Settled, claim rewards' :
                       (date > new Date(this.timeConverter(eventData['startTime'])) && totalBalance.lt(this.minimumTokenAmountPerEvent))
                       ? 'Expired, withdraw deposit' :
-                      'Active: ' + (eventData['betSide'] === 1 ? 'Higher ' : 'Lower ') + 'than ' + betPrice + ' USD',
+                      'Active (Staking disabled): ' + (eventData['betSide'] === 1 ? 'Higher ' : 'Lower ') + 'than ' + betPrice + ' USD',
         status_value : ethers.utils.formatUnits(totalBalance.mul(100).toString()).toString() + ' USD',
         status_ratio : ''
       };
@@ -79,24 +79,38 @@ export class OpEventService {
       const ticker = pairing.pair.replace('/USD', '');
       const asset = this.optService.availableAssets[ticker];
 
-      console.log(tokenBalances);
-
       const totalBalance = ethers.BigNumber.from(tokenBalances[0]).add(ethers.BigNumber.from(tokenBalances[1]));
 
       ethers.utils.formatUnits(tokenBalances[0].add(tokenBalances[1]).valueOf().toString());
 
-      this.events.push({
+      const eventEntry = {
         id: eventId,
         asset_name: asset.name,
         asset_ticker: ticker,
         asset_icon: asset.icon,
         condition: !!Number(eventData['betSide']),
         condition_price: ethers.utils.formatUnits(eventData['betPrice'].valueOf().toString(), 8).toString(),
-        expiration: this.timeConverter(eventData['endTime']),
+        completion: this.timeConverter(eventData['endTime']),
         created:  this.timeConverter(eventData['startTime']),
         value: ethers.utils.formatUnits(totalBalance.mul(100).toString()).toString() + ' USD',
         event_status: this.parseEventStatus(eventData, totalBalance)
-      });
+      };
+
+      // Try to find existing event, if not add new.
+      let found = false;
+      await Promise.all(this.events.map(async (_event, index) => {
+        if (_event.id === eventId) {
+          this.events[index] = eventEntry;
+          found = true;
+        }
+      }));
+
+      if (!found) {
+        console.log('pushing new event ');
+        this.events.push(eventEntry);
+      }
+
+      console.log('events length after push: ' + Object.keys(this.events).length);
     }
 
     async setupEventSubscriber(){
@@ -112,41 +126,40 @@ export class OpEventService {
       contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
 
       contracts['OPEventFactory'].getNonce().then(async (lastNonce) => {
-        console.log('lastNonce: ' + lastNonce);
-        const nonceRange = [...Array(parseInt(lastNonce)).keys()];
-        await Promise.all(nonceRange
-                          .filter(nonce => nonce > 0)
-                          .map(async (nonce) => {
+          console.log('lastNonce: ' + lastNonce);
+          const nonceRange = [...Array(parseInt(lastNonce)).keys()];
+          console.log('nonceRange: ' + nonceRange);
+          await Promise
+          .all(nonceRange
+          .filter(nonce => nonce > 0)
+          .map(async (nonce) => {
             const eventID = this.crypto.getNextContractAddress(contracts['OPEventFactory'].address, nonce);
             console.log('\nEvent ID: ' + eventID);
-            contracts['OPEventFactory'].getEventData(eventID).then(eventData => {
-                contracts['TrustPredict'].getTokenBalances(eventID).then(balances => {
-                  this.parseEventData(eventID, eventData, balances);
-                });
-            });
-        }));
-      });
-
-      // OPEventFactory subscriber
-      this.crypto.provider().on({
-        address: contracts['OPEventFactory'].address,
-        topics: [ethers.utils.id('EventUpdate(address)')], // OPEventFactory
-      }, (eventIdRaw) => {
-        const eventID = '0x' + eventIdRaw.data.substring(26);
-        console.log('eventID subscriber: ' + eventID);
-        contracts['OPEventFactory'].getEventData(eventID).then(eventData => {
-          contracts['TrustPredict'].getTokenBalances(eventID).then(balances => {
-            this.parseEventData(eventID, eventData, balances);
-          });
+            const eventData = await contracts['OPEventFactory'].getEventData(eventID);
+            const balances = await contracts['TrustPredict'].getTokenBalances(eventID);
+            await this.parseEventData(eventID, eventData, balances);
+          }));
         });
-      });
+
+        // OPEventFactory subscriber
+      this.crypto.provider().on( {
+          address: contracts['OPEventFactory'].address,
+          topics: [ethers.utils.id('EventUpdate(address)')], // OPEventFactory
+        }, async (eventIdRaw) => {
+          const eventID = '0x' + eventIdRaw.data.substring(26);
+          console.log('eventID subscriber: ' + eventID);
+          console.log('events length: ' + Object.keys(this.events).length);
+          const eventData = await contracts['OPEventFactory'].getEventData(eventID);
+          const balances = await contracts['TrustPredict'].getTokenBalances(eventID);
+          await this.parseEventData(eventID, eventData, balances);
+        });
     }
 
   async launchEvent(rawBetPrice: number,
-                   betSide: boolean,
-                   eventPeriod: number,
-                   numTokensStakedToMint: number,
-                   pairContract: string ): Promise<boolean | string>{
+                    betSide: boolean,
+                    eventPeriod: number,
+                    numTokensStakedToMint: number,
+                    pairContract: string ): Promise<boolean | string>{
 
     console.log(`Launch event with | rawBetPrice: ${rawBetPrice}| betSide: ${betSide} | eventPeriod: ${eventPeriod} | numTokensStakedToMint: ${numTokensStakedToMint}  || pairContract: ${pairContract}`);
 
@@ -202,9 +215,9 @@ export class OpEventService {
 
         const waitForInteractions = Promise.all([approveCL, approveOP]);
         waitForInteractions.then( async (res) => {
-          const approveCL = await res[0].wait();
-          const approveOP = await res[1].wait();
-          if (approveCL.status === 1 && approveOP.status === 1) {
+          const approveCLWait = await res[0].wait();
+          const approveOPWait = await res[1].wait();
+          if (approveCLWait.status === 1 && approveOPWait.status === 1) {
             console.log(`Deploying event with =>> betPrice: ${betPrice} | betSide: ${Number(betSide)} | eventPeriod: ${eventPeriod} | numTokensToMint: ${numTokensToMint} || pairContract: ${pairContract} `);
             await contracts['OPEventFactory'].createOPEvent(betPrice,
                                                             Number(betSide),
@@ -231,7 +244,9 @@ export class OpEventService {
               numTokensStakedToMint: number,
               selection: number){
 
-          console.log(`Placing stake with | eventId: ${eventId}| numTokensStakedToMint: ${numTokensStakedToMint} || selection: ${selection}`);
+          console.log(`Placing stake with | eventId: ${eventId}
+                                          | numTokensStakedToMint: ${numTokensStakedToMint}
+                                          || selection: ${selection}`);
 
           return new Promise( async (resolve, reject) => {
 
@@ -268,8 +283,9 @@ export class OpEventService {
 
               const waitForInteractions = Promise.all([approveOP]);
               waitForInteractions.then( async (res) => {
-                const approveOP = await res[1].wait();
-                if (approveOP.status === 1) {
+                const approveOPWait = await res[0].wait();
+                if (approveOPWait.status === 1) {
+                  console.log(`Placing stake with | eventId: ${eventId}| numTokensStakedToMint: ${numTokensStakedToMint} || selection: ${selection}`);
                   await contracts['OPEventFactory'].stake(eventId, numTokensToMint, selection);
                   resolve(true);
                 }
@@ -312,7 +328,7 @@ export class OpEventService {
    * @param condition boolean
    */
   getClass(condition: boolean) {
-    return (!condition) ? 'status-red' : 'status-green'
+    return (!condition) ? 'status-red' : 'status-green';
   }
 
   /**
@@ -320,6 +336,6 @@ export class OpEventService {
    * @param condition boolean
    */
   getConditionText(condition: boolean) {
-    return (!condition) ? 'lower than' : 'higher than'
+    return (!condition) ? 'lower than' : 'higher than';
   }
 }

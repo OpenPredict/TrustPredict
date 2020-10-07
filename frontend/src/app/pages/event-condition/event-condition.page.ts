@@ -51,7 +51,7 @@ export class EventConditionPage  extends BaseForm implements OnInit {
         return;
       }
       try {
-        const condition_price = parseFloat(this.form.controls['wager'].value);
+        const condition_price = parseFloat((this.form.controls['wager'].value).replace(',', ''));
         const condition = (this.form.controls['condition'].value === '1') ? true : false;
         this.optStr.upsert(1, { condition_price, condition } );
         this.navCtrl.navigateForward([`/event-expiration`]);

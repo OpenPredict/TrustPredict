@@ -7,12 +7,11 @@ import { IEvent } from '@app/data-model';
 export class OpEventQuery extends QueryEntity<State, IEvent> {
   constructor(protected store: EventsStore) {
     super(store);
-  }  
-  
+  }
+
   getEvent(term: string) {
     return this.selectAll({
-      filterBy: entity => entity.event_contract.includes(term)
+      filterBy: entity => entity.id.includes(term)
     });
-  }  
-  
+  }
 }

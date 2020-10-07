@@ -23,7 +23,9 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     private navCtrl: NavController,
     private activatedRoute: ActivatedRoute,
     private eventsService: OpEventService,
-    private eventsQuery: OpEventQuery) {}
+    private eventsQuery: OpEventQuery) {
+      console.log('construct');
+    }
 
   ngOnInit() {
     this.activatedRoute.paramMap.pipe(
@@ -37,15 +39,15 @@ export class EventOverviewPage implements OnInit, OnDestroy {
   ngOnDestroy(){}
 
   goBack() {
-    this.navCtrl.back()
+    this.navCtrl.back();
   }
 
   getConditionText(condition: boolean): string {
-    return this.eventsService.getConditionText(condition)
+    return this.eventsService.getConditionText(condition);
   }
 
   getClass(condition: boolean): string {
-    return this.eventsService.getClass(condition)
+    return this.eventsService.getClass(condition);
   }
 
   /**
@@ -53,7 +55,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
    * @param mintCondition if true user selected mint higher / false lower
    */
   openMinter(mintCondition: boolean): void {
-    this.navCtrl.navigateForward(`/event-overview-mint/${this.eventId}/${mintCondition}`)
+    this.navCtrl.navigateForward(`/event-overview-mint/${this.eventId}/${mintCondition}`);
   }
 
 }

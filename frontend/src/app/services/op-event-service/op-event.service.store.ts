@@ -4,7 +4,7 @@ import { EntityState, EntityStore, StoreConfig } from '@datorama/akita';
 
 export interface State extends EntityState<IEvent> {}
 
-const initialState: State = {}
+const initialState: State = {};
 
 @Injectable({ providedIn: 'root' })
 @StoreConfig({ name: 'events', resettable: true })

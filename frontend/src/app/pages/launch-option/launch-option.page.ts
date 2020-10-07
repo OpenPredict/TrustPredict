@@ -47,7 +47,7 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
   async continue() {
 
       const option_asset = this.form.controls['option_asset'].value;
-      const option_stake = parseFloat(this.form.controls['option_stake'].value);
+      const option_stake = this.form.controls['option_stake'].value;
       const item = { option_asset: option_asset.pair_contract, option_stake };
       this.optStr.upsert(1, item); // update the state object first
 

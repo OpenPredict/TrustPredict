@@ -23,18 +23,18 @@
                       <div class="form__label"> 
                         Select Event or input contract
                       </div>
-                      <ion-input class="form__input" type="text" formControlName="contract_address" placeholder="0x000000...0000"></ion-input>                     
-                      <div *ngIf="hasError('contract_address', 'invalid_address')" class="standardInputErr">
-                        This address is not a valid Ethereum address.
+                      <ion-input class="form__input" type="text" formControlName="event_id" placeholder="0x000000...0000"></ion-input>                     
+                      <div *ngIf="hasError('event_id', 'invalid_address')" class="standardInputErr">
+                        This event ID is not valid.
                       </div>  
-                      <div *ngIf="hasError('contract_address', 'required')" class="standardInputErr">
-                        A valid Ethereum address is required.
+                      <div *ngIf="hasError('event_id', 'required')" class="standardInputErr">
+                        A valid event ID is required.
                       </div>
-                      <div *ngIf="hasError('contract_address', 'maxlength')" class="standardInputErr">
-                        A valid Ethereum address must not be more than 42 chars, including 0x prefix.
+                      <div *ngIf="hasError('event_id', 'maxlength')" class="standardInputErr">
+                        A valid event ID must not be more than 42 chars, including 0x prefix.
                       </div>  
-                      <div *ngIf="hasError('contract_address', 'minlength')" class="standardInputErr">
-                        A valid Ethereum address must be at least 42 chars, including 0x prefix.
+                      <div *ngIf="hasError('event_id', 'minlength')" class="standardInputErr">
+                        A valid event ID must be at least 42 chars, including 0x prefix.
                       </div>                                                                                        
                     </div>                     
                   </form>
