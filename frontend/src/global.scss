@@ -353,9 +353,21 @@ html, body {
 .status-status {
     color: #89F4ED;
 }
+.status-status {
+    color: #89F4ED;
+}
 
+.border--green {
+    border: 1px solid #24F67D;    
+}
 
+.border--red {
+    border: 1px solid #FE4A49;    
+}
 
+.border--orange {
+    border: 1px solid #F2C94C;    
+}
 
 
 /** RELATED TO THE MINTING PAGES BEGIN */
@@ -395,10 +407,11 @@ html, body {
 
 $green-darker: darken(#24F67D, 15);
 $red-darker: darken(#FE4A49, 15);
+$orange-darker: darken(#F2C94C, 15);
 
 .btnMint {
     width: 100%;
-    height: 35px;
+    height: 45px;
     mix-blend-mode: normal;
     border-radius: 20px;
     box-shadow: -10px -10px 15px -5px #203151, 10px 10px 15px -5px #0E182C;    
@@ -438,17 +451,45 @@ $red-darker: darken(#FE4A49, 15);
             --background: $red-darker;            
             border: 1px solid $red-darker;    
         }              
+    }
+    
+    
+    
+    &.smokey {
+        background-color: #E5E5E5;   
+        --background: #E5E5E5;   
+        color: #000;
+        // &:hover {
+        //     background-color: $red-darker;
+        //     --background: $red-darker;            
+        //     border: 1px solid $red-darker;    
+        // }              
+    }     
+    &.red--ghost {
+        // background-color: #FE4A49;   
+        // --background: #FE4A49;   
+        background-color: transparent;   
+        --background: transparent;    
+        border: 1px solid  #FE4A49;         
+        &:hover {
+            background-color:  #FE4A49; 
+            --background:  #FE4A49;             
+            // border: 1px solid $red-darker;    
+        }              
     }    
+    &.orange {
+        background-color: #F2C94C;   
+        --background: #F2C94C;   
+        &:hover {
+            background-color: $orange-darker;
+            --background: $orange-darker;            
+            border: 1px solid $orange-darker;    
+        }              
+    }        
 }
 
 
-.border--green {
-    border: 1px solid #24F67D;    
-}
 
-.border--red {
-    border: 1px solid #FE4A49;    
-}
 
 .mintOptionWrap {
     border-radius: 20px;
@@ -475,7 +516,10 @@ ul.mintOptionList {
 /** RELATED TO THE MINTING PAGES END */
 
 
-
+.mintOption--token {
+    font-size: 24px;
+    line-height: 1;
+}
 
 
 ion-checkbox {
@@ -505,3 +549,33 @@ ion-checkbox {
     color: black;
     font-weight: bold;   
 }    
+
+
+
+
+.winRatioEstimator {
+    width: 310px;
+    height: auto;
+    padding: 13px;
+    background: #182640;
+    box-shadow: -10px -10px 15px -5px #203151, 10px 10px 15px -5px #0E182C;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 30px;
+    align-items: center; 
+    &.gold {
+        border: 1px solid #F2C94C;        
+    }    
+    &.red {
+        border: 1px solid #FE4A49;        
+    }
+    &.green {
+        border: 1px solid #24F67D;        
+    }    
+    .winRatioEstimatorInner {
+        margin: 0 auto;
+        text-align: center;          
+    }  
+    
+}
