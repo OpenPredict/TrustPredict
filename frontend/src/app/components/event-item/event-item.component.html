@@ -22,14 +22,14 @@
         </ul>
         <div class="lb"></div>
         <ul class="list-reset">
-          <li *ngIf="event.event_status.status_desc" class="status-status">
-            {{ event.event_status.status_desc }}
+          <li class="status-status">
+            {{ getStatusText(event) }}
           </li>
-          <li *ngIf="event.event_status.status_value">
-            value: {{ event.event_status.status_value }}
+          <li *ngIf="event.value">
+            value: {{ event.value }}
           </li>
-          <li *ngIf="event.event_status.status_ratio">
-            win ratio: {{ event.event_status.status_ratio }}
+          <li *ngIf="event.ratio">
+            win ratio: {{ event.ratio }}
           </li>                           
         </ul>        
       </div>      

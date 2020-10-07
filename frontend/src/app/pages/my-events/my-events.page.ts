@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
 import { BaseForm } from '@app/helpers/BaseForm';
 import { FormBuilder, Validators } from '@angular/forms';
 import { CustomValidators } from '@app/helpers/CustomValidators';
-import { IEvent } from '@app/data-model';
+import { IEvent, Status } from '@app/data-model';
 import { OpEventQuery } from '@services/op-event-service/op-event.service.query';
 
 
@@ -69,7 +69,10 @@ export class MyEventsPage extends BaseForm implements OnInit {
 
   openEvent(event: IEvent) {
     console.log(event);
-    this.navCtrl.navigateForward(`/event-overview/${event.id}`);
+    (event.status === Status.Staking) ? this.navCtrl.navigateForward(`/event-overview/${event.id}`) :
+    (event.status === Status.Expired) ? this.navCtrl.navigateForward(`/event-completed/${event.id}/0`) :
+    (event.status === Status.Settled) ? this.navCtrl.navigateForward(`/event-completed/${event.id}/1`) :
+    (event.status === Status.Active);
   }
 
 

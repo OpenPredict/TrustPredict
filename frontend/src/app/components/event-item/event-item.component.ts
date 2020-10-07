@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { IEvent } from '@app/data-model';
-import { OpEventService } from "@services/op-event-service/op-event.service";
+import { OpEventService } from '@services/op-event-service/op-event.service';
 
 @Component({
   selector: 'app-event-item',
@@ -9,20 +9,24 @@ import { OpEventService } from "@services/op-event-service/op-event.service";
 })
 export class EventItemComponent implements OnInit {
 
-  @Input() event: IEvent  
-  
+  @Input() event: IEvent;
+
   constructor(private eventService: OpEventService ) { }
 
   ngOnInit() {}
 
   getClass(condition: boolean): string {
-    return this.eventService.getClass(condition)
+    return this.eventService.getClass(condition);
   }
-  
+
   getConditionText(condition: boolean): string {
-    return this.eventService.getConditionText(condition)
-  }    
-  
+    return this.eventService.getConditionText(condition);
+  }
+
+  getStatusText(event: any): string {
+    return this.eventService.getStatusText(event);
+  }
+
 }
 
 
