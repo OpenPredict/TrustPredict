@@ -1,5 +1,20 @@
 import { ID } from '@datorama/akita';
 
+export enum Token {
+  O = 0,
+  IO = 1
+}
+export enum Side {
+  Lower = 0,
+  Higher = 1
+}
+export enum Status {
+  Staking = 0,
+  Expired = 2,
+  Active  = 3,
+  Settled = 4
+}
+
 export interface IOptionsPriceWager {
     id?: ID;
     pair?: string; // name
@@ -29,11 +44,6 @@ export interface IEvent {
     completion?: string | Date;
     created?: string;
     value?: string;
-    event_status?: IEventStatus;
-  }
-
-export interface IEventStatus {
-    status_desc?: string;
-    status_value?: string;
-    status_ratio?: string;
+    status?: Status;
+    ratio?: string;
   }

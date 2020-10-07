@@ -14,7 +14,7 @@ import { timer } from 'rxjs/internal/observable/timer';
 import { WEB3 } from '@app/web3';
 import Web3 from 'web3';
 import { EventsStore } from './op-event.service.store';
-import { IEvent } from '@app/data-model';
+import { IEvent, Status } from '@app/data-model';
 
 const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
 const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
@@ -56,21 +56,14 @@ export class OpEventService {
     }
 
     parseEventStatus(eventData, totalBalance: ethers.BigNumber) {
-
       const date = new Date();
-      const betPrice = ethers.utils.formatUnits(eventData['betPrice'].valueOf().toString(), 8).toString();
-
-      return {
-        status_desc : (date < new Date(this.timeConverter(eventData['startTime'])))
-                      ? 'Stake' :
-                      (eventData['eventSettled'] === true)
-                      ? 'Settled, claim rewards' :
-                      (date > new Date(this.timeConverter(eventData['startTime'])) && totalBalance.lt(this.minimumTokenAmountPerEvent))
-                      ? 'Expired, withdraw deposit' :
-                      'Active (Staking disabled): ' + (eventData['betSide'] === 1 ? 'Higher ' : 'Lower ') + 'than ' + betPrice + ' USD',
-        status_value : ethers.utils.formatUnits(totalBalance.mul(100).toString()).toString() + ' USD',
-        status_ratio : ''
-      };
+      return  (date < new Date(this.timeConverter(eventData['startTime'])))
+              ? Status.Staking :
+              (eventData['eventSettled'] === true)
+              ? Status.Settled :
+              (date > new Date(this.timeConverter(eventData['startTime'])) && totalBalance.lt(this.minimumTokenAmountPerEvent))
+              ? Status.Expired :
+              Status.Active;
     }
 
     async parseEventData(eventId, eventData, tokenBalances){
@@ -92,8 +85,9 @@ export class OpEventService {
         condition_price: ethers.utils.formatUnits(eventData['betPrice'].valueOf().toString(), 8).toString(),
         completion: this.timeConverter(eventData['endTime']),
         created:  this.timeConverter(eventData['startTime']),
+        status: this.parseEventStatus(eventData, totalBalance),
         value: ethers.utils.formatUnits(totalBalance.mul(100).toString()).toString() + ' USD',
-        event_status: this.parseEventStatus(eventData, totalBalance)
+        ratio: ''
       };
 
       // Try to find existing event, if not add new.
@@ -337,5 +331,12 @@ export class OpEventService {
    */
   getConditionText(condition: boolean) {
     return (!condition) ? 'lower than' : 'higher than';
+  }
+
+  getStatusText(event: any) {
+    return  (event.status === Status.Staking) ? 'Staking in Progress'       :
+            (event.status === Status.Settled) ? 'Settled, Claim Rewards'    :
+            (event.status === Status.Expired) ? 'Expired, Withdraw Deposit' :
+            'Active (Staking Complete): ' + (event.betSide === 1 ? 'Higher ' : 'Lower ') + 'than ' + event.condition_price + ' USD';
   }
 }
