@@ -25,7 +25,6 @@
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
 
-
 html, body {
     font-family: Montserrat, 'sans-serif';
 }
@@ -496,3 +495,13 @@ ion-checkbox {
     width: 25px;
     --ion-color-tint: transparent;
     }
+    
+.successToast {
+    --background: var(--ion-color-primary);
+    --border-radius: 5px;
+    --color:#000;
+    font-size: 20px;
+    text-align: center;
+    color: black;
+    font-weight: bold;   
+}    

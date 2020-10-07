@@ -108,7 +108,18 @@ export class OpEventService {
       if (!found) {
         console.log('pushing new event ');
         this.events.push(eventEntry);
+        this.opEventStr.add(eventEntry, { prepend: true })
       }
+      
+      // const eventsObs = this._events.getValue().map( (event: IEvent, index: number) => {
+      //   if ( _.isEqual(event.id, eventId)) {
+      //     return event[index] = eventEntry;
+      //   }       
+      //   else {
+      //     return event
+      //   }      
+      // })
+      // this.opEventStr.add(event))
 
       console.log('events length after push: ' + Object.keys(this.events).length);
     }
