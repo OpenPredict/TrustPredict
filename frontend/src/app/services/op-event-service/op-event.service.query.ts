@@ -11,7 +11,7 @@ export class OpEventQuery extends QueryEntity<State, IEvent> {
 
   getEvent(term: string) {
     return this.selectAll({
-      filterBy: entity => entity.id.includes(term)
+      filterBy: entity => entity.id == term
     });
   }
 }

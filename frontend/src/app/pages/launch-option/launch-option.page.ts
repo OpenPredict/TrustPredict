@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { OptionService } from '@services/option-service/option.service';
-import { NavController } from '@ionic/angular';
+import { NavController, ToastController } from '@ionic/angular';
 import { OptionQuery } from '@services/option-service/option.service.query';
 import { OptionsStore } from '@app/services/option-service/option.service.store';
 import { OpEventService } from '@app/services/op-event-service/op-event.service';
@@ -27,6 +27,7 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
     private optQry: OptionQuery,
     public opEvent: OpEventService,
     private optStr: OptionsStore,
+    public toastCtrl: ToastController,
     public ui: UiService,
     private crypto: CryptoService,
     public navCtrl: NavController ) {
@@ -41,6 +42,7 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
     }
 
   ngOnInit() {
+
   }
 
 
@@ -65,17 +67,29 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
                                .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) );
 
        if (interaction) {
-        alert('Success ! Your wager has been placed');
-      }
+           this.showWagerSuccess()
+        }
       } catch (error) {
         alert(`Error ! ${error}`);
       }
   }
-
-
-
+  
   goBack() {
     this.navCtrl.back();
   }
 
+  async showWagerSuccess() {
+    const toast = await this.toastCtrl.create({
+      position: "middle",
+      duration: 2000,
+      cssClass: "successToast",
+      message: 'Success ! Your wager has been placed'
+    });
+    await toast.present();
+    setTimeout( async () => {
+      await toast.dismiss()
+      this.navCtrl.navigateForward('/my-events')
+    }, 2500);
+  }  
+  
 }

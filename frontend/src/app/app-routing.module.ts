@@ -36,7 +36,7 @@ const routes: Routes = [
   },
   {
     path: 'launch-option',
-    canActivate : [AuthGuardGuard],         
+    // canActivate : [AuthGuardGuard],         
     loadChildren: () => import('./pages/launch-option/launch-option.module').then( m => m.LaunchOptionPageModule)
   },
   {

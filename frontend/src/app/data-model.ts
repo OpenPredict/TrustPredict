@@ -20,7 +20,7 @@ export interface LedgerWallet {
 
 
 export interface IEvent {
-    id?: string;
+    id?: ID;
     asset_name?: string;
     asset_ticker?: string;
     asset_icon?: string;
