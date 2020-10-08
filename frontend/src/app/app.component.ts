@@ -40,7 +40,7 @@ export class AppComponent {
       if (wallet && signer) {
         this._auth.login(wallet, signer);
         this.opEvent.setupEventSubscriber();
-        this.navCtrl.navigateForward('/my-events');
+        this.navCtrl.navigateForward('/landing');
       }      
       
       
