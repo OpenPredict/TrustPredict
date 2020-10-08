@@ -6,13 +6,19 @@
         <div class="darkBox">
           <div class="assetOptions">
             <div class="assetOptions__nav">
-              <div class="assetOptions__option">
+              <div class="assetOptions__option"
+                   [ngClass]="{'assetOptions__selected': activeEventType == 0 }"
+                   (click)="displayEventType(0)">
                 Pending Events
               </div>     
-              <div class="assetOptions__option assetOptions__selected">
+              <div class="assetOptions__option"
+                   [ngClass]="{'assetOptions__selected': activeEventType == 1 }"
+                   (click)="displayEventType(1)">
                 Active Events
               </div>     
-              <div class="assetOptions__option">
+              <div class="assetOptions__option"
+                   [ngClass]="{'assetOptions__selected': activeEventType == 2 }"
+                   (click)="displayEventType(2)">
                 My Events
               </div>                                             
             </div>                
@@ -38,16 +44,24 @@
                       </div>                                                                                        
                     </div>                     
                   </form>
-                 
                   <div class="form__item buffer@20 asset__listLine"> 
-                    <div class="asset__list">
-                      <div class="asset_item" *ngFor="let e of events$ | async" (click)="openEvent(e)">
+                    <div class="asset__list asset__list--hidden" [ngClass]="{'asset__list--active': activeEventType == 0 }">
+                      <div class="asset_item" *ngFor="let e of myEvents$ | async" (click)="openEvent(e)">
                         <app-event-item [event]="e"></app-event-item>
                       </div>                      
                     </div>                     
-                  </div>                                      
+                    <div class="asset__list asset__list--hidden" [ngClass]="{'asset__list--active': activeEventType == 1 }">
+                      <div class="asset_item" *ngFor="let e of activeEvents$ | async" (click)="openEvent(e)">
+                        <app-event-item [event]="e"></app-event-item>
+                      </div>                      
+                    </div>                     
+                    <div class="asset__list asset__list--hidden" [ngClass]="{'asset__list--active': activeEventType == 2 }">
+                      <div class="asset_item" *ngFor="let e of pendingEvents$ | async" (click)="openEvent(e)">
+                        <app-event-item [event]="e"></app-event-item>
+                      </div>                      
+                    </div>                     
+                  </div>                    
                   </div>
-  
           </div>          
         </div> 
       </ion-col>      
