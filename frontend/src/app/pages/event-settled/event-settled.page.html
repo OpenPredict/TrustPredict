@@ -39,56 +39,40 @@
                     <div class="eventInfoTxt bolder"> 
                       {{ event.completion }}
                     </div>                     
-                  </li>                                    
+                  </li> 
+                  <li>
+                    <div class="eventInfoTxt--small"> 
+                      Event settlement price:
+                    </div>                
+                    <div class="eventInfoTxt bolder"> 
+                      22.43 USD
+                    </div>                     
+                  </li>                                                      
                 </ul>
               </div>
-              
-              <div class="eventOverviewData"> 
+              <div class="eventOverviewData" *ngIf="HARD_EXPIRED_OR_WINNER"> 
                 <ul class="list-reset mintOptionList">
-                  
                   <li class="mintOption">
-                    <div class="mintOptionWrap border--green">
+                    <div class="mintOptionWrap border--orange">
                       <div class="mintOption--token bolder status-status">
-                        “{{getToken(Position.Left,event.side)}}” Token
+                        “O” <br>Token
                       </div>
-                      <div class="eventInfoTxt highLow bolder status-green">
-                        Higher
+                      <div class="eventInfoTxt highLow bolder status-orange">
+                        Winner
                       </div>                      
                       <div class="eventInfoTxt--small">
-                        Current win ratio:
+                        Estimated “OI” Token Win Ratio:
                       </div>          
                       <div class="eventInfoTxt bolder">
-                        120%
+                        400%
                       </div>                                         
                     </div>
-                    <div class="btnMint green bolder border--green" (click)="continue(getToken(Position.Left, event.side), Position.Left)">
-                      <span>Mint “{{getToken(Position.Left,event.side)}}”</span>
+                    <div class="btnMint orange bolder border--orange" (click)="continue()">
+                      <span>Withdraw Rewards</span>
                     </div>
-                  </li>
-                  
-                  <li class="mintOption">
-                    <div class="mintOptionWrap border--red">
-                      <div class="mintOption--token bolder status-status">
-                        “{{getToken(Position.Right,event.side)}}” Token
-                      </div>
-                      <div class="eventInfoTxt highLow bolder status-red">
-                        Lower
-                      </div>                      
-                      <div class="eventInfoTxt--small">
-                        Current win ratio:
-                      </div>          
-                      <div class="eventInfoTxt bolder">
-                        500%
-                      </div>                                         
-                    </div>
-                    <div class="btnMint red bolder border--red" (click)="continue(getToken(Position.Right, event.side), Position.Right)">
-                      <span>Mint “{{getToken(Position.Right, event.side)}}”</span>
-                    </div>
-                  </li>                  
-                  
+                  </li>                 
                 </ul>              
-              </div>
-              
+              </div>                             
             </div>
           </div>          
       </ion-col>      

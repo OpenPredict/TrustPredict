@@ -6,7 +6,7 @@ import { OptionQuery } from '@services/option-service/option.service.query';
 import { BaseForm } from '@app/helpers/BaseForm';
 import { FormBuilder, Validators } from '@angular/forms';
 import { OptionsStore } from '@app/services/option-service/option.service.store';
-import  *  as moment from "moment";
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-event-expiration',
@@ -16,44 +16,44 @@ import  *  as moment from "moment";
 export class EventExpirationPage  extends BaseForm implements OnInit {
 
   loading$: Observable<boolean>;
-  
-  min: string
 
-  constructor( 
+  min: string;
+
+  constructor(
     private fb: FormBuilder,
     private optService: OptionService,
     private optQry: OptionQuery,
-    private optStr: OptionsStore,    
+    private optStr: OptionsStore,
     public navCtrl: NavController ) {
-      super()
+      super();
       this.form = this.fb.group({
-        expiration_date: [this.min, Validators.compose([Validators.required])],   
-      });    
+        expiration_date: [this.min, Validators.compose([Validators.required])],
+      });
     }
-  
+
     ngOnInit() {
-    this.min = moment().add(2, 'days').toISOString()
+    this.min = moment().add(2, 'days').toISOString();
     }
-      
+
     continue() {
-      this.setSubmitted()
+      this.setSubmitted();
       if (!this.form.valid) {
-        return
+        return;
       }
       try {
-        const expiry = this.form.controls['expiration_date'].value
-        var a = moment()
-        var b = moment(expiry);
-        const seconds =  a.diff(b, 'seconds') 
-        this.optStr.upsert(1, { expiration_date: Number( Math.abs(seconds) ) } )       
-        this.navCtrl.navigateForward([`/launch-option`])        
+        const expiry = this.form.controls['expiration_date'].value;
+        const a = moment();
+        const b = moment(expiry);
+        const seconds =  a.diff(b, 'seconds');
+        this.optStr.upsert(1, { expiration_date: Number( Math.abs(seconds) ) } );
+        this.navCtrl.navigateForward([`/launch-option`]);
       } catch (error) {
-        console.log(`Error: ${error}`)
-       }           
+        console.log(`Error: ${error}`);
+       }
     }
-    
+
     goBack() {
-      this.navCtrl.back()
-    }        
+      this.navCtrl.back();
+    }
 
 }

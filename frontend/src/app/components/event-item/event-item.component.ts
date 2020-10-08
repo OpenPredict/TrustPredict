@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { IEvent } from '@app/data-model';
+import { IEvent, Side } from '@app/data-model';
 import { OpEventService } from '@services/op-event-service/op-event.service';
 
 @Component({
@@ -15,12 +15,12 @@ export class EventItemComponent implements OnInit {
 
   ngOnInit() {}
 
-  getClass(condition: boolean): string {
-    return this.eventService.getClass(condition);
+  getClass(betSide: Side): string {
+    return (betSide === Side.Higher) ? 'status-green' : 'status-red';
   }
 
-  getConditionText(condition: boolean): string {
-    return this.eventService.getConditionText(condition);
+  getConditionText(betSide: Side): string {
+    return (betSide === Side.Higher) ? 'higher than' : 'lower than';
   }
 
   getStatusText(event: any): string {

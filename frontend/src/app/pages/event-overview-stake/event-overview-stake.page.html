@@ -87,7 +87,7 @@
                       </div>                        
                     </div>                  
                     
-                    <div class="winRatioEstimator"  [ngClass]="{'red': !mint, 'green': mint}">
+                    <div class="winRatioEstimator"  [ngClass]="{'red': position === Position.Right, 'green': position === Position.Left}">
                       <div class="winRatioEstimatorInner">
                         <div class="eventInfoTxt--small"> 
                           Estimated “{{ tokenName }}” Token win ratio:
@@ -117,11 +117,11 @@
                     
                     <div class="form__item">                 
                       <ion-button 
-                       [ngClass]="{'red border--red': !mint, 'green border--green': mint}"
+                       [ngClass]="{'red border--red': position === Position.Right, 'green border--green': position === Position.Left}"
                        class="btnMint btnMint--lg bolder "
                        [disabled]="form.invalid" 
                        type="submit"
-                       (click)="continue()">>
+                       (click)="continue()">
                           <span>Mint “{{ tokenName }}”</span>
                       </ion-button>
                     </div>  

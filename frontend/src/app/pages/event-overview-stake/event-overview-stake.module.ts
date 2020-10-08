@@ -4,9 +4,9 @@ import { FormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
-import { EventOverviewMintPageRoutingModule } from './event-overview-mint-routing.module';
+import { EventOverviewStakePageRoutingModule } from './event-overview-stake-routing.module';
 
-import { EventOverviewMintPage } from './event-overview-mint.page';
+import { EventOverviewStakePage } from './event-overview-stake.page';
 import { SharedModule } from "@app/shared.module";
 
 @NgModule({
@@ -14,9 +14,9 @@ import { SharedModule } from "@app/shared.module";
     CommonModule,
     FormsModule,
     IonicModule,
-    EventOverviewMintPageRoutingModule,
+    EventOverviewStakePageRoutingModule,
     SharedModule
   ],
-  declarations: [EventOverviewMintPage]
+  declarations: [EventOverviewStakePage]
 })
-export class EventOverviewMintPageModule {}
+export class EventOverviewStakePageModule {}

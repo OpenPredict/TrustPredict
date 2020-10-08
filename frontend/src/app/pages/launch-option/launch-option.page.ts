@@ -67,29 +67,29 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
                                .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) );
 
        if (interaction) {
-           this.showWagerSuccess()
+           this.showWagerSuccess();
         }
       } catch (error) {
         alert(`Error ! ${error}`);
       }
   }
-  
+
   goBack() {
     this.navCtrl.back();
   }
 
   async showWagerSuccess() {
     const toast = await this.toastCtrl.create({
-      position: "middle",
+      position: 'middle',
       duration: 2000,
-      cssClass: "successToast",
+      cssClass: 'successToast',
       message: 'Success ! Your wager has been placed'
     });
     await toast.present();
     setTimeout( async () => {
-      await toast.dismiss()
-      this.navCtrl.navigateForward('/my-events')
+      await toast.dismiss();
+      this.navCtrl.navigateForward('/my-events');
     }, 2500);
-  }  
-  
+  }
+
 }

@@ -3,8 +3,8 @@
     <li>
       {{ wager | json }}
     </li>        
-    <li *ngIf="wager?.condition">
-      Success condition: {{ conditionTxt(wager?.condition) }} $10.25
+    <li *ngIf="wager?.side">
+      Success condition: {{ conditionTxt(wager?.side) }} $10.25
     </li>    
     <li *ngIf="wager?.expiration_date">
       Expiration date: {{ wager?.expiration_date | date }}   

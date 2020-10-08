@@ -42,8 +42,8 @@ module.exports = {
             "sDEFI/USD" : "0x70179FB2F3A0a5b7FfB36a235599De440B0922ea"
         },
         // Token selection
-        OTokenSelection : 0,
-        IOTokenSelection : 1,
+        IOTokenSelection : 0,
+        OTokenSelection : 1,
         // args
         // -- keys --
         betPrice : 0,
@@ -55,8 +55,8 @@ module.exports = {
         rawBetPrice : "36015", // 360.15. Strings for BigNumber conversion
         priceFeedDecimals : 8, // the return value for the base price
         // betSide selection
-        Higher : 0,
-        Lower : 1,
+        Lower : 0,
+        Higher : 1,
         // numTokensToMint
         numTokens : 1,
         OPUSDOptionRatio : 100,

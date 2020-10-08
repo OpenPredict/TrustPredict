@@ -5,8 +5,8 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 // Shared utilities between all contracts in TrustPredict.
 library Utils {
 
-    enum Token {O, IO}
-    enum Side {Higher, Lower}
+    enum Token {IO, O}
+    enum Side {Lower, Higher}
 
     string constant network = "development";
     //string memory network = "kovan";
@@ -39,7 +39,7 @@ library Utils {
     }
     
     function GetDepositPeriod() external pure returns (uint _depositPeriod) {
-        _depositPeriod = compare(network, "kovan") ? 86400 : 100;
+        _depositPeriod = compare(network, "kovan") ? 86400 : 10;
     }
 
     function GetMinimumTokenAmountPerEvent() external pure returns (uint _minimumTokenAmountPerEvent) {

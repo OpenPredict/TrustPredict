@@ -70,8 +70,8 @@ export class MyEventsPage extends BaseForm implements OnInit {
   openEvent(event: IEvent) {
     console.log(event);
     (event.status === Status.Staking) ? this.navCtrl.navigateForward(`/event-overview/${event.id}`) :
-    (event.status === Status.Expired) ? this.navCtrl.navigateForward(`/event-completed/${event.id}/0`) :
-    (event.status === Status.Settled) ? this.navCtrl.navigateForward(`/event-completed/${event.id}/1`) :
+    (event.status === Status.Expired) ? this.navCtrl.navigateForward(`/event-expired/${event.id}`) :
+    (event.status === Status.Settled) ? this.navCtrl.navigateForward(`/event-settled/${event.id}`) :
     (event.status === Status.Active);
   }
 

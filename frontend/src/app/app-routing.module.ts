@@ -48,12 +48,16 @@ const routes: Routes = [
     loadChildren: () => import('./pages/event-overview/event-overview.module').then( m => m.EventOverviewPageModule)
   },
   {
-    path: 'event-overview-mint/:eventId/:mint',
-    loadChildren: () => import('./pages/event-overview-mint/event-overview-mint.module').then( m => m.EventOverviewMintPageModule)
+    path: 'event-overview-stake/:eventId/:token/:position',
+    loadChildren: () => import('./pages/event-overview-stake/event-overview-stake.module').then( m => m.EventOverviewStakePageModule)
   },
   {
-    path: 'event-completed/:eventId/:page',
-    loadChildren: () => import('./pages/event-completed/event-completed.module').then( m => m.EventCompletedPageModule)
+    path: 'event-settled/:eventId',
+    loadChildren: () => import('./pages/event-settled/event-settled.module').then( m => m.EventSettledPageModule)
+  },
+  {
+    path: 'event-expired/:eventId',
+    loadChildren: () => import('./pages/event-expired/event-expired.module').then( m => m.EventExpiredPageModule)
   }
 ];
 

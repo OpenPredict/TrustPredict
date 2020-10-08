@@ -9,25 +9,27 @@ import { BaseForm } from '@app/helpers/BaseForm';
 import { FormBuilder, Validators } from '@angular/forms';
 import { OptionService } from '@app/services/option-service/option.service';
 import { UiService } from '@app/services/ui-service/ui.service';
+import { Position } from '@app/data-model';
 
 @Component({
-  selector: 'app-event-overview-mint',
-  templateUrl: './event-overview-mint.page.html',
-  styleUrls: ['./event-overview-mint.page.scss'],
+  selector: 'app-event-overview-stake',
+  templateUrl: './event-overview-stake.page.html',
+  styleUrls: ['./event-overview-stake.page.scss'],
 })
-export class EventOverviewMintPage extends BaseForm implements OnInit {
+export class EventOverviewStakePage extends BaseForm implements OnInit {
+  private Position = Position;
 
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
   }
 
-  get mint() {
-    const mint = this.activatedRoute.snapshot.params.mint; // get the mint boolean from url
-    return (mint === '0') ? false : true;
+  get position() {
+    const position = this.activatedRoute.snapshot.params.position; // get the position boolean from url
+    return (position === '0') ? Position.Right : Position.Left;
   }
 
   get tokenName() {
-    return (!this.mint) ? 'IO' : 'O';
+    return this.activatedRoute.snapshot.params.token;
   }
 
   termsAndConditions = 'https://openpredict.io';
@@ -65,12 +67,12 @@ export class EventOverviewMintPage extends BaseForm implements OnInit {
 
   async continue() {
     const eventId = this.activatedRoute.snapshot.params.eventId;
-    const numTokensStakedToMint = parseFloat(this.form.controls['option_stake'].value);
-    const selection = this.activatedRoute.snapshot.params.mint;
+    const numTokensStakedToStake = parseFloat(this.form.controls['option_stake'].value);
+    const selection = this.activatedRoute.snapshot.params.stake;
 
     try {
      const interaction = await this.ui
-                             .loading(  this.eventsService.stake(eventId, numTokensStakedToMint, selection),
+                             .loading(  this.eventsService.stake(eventId, numTokensStakedToStake, selection),
                              'You will be prompted for 2 contract interactions, please approve both to successfully take part and please be patient as it may take a few moments to broadcast to the network.' )
                              .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) );
 
@@ -80,19 +82,20 @@ export class EventOverviewMintPage extends BaseForm implements OnInit {
     } catch (error) {
       alert(`Error ! ${error}`);
     }
-}
+  }
 
   goBack() {
     this.navCtrl.back();
   }
 
   getConditionText(): string {
-    return this.eventsService.getConditionText(this.mint);
+    return this.eventsService.getConditionText(this.position);
   }
 
   getClass(): string {
-    return this.eventsService.getClass(this.mint);
+    return this.eventsService.getClass(this.position);
   }
+
   // replace with live terms and conditons url
   openTnC() {
     this.ui.openIAB(this.termsAndConditions);
