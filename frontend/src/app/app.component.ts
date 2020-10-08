@@ -1,9 +1,12 @@
 import { Component } from '@angular/core';
 
-import { Config, Platform } from '@ionic/angular';
+import { Config, NavController, Platform } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { OptionService } from './services/option-service/option.service';
+import { CryptoService } from './services/crypto-service/crypto.service';
+import { OpEventService } from './services/op-event-service/op-event.service';
+import { AuthService } from './services/auth-service/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -17,6 +20,10 @@ export class AppComponent {
     private config: Config,
     private statusBar: StatusBar,
     public optionsSrv: OptionService,
+    public crypto: CryptoService,
+    public navCtrl: NavController,
+    public opEvent: OpEventService,
+    public _auth: AuthService,
   ) {
     this.initializeApp();
   }
@@ -25,11 +32,20 @@ export class AppComponent {
     
     this.optionsSrv.get().subscribe();
     
-    this.platform.ready().then(() => {
-      // if(this.platform.is("desktop")) {
-        this.config.set('navAnimation', null);
-        this.config.set('animated', false);
-      // }        
+    this.platform.ready().then( async () => {
+      
+      const signer: any = await this.crypto.getSigner();
+      const wallet: any = await this.crypto.signerAddress();
+
+      if (wallet && signer) {
+        this._auth.login(wallet, signer);
+        this.opEvent.setupEventSubscriber();
+        this.navCtrl.navigateForward('/my-events');
+      }      
+      
+      
+      this.config.set('navAnimation', null);
+      this.config.set('animated', false);
       this.statusBar.styleDefault();
       this.splashScreen.hide();
     });

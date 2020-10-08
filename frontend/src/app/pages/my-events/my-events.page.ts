@@ -21,7 +21,10 @@ import { OpEventQuery } from '@services/op-event-service/op-event.service.query'
 })
 export class MyEventsPage extends BaseForm implements OnInit {
 
-  events$: Observable<IEvent[]>;
+  activeEvents$: Observable<IEvent[]>;
+  pendingEvents$: Observable<IEvent[]>;  
+  myEvents$: Observable<IEvent[]>;    
+  activeEventType: number = 1
 
   constructor(
     private fb: FormBuilder,
@@ -47,7 +50,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
     this.form.valueChanges.subscribe(
       (res) => {
         if(this.form.controls['event_id'].valid) {
-          this.events$ = this.eventQuery.getEvent( this.form.controls['event_id'].value );
+          this.activeEvents$ = this.eventQuery.getEvent( this.form.controls['event_id'].value );
         } else {
           this.allEvents();
         }
@@ -56,7 +59,9 @@ export class MyEventsPage extends BaseForm implements OnInit {
   }
 
   allEvents() {
-    this.events$ = this.eventQuery.selectAll();
+    this.activeEvents$ = this.eventQuery.selectAll(); // this.eventQuery.selectAll({ filterBy: state => state.status === "something" });
+    this.pendingEvents$ = this.eventQuery.selectAll(); // again another filter here whatever it is going to be from the contract
+    this.myEvents$ = this.eventQuery.selectAll(); // again another filter here whatever it is going to be from the contract    
   }
 
   async continue() {
@@ -75,5 +80,8 @@ export class MyEventsPage extends BaseForm implements OnInit {
     (event.status === Status.Active);
   }
 
+  displayEventType(eventType: number) {
+    this.activeEventType = eventType
+  }
 
 }

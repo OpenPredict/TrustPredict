@@ -99,9 +99,17 @@ html, body {
         font-style: normal;
         font-weight: bold;
         font-size: 14px;
-        line-height: 17px;      
+        line-height: 17px;    
+        cursor: pointer;  
+        transform: scale(1.07);
+        transition: 580ms transform ease;
+        &:hover {
+            transform: scale(1.01);
+            transition: 580ms transform ease;
+        }        
         &.assetOptions__selected {
           color: var(--ion-color-primary);
+          transform: scale(1.08);        
         }
       }
     }
@@ -241,6 +249,12 @@ html, body {
     overflow-y: scroll;
     scrollbar-width: thin;
     padding: 0 10px 0 0;
+    &.asset__list--hidden {
+        display: none;
+    }
+    &.asset__list--active {
+        display: block;
+    }
     // scrollbar-color: var(--ion-color-secondary) var(--ion-color-primary);     
     &::-webkit-scrollbar {
         width: 11px;
