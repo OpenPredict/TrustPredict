@@ -14,7 +14,7 @@ import { timer } from 'rxjs/internal/observable/timer';
 import { WEB3 } from '@app/web3';
 import Web3 from 'web3';
 import { EventsStore } from './op-event.service.store';
-import { IEvent, Status } from '@app/data-model';
+import { IEvent, Status, Position, Side } from '@app/data-model';
 
 const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
 const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
@@ -81,7 +81,7 @@ export class OpEventService {
         asset_name: asset.name,
         asset_ticker: ticker,
         asset_icon: asset.icon,
-        condition: !!Number(eventData['betSide']),
+        side: Number(eventData['betSide']),
         condition_price: ethers.utils.formatUnits(eventData['betPrice'].valueOf().toString(), 8).toString(),
         completion: this.timeConverter(eventData['endTime']),
         created:  this.timeConverter(eventData['startTime']),
@@ -102,7 +102,7 @@ export class OpEventService {
       if (!found) {
         console.log('pushing new event ');
         this.events.push(eventEntry);
-        this.opEventStr.add(eventEntry, { prepend: true })
+        this.opEventStr.add(eventEntry, { prepend: true });
       }
       console.log('events length after push: ' + Object.keys(this.events).length);
     }
@@ -238,10 +238,6 @@ export class OpEventService {
               numTokensStakedToMint: number,
               selection: number){
 
-          console.log(`Placing stake with | eventId: ${eventId}
-                                          | numTokensStakedToMint: ${numTokensStakedToMint}
-                                          || selection: ${selection}`);
-
           return new Promise( async (resolve, reject) => {
 
             // constants
@@ -297,6 +293,91 @@ export class OpEventService {
           });
         }
 
+  async revoke(eventId: string){
+    return new Promise( async (resolve, reject) => {
+      // constants
+      const contracts = [];
+      const contractAddresses = [];
+      // Contract Addresses (local)
+      contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
+      contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
+
+      const _USER: any       = this.authQ.getValue();
+      const _signer: any = _USER.signer;
+
+      if (!_signer) {
+        reject(
+          new Error(`Please log in via Metamask!`)
+        );
+      }
+
+      contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, _signer);
+      contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, _signer);
+
+      try {
+        const optionsTP = {};
+        const approveTP = contracts['TrustPredict'].setApprovalForAll(contractAddresses['OPEventFactory'],
+                                                    true,
+                                                    optionsTP );
+
+        const waitForInteractions = Promise.all([approveTP]);
+        waitForInteractions.then( async (res) => {
+          const approveTPWait = await res[0].wait();
+          if (approveTPWait.status === 1) {
+            await contracts['OPEventFactory'].revoke(eventId);
+            resolve(true);
+          }
+        }).catch( err =>
+          reject(
+            `Error during transaction creation: ${JSON.stringify(err)}`
+          )
+        );
+      } catch (error) {
+        console.log();
+        reject(
+          new Error(error)
+        );
+      }
+    });
+  }
+
+  async claim(eventId: string){
+    return new Promise( async (resolve, reject) => {
+      // constants
+      const contracts = [];
+      const contractAddresses = [];
+      // Contract Addresses (local)
+      contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
+
+      const _USER: any       = this.authQ.getValue();
+      const _signer: any = _USER.signer;
+
+      if (!_signer) {
+        reject(
+          new Error(`Please log in via Metamask!`)
+        );
+      }
+
+      contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, _signer);
+      try {
+        const waitForInteractions = Promise.all([]);
+        waitForInteractions.then( async (res) => {
+          await contracts['OPEventFactory'].claim(eventId);
+          resolve(true);
+        }).catch( err =>
+          reject(
+            `Error during transaction creation: ${JSON.stringify(err)}`
+          )
+        );
+      } catch (error) {
+        console.log();
+        reject(
+          new Error(error)
+        );
+      }
+    });
+  }
+
   get(): Observable<void> {
     const request = timer(500).pipe(
       mapTo(this.events),
@@ -321,16 +402,28 @@ export class OpEventService {
    * Return a class depending on if the condition is true/false
    * @param condition boolean
    */
-  getClass(condition: boolean) {
-    return (!condition) ? 'status-red' : 'status-green';
+  getClass(position: Position) {
+    return (position === Position.Left) ? 'status-green' : 'status-red';
   }
 
   /**
    * Return text depending on if the conditionis true/false
    * @param condition boolean
    */
-  getConditionText(condition: boolean) {
-    return (!condition) ? 'lower than' : 'higher than';
+  getToken(position: Position, betSide: Side) {
+    // if LHS and Higher, or RHS and Lower, return O. else IO.
+    return ((position === Position.Left && betSide === Side.Higher) ||
+            (position !== Position.Left && betSide !== Side.Higher)) ?
+            'O' :
+            'IO';
+  }
+
+  /**
+   * Return text depending on if the conditionis true/false
+   * @param condition boolean
+   */
+  getConditionText(position: Position) {
+    return (position === Position.Left) ? 'higher than' : 'lower than';
   }
 
   getStatusText(event: any) {

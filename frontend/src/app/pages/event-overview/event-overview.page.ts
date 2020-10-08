@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { OpEventService } from '@app/services/op-event-service/op-event.service';
 import { OpEventQuery } from '@app/services/op-event-service/op-event.service.query';
 import { NavController } from '@ionic/angular';
+import { Position, Side } from '@app/data-model';
 
 @Component({
   selector: 'app-event-overview',
@@ -12,6 +13,7 @@ import { NavController } from '@ionic/angular';
   styleUrls: ['./event-overview.page.scss'],
 })
 export class EventOverviewPage implements OnInit, OnDestroy {
+  private Position = Position;
 
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
@@ -42,20 +44,25 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     this.navCtrl.back();
   }
 
-  getConditionText(condition: boolean): string {
-    return this.eventsService.getConditionText(condition);
+  getConditionText(position: Position): string {
+    return this.eventsService.getConditionText(position);
   }
 
-  getClass(condition: boolean): string {
-    return this.eventsService.getClass(condition);
+  getClass(position: Position): string {
+    return this.eventsService.getClass(position);
+  }
+
+  getToken(position: Position, betSide: Side): string {
+    return this.eventsService.getToken(position, betSide);
   }
 
   /**
-   * Opens the minting page
-   * @param mintCondition if true user selected mint higher / false lower
+   * Opens the staking page
+   * @param token token string
+   * @param position if coming from the LHS or RHS
    */
-  openMinter(mintCondition: boolean): void {
-    this.navCtrl.navigateForward(`/event-overview-mint/${this.eventId}/${mintCondition}`);
+  continue(token: string, position: Position): void {
+    this.navCtrl.navigateForward(`/event-overview-stake/${this.eventId}/${token}/${position}`);
   }
 
 }

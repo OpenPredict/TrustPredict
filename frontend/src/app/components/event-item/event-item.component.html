@@ -9,8 +9,8 @@
         <ul class="list-reset">
           <li *ngIf="event.condition_price">
             condition: 
-            <span [ngClass]="getClass(event.condition)">
-              {{ getConditionText(event.condition) }} ${{ event.condition_price}}              
+            <span [ngClass]="getClass(event.side)">
+              {{ getConditionText(event.side) }} ${{ event.condition_price}}              
             </span>
           </li>
           <li *ngIf="event.expiration">

@@ -1,18 +1,22 @@
 import { ID } from '@datorama/akita';
 
 export enum Token {
-  O = 0,
-  IO = 1
+  IO = 0,
+  O = 1
 }
 export enum Side {
   Lower = 0,
   Higher = 1
 }
+export enum Position {
+  Right = 0,
+  Left = 1
+}
 export enum Status {
   Staking = 0,
-  Expired = 2,
-  Active  = 3,
-  Settled = 4
+  Expired = 1,
+  Active  = 2,
+  Settled = 3
 }
 
 export interface IOptionsPriceWager {
@@ -39,7 +43,7 @@ export interface IEvent {
     asset_name?: string;
     asset_ticker?: string;
     asset_icon?: string;
-    condition?: boolean;
+    side?: Side;
     condition_price?: number | string; // whatever the contract returns
     completion?: string | Date;
     created?: string;

@@ -26,8 +26,8 @@
                     </div>                
                     <div class="eventInfoTxt bolder"> 
                       {{ event.asset_ticker }}
-                      <span [ngClass]="getClass(event.condition)">
-                          {{ getConditionText(event.condition) }}
+                      <span [ngClass]="getClass(event.side)">
+                          {{ getConditionText(event.side) }}
                       </span>
                       ${{ event.condition_price }}&nbsp;USD
                     </div>                     
@@ -51,8 +51,7 @@
                 </ul>
               </div>
               
-              <!-- Change this according to whatever data comes back from the contract  -->
-              <div class="eventOverviewData" *ngIf="!HARD_EXPIRED_OR_WINNER"> 
+              <div class="eventOverviewData"> 
                 <ul class="list-reset mintOptionList">
                   <li class="mintOption">
                     <div class="mintOptionWrap border--red">
@@ -61,35 +60,10 @@
                       </div>                                                             
                     </div>
                     
-                    <div class="btnMint smokey bolder">
+                    <div class="btnMint smokey bolder" (click)="continue()">
                       <span>Withdraw Deposit</span>
                     </div>                    
                     
-                  </li>                 
-                </ul>              
-              </div>                  
-
-              <!-- Change this according to whatever data comes back from the contract  -->              
-              <div class="eventOverviewData" *ngIf="HARD_EXPIRED_OR_WINNER"> 
-                <ul class="list-reset mintOptionList">
-                  <li class="mintOption">
-                    <div class="mintOptionWrap border--orange">
-                      <div class="mintOption--token bolder status-status">
-                        “O” <br>Token
-                      </div>
-                      <div class="eventInfoTxt highLow bolder status-orange">
-                        Winner
-                      </div>                      
-                      <div class="eventInfoTxt--small">
-                        Estimated “OI” Token Win Ratio:
-                      </div>          
-                      <div class="eventInfoTxt bolder">
-                        400%
-                      </div>                                         
-                    </div>
-                    <div class="btnMint orange bolder border--orange">
-                      <span>Withdraw Rewards</span>
-                    </div>
                   </li>                 
                 </ul>              
               </div>

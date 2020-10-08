@@ -257,6 +257,8 @@ contract("TrustPredict", async (accounts) => {
         assert.equal(amountPerWinningTokenContract.valueOf().toString(),
                      amountPerWinningToken.valueOf().toString());
 
+        assert.equal(parseInt(eventData['winner']), Constants.IOTokenSelection);
+
         // IO tokens win.
         // first verify claims from O tokens fail.
         // first grant allowance to contract to burn tokens

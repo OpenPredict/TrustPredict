@@ -1,19 +1,19 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 
-import { EventCompletedPage } from './event-completed.page';
+import { EventExpiredPage } from './event-expired.page';
 
-describe('EventCompletedPage', () => {
-  let component: EventCompletedPage;
-  let fixture: ComponentFixture<EventCompletedPage>;
+describe('EventExpiredPage', () => {
+  let component: EventExpiredPage;
+  let fixture: ComponentFixture<EventExpiredPage>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ EventCompletedPage ],
+      declarations: [ EventExpiredPage ],
       imports: [IonicModule.forRoot()]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(EventCompletedPage);
+    fixture = TestBed.createComponent(EventExpiredPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));

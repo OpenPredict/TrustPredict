@@ -1,19 +1,19 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 
-import { EventOverviewMintPage } from './event-overview-mint.page';
+import { EventSettledPage } from './event-settled.page';
 
-describe('EventOverviewMintPage', () => {
-  let component: EventOverviewMintPage;
-  let fixture: ComponentFixture<EventOverviewMintPage>;
+describe('EventSettledPage', () => {
+  let component: EventSettledPage;
+  let fixture: ComponentFixture<EventSettledPage>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ EventOverviewMintPage ],
+      declarations: [ EventSettledPage ],
       imports: [IonicModule.forRoot()]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(EventOverviewMintPage);
+    fixture = TestBed.createComponent(EventSettledPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));
