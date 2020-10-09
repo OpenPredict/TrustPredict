@@ -22,6 +22,7 @@ contract OPEventFactory {
         Utils.Side betSide;
         uint startTime;
         uint endTime;
+        address creator;
         address priceAggregator;
         int settledPrice;
         Utils.Token winner;
@@ -30,7 +31,7 @@ contract OPEventFactory {
     }
     mapping(address => EventData) events;
 
-    uint nonce; // have to keep track of nonce independently. Used for deterministic event ID generation.
+    uint nonce = 1; // have to keep track of nonce independently. Used for deterministic event ID generation.
 
     // ********** start gatekeeping functions *********
     function _validEventPeriod(uint _eventPeriod) view internal {
@@ -106,7 +107,7 @@ contract OPEventFactory {
         _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
 
         // get next OPEvent ID
-        address _eventId = Utils.addressFrom(address(this), ++nonce);
+        address _eventId = Utils.addressFrom(address(this), nonce++);
         // set event data
         EventData memory data;
         data.betPrice = _betPrice;
@@ -114,6 +115,7 @@ contract OPEventFactory {
         data.endTime = block.timestamp + _eventPeriod;
         data.startTime = block.timestamp + Utils.GetDepositPeriod();
         data.priceAggregator = _priceAggregator;
+        data.creator = msg.sender;
         events[_eventId] = data;
 
         // Create Oracle request. give the callback some leeway

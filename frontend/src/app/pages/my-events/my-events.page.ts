@@ -12,6 +12,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { CustomValidators } from '@app/helpers/CustomValidators';
 import { IEvent, Status } from '@app/data-model';
 import { OpEventQuery } from '@services/op-event-service/op-event.service.query';
+import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 
 
 @Component({
@@ -20,17 +21,18 @@ import { OpEventQuery } from '@services/op-event-service/op-event.service.query'
   styleUrls: ['./my-events.page.scss'],
 })
 export class MyEventsPage extends BaseForm implements OnInit {
-
+  
+  pendingEvents$: Observable<IEvent[]>;
   activeEvents$: Observable<IEvent[]>;
-  pendingEvents$: Observable<IEvent[]>;  
-  myEvents$: Observable<IEvent[]>;    
-  activeEventType: number = 1
+  myEvents$: Observable<IEvent[]>;
+  activeEventType = 1;
 
   constructor(
     private fb: FormBuilder,
     private optService: OptionService,
     private optQry: OptionQuery,
     public opEventSrv: OpEventService,
+    private authQ: AuthQuery,
     private eventQuery: OpEventQuery,
     private optStr: OptionsStore,
     public ui: UiService,
@@ -49,7 +51,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
     this.allEvents();
     this.form.valueChanges.subscribe(
       (res) => {
-        if(this.form.controls['event_id'].valid) {
+        if (this.form.controls['event_id'].valid) {
           this.activeEvents$ = this.eventQuery.getEvent( this.form.controls['event_id'].value );
         } else {
           this.allEvents();
@@ -59,9 +61,20 @@ export class MyEventsPage extends BaseForm implements OnInit {
   }
 
   allEvents() {
-    this.activeEvents$ = this.eventQuery.selectAll(); // this.eventQuery.selectAll({ filterBy: state => state.status === "something" });
-    this.pendingEvents$ = this.eventQuery.selectAll(); // again another filter here whatever it is going to be from the contract
-    this.myEvents$ = this.eventQuery.selectAll(); // again another filter here whatever it is going to be from the contract    
+    const _USER: any  = this.authQ.getValue();
+    const signer: any = _USER.signer;
+
+    signer.getAddress().then(address => {
+      this.pendingEvents$ = this.eventQuery.selectAll({
+        filterBy: state => state.status === Status.Settled
+      });
+      this.activeEvents$ = this.eventQuery.selectAll({
+        filterBy: state => state.status === Status.Expired
+      });
+      this.myEvents$ = this.eventQuery.selectAll({
+        filterBy: state => state.creator === address
+      });
+  });
   }
 
   async continue() {
@@ -81,7 +94,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
   }
 
   displayEventType(eventType: number) {
-    this.activeEventType = eventType
+    this.activeEventType = eventType;
   }
 
 }

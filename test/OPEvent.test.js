@@ -37,7 +37,7 @@ async function deployEvent(contracts, accounts) {
     console.log('nonce: ' + nonce);
 
     // contract address creation starts at nonce 1, so we emulate that for the Event ID.
-    OPEventID = utils.getNextContractAddress(contracts['OPEventFactory'].address, ++nonce)
+    OPEventID = utils.getNextContractAddress(contracts['OPEventFactory'].address, nonce++)
 
     console.log("ChainLink approve..")
     await contracts['ChainLink'].approve(contracts['Oracle'].address, 

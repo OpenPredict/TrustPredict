@@ -11,8 +11,8 @@ import { Observable } from 'rxjs';
 })
 export class ConnectWallet implements OnInit {
 
-  wallets: string[] | null  
-  connectedWallet: string
+  wallets: string[] | null;
+  connectedWallet: string;
 
   
   constructor(
@@ -22,14 +22,14 @@ export class ConnectWallet implements OnInit {
      ) { }
 
   ngOnInit() {
-    this.authQry.isLoggedIn2$.subscribe( res => this.connectedWallet = res )    
-    console.log(this.connectedWallet)
+    this.authQry.isLoggedIn2$.subscribe( res => this.connectedWallet = res );
+    console.log(this.connectedWallet);
   }
 
   async connectWallet() {
     this.auth.logout()
-    this.wallets = await this.crypto.connectWallet()
-    console.log(`Wallet address ${this.wallets}`)
+    this.wallets = await this.crypto.connectWallet();
+    console.log(`Wallet address ${this.wallets}`);
     // this.auth.login(this.wallets[0])
     
     
