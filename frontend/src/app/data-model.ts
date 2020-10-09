@@ -44,6 +44,7 @@ export interface IEvent {
     asset_ticker?: string;
     asset_icon?: string;
     side?: Side;
+    creator?: string;
     condition_price?: number | string; // whatever the contract returns
     completion?: string | Date;
     created?: string;

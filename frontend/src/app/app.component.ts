@@ -27,13 +27,11 @@ export class AppComponent {
   ) {
     this.initializeApp();
   }
-  
+
   initializeApp() {
-    
     this.optionsSrv.get().subscribe();
-    
+
     this.platform.ready().then( async () => {
-      
       const signer: any = await this.crypto.getSigner();
       const wallet: any = await this.crypto.signerAddress();
 
@@ -41,11 +39,11 @@ export class AppComponent {
         this._auth.login(wallet, signer);
         this.opEvent.setupEventSubscriber();
         this.navCtrl.navigateForward('/landing');
-      }      
-      
-      
+      }
+
       this.config.set('navAnimation', null);
       this.config.set('animated', false);
+
       this.statusBar.styleDefault();
       this.splashScreen.hide();
     });

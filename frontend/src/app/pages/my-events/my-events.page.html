@@ -46,7 +46,7 @@
                   </form>
                   <div class="form__item buffer@20 asset__listLine"> 
                     <div class="asset__list asset__list--hidden" [ngClass]="{'asset__list--active': activeEventType == 0 }">
-                      <div class="asset_item" *ngFor="let e of myEvents$ | async" (click)="openEvent(e)">
+                      <div class="asset_item" *ngFor="let e of pendingEvents$ | async" (click)="openEvent(e)">
                         <app-event-item [event]="e"></app-event-item>
                       </div>                      
                     </div>                     
@@ -56,7 +56,7 @@
                       </div>                      
                     </div>                     
                     <div class="asset__list asset__list--hidden" [ngClass]="{'asset__list--active': activeEventType == 2 }">
-                      <div class="asset_item" *ngFor="let e of pendingEvents$ | async" (click)="openEvent(e)">
+                      <div class="asset_item" *ngFor="let e of myEvents$ | async" (click)="openEvent(e)">
                         <app-event-item [event]="e"></app-event-item>
                       </div>                      
                     </div>                     

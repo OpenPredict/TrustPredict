@@ -82,6 +82,7 @@ export class OpEventService {
         asset_ticker: ticker,
         asset_icon: asset.icon,
         side: Number(eventData['betSide']),
+        creator: eventData['creator'],
         condition_price: ethers.utils.formatUnits(eventData['betPrice'].valueOf().toString(), 8).toString(),
         completion: this.timeConverter(eventData['endTime']),
         created:  this.timeConverter(eventData['startTime']),
@@ -109,7 +110,7 @@ export class OpEventService {
 
     async setupEventSubscriber(){
       // OPEventFactory initial data gathering
-      const _USER: any       = this.authQ.getValue();
+      const _USER: any  = this.authQ.getValue();
       const signer: any = _USER.signer;
 
       const contracts = [];
@@ -130,6 +131,7 @@ export class OpEventService {
             const eventID = this.crypto.getNextContractAddress(contracts['OPEventFactory'].address, nonce);
             console.log('\nEvent ID: ' + eventID);
             const eventData = await contracts['OPEventFactory'].getEventData(eventID);
+            console.log('\nEvent Data: ' + eventData);
             const balances = await contracts['TrustPredict'].getTokenBalances(eventID);
             await this.parseEventData(eventID, eventData, balances);
           }));
