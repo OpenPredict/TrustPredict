@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="padding015" color="secondary">
     <img class="logo" src="/assets/img/logo.svg" alt="">
-    <ion-buttons slot="end">
+    <ion-buttons slot="end" *ngIf="loggedIn$ | async">
       <ion-button size="large" color="primary" (click)="openOptions()">
         Launch Option
       </ion-button>     
