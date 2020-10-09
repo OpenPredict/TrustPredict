@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 import { NavController } from '@ionic/angular';
 import { Observable } from 'rxjs';
@@ -8,14 +8,13 @@ import { Observable } from 'rxjs';
   templateUrl: './app-header.component.html',
   styleUrls: ['./app-header.component.scss'],
 })
-export class AppHeaderComponent{
-  
+export class AppHeaderComponent {
+
   loggedIn$: Observable<boolean> = this.authQuery.select( user => !!user.wallet )
-  
+
   constructor(
     private navCtrl: NavController,
     public authQuery: AuthQuery ) { }
-    
   openOptions() {
     this.navCtrl.navigateForward('landing');
   }
@@ -24,6 +23,6 @@ export class AppHeaderComponent{
   }
   openEventsFinished() {
     this.navCtrl.navigateForward('event-completed');
-  }  
-  
+  }
+
 }

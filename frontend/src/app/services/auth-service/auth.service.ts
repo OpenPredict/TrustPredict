@@ -10,7 +10,6 @@ export class AuthService {
 
   login(wallet: string, signer: any) {
     this.authStore.update({ wallet,  signer })
-    console.log( this.authStore.getValue() )
   }
 
   logout() {
