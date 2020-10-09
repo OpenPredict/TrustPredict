@@ -5,7 +5,6 @@ import { ActivatedRoute } from '@angular/router';
 import { OpEventService } from '@app/services/op-event-service/op-event.service';
 import { OpEventQuery } from '@app/services/op-event-service/op-event.service.query';
 import { NavController } from '@ionic/angular';
-import { Observable, of } from 'rxjs';
 import { UiService } from '@app/services/ui-service/ui.service';
 import { Side } from '@app/data-model';
 
