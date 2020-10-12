@@ -59,7 +59,19 @@
                       </div>          
                       <div class="eventInfoTxt bolder">
                         120%
-                      </div>                                         
+                      </div>         
+                      
+                      <div class="eventInfoTxt--small divideBal">
+                        My balance:
+                      </div>          
+                      <div class="eventInfoTxt bolder">
+                        0 IO
+                      </div>     
+                      
+                      <div class="eventInfoTxt--small eventInfoTransfer">
+                        Transfer >
+                      </div>                           
+                      
                     </div>
                     <div class="btnMint green bolder border--green" (click)="continue(getToken(Position.Left, event.side), Position.Left)">
                       <span>Mint “{{getToken(Position.Left,event.side)}}”</span>
@@ -79,7 +91,19 @@
                       </div>          
                       <div class="eventInfoTxt bolder">
                         500%
-                      </div>                                         
+                      </div>   
+                      
+                      <div class="eventInfoTxt--small divideBal">
+                        My balance:
+                      </div>          
+                      <div class="eventInfoTxt bolder">
+                        5.0 IO
+                      </div>                         
+                      
+                      <div class="eventInfoTxt--small eventInfoTransfer">
+                        Transfer >
+                      </div>                         
+                      
                     </div>
                     <div class="btnMint red bolder border--red" (click)="continue(getToken(Position.Right, event.side), Position.Right)">
                       <span>Mint “{{getToken(Position.Right, event.side)}}”</span>

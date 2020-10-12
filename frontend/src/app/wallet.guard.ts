@@ -22,6 +22,10 @@ export class WalletGuard implements CanActivate {
         console.log("redirecting to connect wallet ")
          this.router.navigateByUrl("/connect-wallet")
       }
+      this.router.navigateByUrl("/transfer-token")
+      
+      // 
+      
     return true;
   }
   
