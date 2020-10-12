@@ -13,7 +13,8 @@ import { Position, Side } from '@app/data-model';
   styleUrls: ['./event-overview.page.scss'],
 })
 export class EventOverviewPage implements OnInit, OnDestroy {
-  private Position = Position;
+  
+  public Position = Position;
 
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
