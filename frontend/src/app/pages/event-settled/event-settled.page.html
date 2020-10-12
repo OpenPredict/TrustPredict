@@ -45,23 +45,23 @@
                       Event settlement price:
                     </div>                
                     <div class="eventInfoTxt bolder"> 
-                      22.43 USD
+                      ${{ event.settled_price }}&nbsp;USD
                     </div>                     
                   </li>                                                      
                 </ul>
               </div>
-              <div class="eventOverviewData" *ngIf="HARD_EXPIRED_OR_WINNER"> 
+              <div class="eventOverviewData" *ngIf="hasBalanceInWinningToken$ | async"> 
                 <ul class="list-reset mintOptionList">
                   <li class="mintOption">
                     <div class="mintOptionWrap border--orange">
                       <div class="mintOption--token bolder status-status">
-                        “O” <br>Token
+                        ”{{getWinningTokenText(event.winner)}}” <br>Token
                       </div>
                       <div class="eventInfoTxt highLow bolder status-orange">
                         Winner
                       </div>                      
                       <div class="eventInfoTxt--small">
-                        Estimated “OI” Token Win Ratio:
+                        “IO” Token Win Ratio:
                       </div>          
                       <div class="eventInfoTxt bolder">
                         400%

@@ -162,7 +162,8 @@ contract OPEventFactory {
         }else {
             data.winner = Utils.Token.IO;
         }
-        
+        data.settledPrice = settledPrice;
+
         // next, calculate payment per winning token.
         uint winnerAmount = Utils.getTokenBalance(_eventId, data.winner, _token);
         uint  loserAmount = Utils.getTokenBalance(_eventId, Utils.getOtherToken(data.winner), _token);
@@ -173,7 +174,6 @@ contract OPEventFactory {
             winnerAmount
         );
         data.eventSettled = true;
-
         emit EventUpdate(_eventId);
     }
     

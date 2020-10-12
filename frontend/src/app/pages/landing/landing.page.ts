@@ -43,12 +43,12 @@ export class LandingPage extends BaseForm implements OnInit {
     const pair = selectedPair.pair;
     const pair_contract = selectedPair.pair_contract;
 
-    const item = { pair: pair, pair_contract: pair_contract }
+    const item = { pair: pair, pair_contract: pair_contract };
     if (!this.form.valid && pair && pair_contract ) {
       return;
     }
     try {
-      this.optStr.upsert(1, item)
+      this.optStr.upsert(1, item);
       this.navCtrl.navigateForward([`/event-condition`]);
     } catch (error) {
       console.log(`Error: ${error}`);
