@@ -380,6 +380,27 @@ export class OpEventService {
     });
   }
 
+  async balanceForAddress(eventId, address) {
+      // OPEventFactory initial data gathering
+      const _USER: any  = this.authQ.getValue();
+      const signer: any = _USER.signer;
+
+      const contracts = [];
+      const contractAddresses = [];
+      contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
+      contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
+      contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, signer);
+      contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
+
+      const balanceO = await contracts['TrustPredict'].balanceForAddress(eventId, address, 0);
+      const balanceIO = await contracts['TrustPredict'].balanceForAddress(eventId, address, 1);
+
+      console.log('balanceO: ' + balanceO);
+      console.log('balanceIO: ' + balanceIO);
+
+      return Number(balanceO) + Number(balanceIO);
+  }
+
   get(): Observable<void> {
     const request = timer(500).pipe(
       mapTo(this.events),
