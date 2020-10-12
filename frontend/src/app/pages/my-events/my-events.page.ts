@@ -21,7 +21,7 @@ import { AuthQuery } from '@app/services/auth-service/auth.service.query';
   styleUrls: ['./my-events.page.scss'],
 })
 export class MyEventsPage extends BaseForm implements OnInit {
-  
+
   pendingEvents$: Observable<IEvent[]>;
   activeEvents$: Observable<IEvent[]>;
   myEvents$: Observable<IEvent[]>;
@@ -46,9 +46,9 @@ export class MyEventsPage extends BaseForm implements OnInit {
       });
     }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.opEventSrv.get().subscribe();
-    this.allEvents();
+    await this.allEvents();
     this.form.valueChanges.subscribe(
       (res) => {
         if (this.form.controls['event_id'].valid) {
@@ -60,21 +60,27 @@ export class MyEventsPage extends BaseForm implements OnInit {
     );
   }
 
-  allEvents() {
+  async allEvents() {
     const _USER: any  = this.authQ.getValue();
     const signer: any = _USER.signer;
 
-    signer.getAddress().then(address => {
+    const balances = [];
+
+    signer.getAddress().then(async (address) => {
+      await Promise.all(this.opEventSrv.events.map(async (_event, index) => {
+        balances[_event.id] = await this.opEventSrv.balanceForAddress(_event.id, address);
+      }));
+
       this.pendingEvents$ = this.eventQuery.selectAll({
-        filterBy: state => state.status === Status.Settled
+        filterBy: state => state.status === Status.Staking
       });
       this.activeEvents$ = this.eventQuery.selectAll({
-        filterBy: state => state.status === Status.Expired
+        filterBy: state => state.status === Status.Active
       });
       this.myEvents$ = this.eventQuery.selectAll({
-        filterBy: state => state.creator === address
+        filterBy: state => balances[state.id] > 0
       });
-  });
+    });
   }
 
   async continue() {
