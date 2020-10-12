@@ -1,0 +1,13 @@
+.form__input--wrapped {
+    padding-right: 15px;
+    display: flex;
+    border-radius: 15px;
+    border: 1px solid var(--ion-color-primary);
+    align-items: center;
+    .form__input--token {
+        text-transform: uppercase;
+    }
+    ion-input {
+        border: none!important;
+    }
+}
