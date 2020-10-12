@@ -58,6 +58,10 @@ const routes: Routes = [
   {
     path: 'event-expired/:eventId',
     loadChildren: () => import('./pages/event-expired/event-expired.module').then( m => m.EventExpiredPageModule)
+  },
+  {
+    path: 'transfer-token',
+    loadChildren: () => import('./pages/transfer-token/transfer-token.module').then( m => m.TransferTokenPageModule)
   }
 ];
 
