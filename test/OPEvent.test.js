@@ -341,7 +341,7 @@ contract("TrustPredict", async (accounts) => {
     // - attempt claims from minters, assert failure
     // - valid revokes from all minters
     // - invalid follow-up revokes
-    it("Should pass for test case B", async () => {
+    it.only("Should pass for test case B", async () => {
         // - valid contract deployment
         IDs = await deployEvent(contracts, accounts);
         OPEventID = IDs[0]
@@ -384,10 +384,10 @@ contract("TrustPredict", async (accounts) => {
 
 
         // - valid revokes from all minters
-        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, true);
+        //await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, true);
 
         // - invalid follow-up revokes
-        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: no holdings for sender in any token.");
+        //await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: no holdings for sender in any token.");
     })
 
 
@@ -421,12 +421,16 @@ contract("TrustPredict", async (accounts) => {
         // - attempt revoke before deposit period ends
         await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
 
-        // - wait for event deposit period to pass, valid event started
-        console.log("waiting for deposit period to pass..")
-        await new Promise(r => setTimeout(r, Constants[process.env.NETWORK].depositPeriodSeconds * 1000));
-
+        // wait for contract event to complete (waiting full amount, so includes some leeway for settle call)
+        console.log("waiting for event settlement..")
+        await new Promise(r => setTimeout(r, (Constants[process.env.NETWORK].eventPeriodSeconds) * 1000));
+        
         // - attempt revoke after deposit period ends
         await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
+
+        // valid event settlement
+        settlementPrice = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2).sub(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
+        await contracts['OPEventFactory'].settle(OPEventID, settlementPrice);
 
     })
 })

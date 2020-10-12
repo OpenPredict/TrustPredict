@@ -4,7 +4,7 @@ import { untilDestroyed } from 'ngx-take-until-destroy';
 import { ActivatedRoute } from '@angular/router';
 import { OpEventService } from '@app/services/op-event-service/op-event.service';
 import { OpEventQuery } from '@app/services/op-event-service/op-event.service.query';
-import { NavController } from '@ionic/angular';
+import { NavController, ToastController } from '@ionic/angular';
 import { UiService } from '@app/services/ui-service/ui.service';
 import { Position, Side } from '@app/data-model';
 
@@ -27,6 +27,7 @@ export class EventExpiredPage implements OnInit {
     private activatedRoute: ActivatedRoute,
     private eventsService: OpEventService,
     private eventsQuery: OpEventQuery,
+    private toastCtrl: ToastController,
     private ui: UiService) {
       console.log('created');
     }
@@ -52,7 +53,7 @@ export class EventExpiredPage implements OnInit {
                              .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) );
 
      if (interaction) {
-      alert('Success ! Your stake has been placed');
+      this.showRevokeSuccess();
     }
     } catch (error) {
       alert(`Error ! ${error}`);
@@ -73,5 +74,20 @@ export class EventExpiredPage implements OnInit {
 
   getToken(position: Position, betSide: Side): string {
     return this.eventsService.getToken(position, betSide);
+  }
+
+
+  async showRevokeSuccess() {
+    const toast = await this.toastCtrl.create({
+      position: 'middle',
+      duration: 2000,
+      cssClass: 'successToast',
+      message: 'Success ! Your deposit has been withdrawn.'
+    });
+    await toast.present();
+    setTimeout( async () => {
+      await toast.dismiss();
+      this.navCtrl.navigateForward('/my-events');
+    }, 2500);
   }
 }

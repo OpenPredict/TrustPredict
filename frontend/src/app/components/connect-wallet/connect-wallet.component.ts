@@ -14,7 +14,7 @@ export class ConnectWallet implements OnInit {
   wallets: string[] | null;
   connectedWallet: string;
 
-  
+
   constructor(
     public crypto: CryptoService,
     private auth: AuthService,
@@ -27,15 +27,9 @@ export class ConnectWallet implements OnInit {
   }
 
   async connectWallet() {
-    this.auth.logout()
+    this.auth.logout();
     this.wallets = await this.crypto.connectWallet();
     console.log(`Wallet address ${this.wallets}`);
     // this.auth.login(this.wallets[0])
-    
-    
-    
-    
-  }  
-  
-  
+  }
 }

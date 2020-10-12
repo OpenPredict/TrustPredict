@@ -31,7 +31,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
     private fb: FormBuilder,
     private optService: OptionService,
     private optQry: OptionQuery,
-    public opEventSrv: OpEventService,
+    public opEventService: OpEventService,
     private authQ: AuthQuery,
     private eventQuery: OpEventQuery,
     private optStr: OptionsStore,
@@ -47,7 +47,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
     }
 
   async ngOnInit() {
-    this.opEventSrv.get().subscribe();
+    this.opEventService.get().subscribe();
     await this.allEvents();
     this.form.valueChanges.subscribe(
       (res) => {
@@ -67,8 +67,11 @@ export class MyEventsPage extends BaseForm implements OnInit {
     const balances = [];
 
     signer.getAddress().then(async (address) => {
-      await Promise.all(this.opEventSrv.events.map(async (_event, index) => {
-        balances[_event.id] = await this.opEventSrv.balanceForAddress(_event.id, address);
+      await Promise.all(Object.keys(this.opEventService.events).map(async (_eventKey) => {
+        const _event = this.opEventService.events[_eventKey];
+        this.opEventService.balanceOfAddress(_event.id, address).then((balance) => {
+          balances[_event.id] = balance[0] + balance[1];
+        });
       }));
 
       this.pendingEvents$ = this.eventQuery.selectAll({

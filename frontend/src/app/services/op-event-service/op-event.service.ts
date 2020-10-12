@@ -28,18 +28,19 @@ const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json'
 })
 export class OpEventService {
 
-  events: IEvent[];
+  events = {} as IEvent;
 
+  address = '';
   depositPeriod = 10;
-  minimumTokenAmountPerEvent = ethers.BigNumber.from(ethers.utils.parseUnits('100'));
+  minimumTokenAmountPerEvent = ethers.BigNumber.from(ethers.utils.parseUnits('10'));
 
   constructor(
     private crypto: CryptoService,
     private authQ: AuthQuery,
     private optService: OptionService,
-    private opEventStr: EventsStore,
+    private eventsStore: EventsStore,
     @Inject(WEB3) private web3: Web3) {
-      this.events = [];
+      this.events = {};
     }
 
     timeConverter(timestamp) {
@@ -84,6 +85,8 @@ export class OpEventService {
         side: Number(eventData['betSide']),
         creator: eventData['creator'],
         condition_price: ethers.utils.formatUnits(eventData['betPrice'].valueOf().toString(), 8).toString(),
+        settled_price: ethers.utils.formatUnits(eventData['settledPrice'].valueOf().toString(), 8).toString(),
+        winner: Number(eventData['winner']),
         completion: this.timeConverter(eventData['endTime']),
         created:  this.timeConverter(eventData['startTime']),
         status: this.parseEventStatus(eventData, totalBalance),
@@ -91,20 +94,10 @@ export class OpEventService {
         ratio: ''
       };
 
-      // Try to find existing event, if not add new.
-      let found = false;
-      await Promise.all(this.events.map(async (_event, index) => {
-        if (_event.id === eventId) {
-          this.events[index] = eventEntry;
-          found = true;
-        }
-      }));
+      this.events[eventId] = eventEntry;
+      (eventId in this.events) ? this.eventsStore.upsert(eventId, eventEntry) :
+                                 this.eventsStore.add(eventEntry, { prepend: true });
 
-      if (!found) {
-        console.log('pushing new event ');
-        this.events.push(eventEntry);
-        this.opEventStr.add(eventEntry, { prepend: true });
-      }
       console.log('events length after push: ' + Object.keys(this.events).length);
     }
 
@@ -112,6 +105,9 @@ export class OpEventService {
       // OPEventFactory initial data gathering
       const _USER: any  = this.authQ.getValue();
       const signer: any = _USER.signer;
+
+      this.address = await signer.getAddress();
+      console.log('signer address: ' + this.address);
 
       const contracts = [];
       const contractAddresses = [];
@@ -350,6 +346,7 @@ export class OpEventService {
       const contractAddresses = [];
       // Contract Addresses (local)
       contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
+      contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
 
       const _USER: any       = this.authQ.getValue();
       const _signer: any = _USER.signer;
@@ -361,11 +358,20 @@ export class OpEventService {
       }
 
       contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, _signer);
+      contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, _signer);
       try {
-        const waitForInteractions = Promise.all([]);
+        const optionsTP = {};
+        const approveTP = contracts['TrustPredict'].setApprovalForAll(contractAddresses['OPEventFactory'],
+                                                    true,
+                                                    optionsTP );
+
+        const waitForInteractions = Promise.all([approveTP]);
         waitForInteractions.then( async (res) => {
-          await contracts['OPEventFactory'].claim(eventId);
-          resolve(true);
+          const approveTPWait = await res[0].wait();
+          if (approveTPWait.status === 1) {
+            await contracts['OPEventFactory'].claim(eventId);
+            resolve(true);
+          }
         }).catch( err =>
           reject(
             `Error during transaction creation: ${JSON.stringify(err)}`
@@ -380,43 +386,42 @@ export class OpEventService {
     });
   }
 
-  async balanceForAddress(eventId, address) {
-      // OPEventFactory initial data gathering
+  async balanceOfAddress(eventId, address) {
+      console.log('eventId: ' + eventId);
+      console.log('address: ' + address);
+
       const _USER: any  = this.authQ.getValue();
       const signer: any = _USER.signer;
 
       const contracts = [];
       const contractAddresses = [];
-      contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
+
       contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
-      contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, signer);
       contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
 
-      const balanceO = await contracts['TrustPredict'].balanceForAddress(eventId, address, 0);
-      const balanceIO = await contracts['TrustPredict'].balanceForAddress(eventId, address, 1);
-
+      const balanceO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, 0);
       console.log('balanceO: ' + balanceO);
+      const balanceIO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, 1);
       console.log('balanceIO: ' + balanceIO);
 
-      return Number(balanceO) + Number(balanceIO);
+      return [Number(balanceO), Number(balanceIO)];
   }
 
   get(): Observable<void> {
     const request = timer(500).pipe(
-      mapTo(this.events),
-      map(response => this.opEventStr.set(response))
+      mapTo(Object.values(this.events)),
+      map(response => this.eventsStore.set(response))
     );
 
-    return cacheable(this.opEventStr, request);
+    return cacheable(this.eventsStore, request);
   }
 
 
 
   getEvent(id: ID) {
-    const event = this.events.find(current => current.id === +id);
     return timer(500).pipe(
-      mapTo(this.events),
-      map(() => this.opEventStr.add(event))
+      mapTo(Object.values(this.events)),
+      map(() => this.eventsStore.add(this.events[id]))
     );
   }
 
