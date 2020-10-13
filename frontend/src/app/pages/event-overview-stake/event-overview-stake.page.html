@@ -12,7 +12,7 @@
                 <ul class="list-reset">
                   <li>
                     <div class="eventInfoTxt bolder eventTokenInfo"> 
-                      <img [src]="event.asset_icon" alt="">  
+                      <div class="asset_icon" [ngClass]="'token-'+event.asset_ticker.toLowerCase()"></div>
                       {{ event.asset_name }}
                       ({{ event.asset_ticker }})
                     </div>     

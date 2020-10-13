@@ -209,39 +209,76 @@ html, body {
     background-size: cover;
     background-repeat: no-repeat;
     margin-right: 15px;
-    &.token-usdt {
-        background-image: url(/assets/img/usdt.svg);
+    &.token-aud {
+        background-image: url(/assets/img/aud.svg);
+    }
+    &.token-bat {
+        background-image: url(/assets/img/bat.svg);
+    }
+    &.token-bnb {
+        background-image: url(/assets/img/bnb.svg);
+    }
+    &.token-btc {
+        background-image: url(/assets/img/btc.svg);
+    }
+    &.token-cdai {
+        background-image: url(/assets/img/cdai.svg);
+    }
+    &.token-chf {
+        background-image: url(/assets/img/chf.svg);
+    }
+    &.token-dai {
+        background-image: url(/assets/img/dai.svg);
     }
     &.token-eth {
         background-image: url(/assets/img/eth.svg);
-    } 
-    &.token-btc {
-        background-image: url(/assets/img/btc.svg);
-    } 
-    &.token-link {
-        background-image: url(/assets/img/link.svg);
-    }            
+    }
+    &.token-eur {
+        background-image: url(/assets/img/eur.svg);
+    }
+    &.token-gbp {
+        background-image: url(/assets/img/gbp.svg);
+    }
+    &.token-jpy {
+        background-image: url(/assets/img/jpy.svg);
+    }
     &.token-lend {
         background-image: url(/assets/img/lend.svg);
-    }    
+    }
+    &.token-ltc {
+        background-image: url(/assets/img/ltc.svg);
+    }
+    &.token-link {
+        background-image: url(/assets/img/link.svg);
+    }
+    &.token-oil {
+        background-image: url(/assets/img/oil.svg);
+    }
     &.token-orn {
         background-image: url(/assets/img/orn.svg);
-    }  
+    }
     &.token-snx {
         background-image: url(/assets/img/snx.svg);
-    }   
+    }
     &.token-usdc {
         background-image: url(/assets/img/usdc.svg);
     }
     &.token-usdt {
         background-image: url(/assets/img/usdt.svg);
-    }  
-    &.token-cdai {
-        background-image: url(/assets/img/cdai.svg);
-    }                                          
+    }
+    &.token-xag {
+        background-image: url(/assets/img/xag.svg);
+    }
+    &.token-xau {
+        background-image: url(/assets/img/xau.svg);
+    }
+    &.token-xrp {
+        background-image: url(/assets/img/xrp.svg);
+    }
+    &.token-xtz {
+        background-image: url(/assets/img/xtz.svg);
+    }
 }
-
-
 
 .asset__list {
     height: 65vh;
