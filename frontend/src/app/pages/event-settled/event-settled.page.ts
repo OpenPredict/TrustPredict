@@ -8,6 +8,7 @@ import { NavController, ToastController } from '@ionic/angular';
 import { UiService } from '@app/services/ui-service/ui.service';
 import { Side, Token } from '@app/data-model';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
+import { ethers } from 'ethers';
 
 @Component({
   selector: 'app-event-settled',
@@ -22,6 +23,7 @@ export class EventSettledPage implements OnInit {
   }
 
   event$ = this.eventsQuery.selectEntity(this.eventId);
+  balances = [];
   hasBalanceInWinningToken$ = this.hasBalanceInWinningToken();
 
   constructor(
@@ -91,11 +93,14 @@ export class EventSettledPage implements OnInit {
 
     const address = await signer.getAddress();
     console.log('address: ' + address);
-    const balances = await this.eventsService.balanceOfAddress(this.eventId, address);
-    console.log('balances: ' + balances);
-    console.log('has tokens: ' + (balances[this.eventsService.events[eventId].winner].gt(0)));
+    this.balances = await this.eventsService.balanceOfAddress(this.eventId, address);
+    console.log('balances: ' + this.balances);
 
-    return balances[this.eventsService.events[eventId].winner] > 0;
+    return this.balances[this.eventsService.events[eventId].winner] > 0;
+  }
+
+  getTokenBalance(){
+    return this.balances[this.eventsService.events[this.eventId].winner];
   }
 
   async showClaimSuccess() {

@@ -37,7 +37,7 @@
                       Event expiration date:
                     </div>                
                     <div class="eventInfoTxt bolder"> 
-                      {{ event.expiration }}
+                      {{ event.completion }}
                     </div>                     
                   </li>                                    
                 </ul>
@@ -90,10 +90,10 @@
                     <div class="winRatioEstimator"  [ngClass]="{'red': position === Position.Right, 'green': position === Position.Left}">
                       <div class="winRatioEstimatorInner">
                         <div class="eventInfoTxt--small"> 
-                          Estimated “{{ token }}” Token win ratio:
+                          “{{ token }}” Token win ratio:
                         </div>                
                         <div class="eventInfoTxt bolder"> 
-                          400%
+                          {{getRatio()}}%
                         </div>                         
                       </div>                       
                     </div>

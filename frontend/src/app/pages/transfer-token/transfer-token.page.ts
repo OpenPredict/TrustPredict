@@ -121,8 +121,6 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
   }
 
   getTokenBalance(){
-    //console.log('this.balances: ' + this.balances);
-    //console.log('token selection: ' + this.token);
     return this.balances[this.token === 'IO' ? 0 : 1];
   }
 

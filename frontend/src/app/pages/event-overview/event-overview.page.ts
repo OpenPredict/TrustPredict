@@ -80,6 +80,18 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     return this.balances[(this.eventsService.getToken(position, betSide)) === 'IO' ? 0 : 1];
   }
 
+  getRatio(position: Position, betSide: Side){
+    console.log('this.balances: ' + this.balances);
+    console.log('token selection: ' + this.eventsService.getToken(position, betSide));
+
+    const selection = (this.eventsService.getToken(position, betSide)) === 'IO' ? 0 : 1;
+    const other = 1 - selection;
+
+    // (loser / winner) * 100
+    return (this.balances[selection] === 0) ? 0.0 :
+           ((this.balances[other] * 1.0 / this.balances[selection]) * 100).toFixed(2);
+  }
+
   /**
    * Opens the staking page
    * @param token token string
