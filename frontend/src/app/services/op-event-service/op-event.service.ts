@@ -14,7 +14,7 @@ import { timer } from 'rxjs/internal/observable/timer';
 import { WEB3 } from '@app/web3';
 import Web3 from 'web3';
 import { EventsStore } from './op-event.service.store';
-import { IEvent, Status, Position, Side } from '@app/data-model';
+import { IEvent, Status, Position, Side, Token } from '@app/data-model';
 
 const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
 const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
@@ -386,6 +386,60 @@ export class OpEventService {
     });
   }
 
+  async transferFrom(eventId: string,
+                     to: string,
+                     amount: number,
+                     selection: Token){
+    return new Promise( async (resolve, reject) => {
+      // constants
+      const contracts = [];
+      const contractAddresses = [];
+      contractAddresses['TrustPredict']   = '0x30690193C75199fdcBb7F588eF3F966402249315';
+
+      const _USER: any       = this.authQ.getValue();
+      const _signer: any = _USER.signer;
+
+      // parse values for contract call
+      const from = _signer.getAddress();
+      const amountEncoded = ethers.utils.parseUnits(amount.toString());
+
+      // log
+      console.log('eventId: ' + eventId);
+      console.log('from: ' + from);
+      console.log('to: ' + to);
+      console.log('amountEncoded: ' + amountEncoded.toString());
+      console.log('selection: ' + selection);
+
+      if (!_signer) {
+        reject(
+          new Error(`Please log in via Metamask!`)
+        );
+      }
+
+      contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, _signer);
+      try {
+        const optionsTP = {};
+        const transferTP = contracts['TrustPredict'].transferFrom(eventId, from, to, amountEncoded, selection, optionsTP);
+        const waitForInteractions = Promise.all([transferTP]);
+        waitForInteractions.then( async (res) => {
+          const transferTPWait = await res[0].wait();
+          if (transferTPWait.status === 1) {
+            resolve(true);
+          }
+        }).catch( err =>
+          reject(
+            `Error during transaction creation: ${JSON.stringify(err)}`
+          )
+        );
+      } catch (error) {
+        console.log();
+        reject(
+          new Error(error)
+        );
+      }
+    });
+  }
+
   async balanceOfAddress(eventId, address) {
       console.log('eventId: ' + eventId);
       console.log('address: ' + address);
@@ -399,12 +453,18 @@ export class OpEventService {
       contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
       contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
 
-      const balanceO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, 0);
+      let balanceO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, 0);
       console.log('balanceO: ' + balanceO);
-      const balanceIO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, 1);
+      let balanceIO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, 1);
       console.log('balanceIO: ' + balanceIO);
 
-      return [Number(balanceO), Number(balanceIO)];
+      balanceO = Number(ethers.utils.formatUnits(balanceO.toString()).toString());
+      balanceIO = Number(ethers.utils.formatUnits(balanceIO.toString()).toString());
+
+      console.log('balanceO encoded: ' + balanceO);
+      console.log('balanceIO encoded: ' + balanceIO);
+
+      return [balanceO, balanceIO];
   }
 
   get(): Observable<void> {
@@ -444,6 +504,10 @@ export class OpEventService {
             (position !== Position.Left && betSide !== Side.Higher)) ?
             'O' :
             'IO';
+  }
+
+  parseTokenAmount(amount) {
+    return ethers.utils.formatUnits(amount).toString();
   }
 
   /**

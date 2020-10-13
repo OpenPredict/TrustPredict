@@ -28,7 +28,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     return (position === '0') ? Position.Right : Position.Left;
   }
 
-  get tokenName() {
+  get token() {
     return this.activatedRoute.snapshot.params.token;
   }
 

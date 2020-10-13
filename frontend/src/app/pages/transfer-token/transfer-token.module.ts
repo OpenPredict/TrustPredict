@@ -7,7 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { TransferTokenPageRoutingModule } from './transfer-token-routing.module';
 
 import { TransferTokenPage } from './transfer-token.page';
-import { SharedModule } from "@app/shared.module";
+import { SharedModule } from '@app/shared.module';
 
 @NgModule({
   imports: [
