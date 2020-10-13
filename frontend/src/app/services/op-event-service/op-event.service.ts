@@ -91,7 +91,7 @@ export class OpEventService {
         created:  this.timeConverter(eventData['startTime']),
         status: this.parseEventStatus(eventData, totalBalance),
         value: ethers.utils.formatUnits(totalBalance.mul(100).toString()).toString() + ' USD',
-        ratio: ''
+        ratio: parseFloat(ethers.utils.formatUnits(eventData['amountPerWinningToken']).toString()).toFixed(2) + '%'
       };
 
       this.events[eventId] = eventEntry;
@@ -394,7 +394,7 @@ export class OpEventService {
       // constants
       const contracts = [];
       const contractAddresses = [];
-      contractAddresses['TrustPredict']   = '0x30690193C75199fdcBb7F588eF3F966402249315';
+      contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
 
       const _USER: any       = this.authQ.getValue();
       const _signer: any = _USER.signer;

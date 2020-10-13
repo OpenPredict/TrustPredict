@@ -72,6 +72,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
         this.opEventService.balanceOfAddress(_event.id, address).then((balance) => {
           balances[_event.id] = balance[0] + balance[1];
           console.log('balances[_event.id]: ' + balances[_event.id].toString());
+          console.log('address:' + address);
         });
       }));
 
@@ -82,7 +83,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
         filterBy: state => state.status === Status.Active
       });
       this.myEvents$ = this.eventQuery.selectAll({
-        filterBy: state => balances[state.id] > 0
+        filterBy: state => ((state.creator === address) || (balances[state.id] > 0))
       });
     });
   }
@@ -97,10 +98,10 @@ export class MyEventsPage extends BaseForm implements OnInit {
 
   openEvent(event: IEvent) {
     console.log(event);
-    (event.status === Status.Staking) ? this.navCtrl.navigateForward(`/event-overview/${event.id}`) :
+    (event.status === Status.Staking) ||
+    (event.status ===  Status.Active) ? this.navCtrl.navigateForward(`/event-overview/${event.id}`) :
     (event.status === Status.Expired) ? this.navCtrl.navigateForward(`/event-expired/${event.id}`) :
-    (event.status === Status.Settled) ? this.navCtrl.navigateForward(`/event-settled/${event.id}`) :
-    (event.status ===  Status.Active) ? this.navCtrl.navigateForward(`/event-overview/${event.id}`) : '';
+    (event.status === Status.Settled) ? this.navCtrl.navigateForward(`/event-settled/${event.id}`) : '';
   }
 
   displayEventType(eventType: number) {

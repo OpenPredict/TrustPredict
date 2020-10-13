@@ -10,6 +10,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { OptionService } from '@app/services/option-service/option.service';
 import { UiService } from '@app/services/ui-service/ui.service';
 import { Position } from '@app/data-model';
+import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 
 @Component({
   selector: 'app-event-overview-stake',
@@ -18,6 +19,8 @@ import { Position } from '@app/data-model';
 })
 export class EventOverviewStakePage extends BaseForm implements OnInit {
   private Position = Position;
+
+  balances = [];
 
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
@@ -43,7 +46,8 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     private optService: OptionService,
     private ui: UiService,
     private eventsService: OpEventService,
-    private eventsQuery: OpEventQuery) {
+    private eventsQuery: OpEventQuery,
+    private authQuery: AuthQuery) {
       super();
       this.availableOptions = this.optService.availableOptions;
 
@@ -52,6 +56,8 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
         option_stake: [null, Validators.compose([Validators.required, Validators.min(100), Validators.pattern('^[1-9]+[0-9]*00$')])],
         agreedTerms: [false, Validators.requiredTrue ],
       });
+
+      this.getTokenBalances();
     }
 
   ngOnInit() {
@@ -94,6 +100,29 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
 
   getClass(): string {
     return this.eventsService.getClass(this.position);
+  }
+
+  async getTokenBalances() {
+    const _USER: any  = this.authQuery.getValue();
+    const signer: any = _USER.signer;
+
+    const eventId = this.activatedRoute.snapshot.params.eventId;
+
+    const address = await signer.getAddress();
+    console.log('address: ' + address);
+    this.balances = await this.eventsService.balanceOfAddress(this.eventId, address);
+    console.log('balances getTokenBalances: ' + this.balances);
+  }
+
+  getRatio(){
+    console.log('this.balances: ' + this.balances);
+
+    const selection = (this.token === 'IO') ? 0 : 1;
+    const other = 1 - selection;
+
+    // (loser / winner) * 100
+    return (this.balances[selection] === 0) ? 0.0 :
+           ((this.balances[other] * 1.0 / this.balances[selection]) * 100).toFixed(2);
   }
 
   // replace with live terms and conditons url

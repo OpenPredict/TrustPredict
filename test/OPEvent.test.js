@@ -341,7 +341,7 @@ contract("TrustPredict", async (accounts) => {
     // - attempt claims from minters, assert failure
     // - valid revokes from all minters
     // - invalid follow-up revokes
-    it.only("Should pass for test case B", async () => {
+    it("Should pass for test case B", async () => {
         // - valid contract deployment
         IDs = await deployEvent(contracts, accounts);
         OPEventID = IDs[0]

@@ -61,10 +61,10 @@
                         Winner
                       </div>                      
                       <div class="eventInfoTxt--small">
-                        “IO” Token Win Ratio:
+                        ”{{getWinningTokenText(event.winner)}}” Token Win Ratio:
                       </div>          
                       <div class="eventInfoTxt bolder">
-                        400%
+                        {{event.ratio}}
                       </div>  
                       
                       
@@ -72,7 +72,7 @@
                         My balance:
                       </div>          
                       <div class="eventInfoTxt bolder">
-                        5.0 IO
+                        {{getTokenBalance()}} ”{{getWinningTokenText(event.winner)}}”
                       </div>                         
                       
                       <div class="eventInfoTxt--small eventInfoTransfer">
