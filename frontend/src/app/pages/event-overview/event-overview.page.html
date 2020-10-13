@@ -65,17 +65,17 @@
                         My balance:
                       </div>          
                       <div class="eventInfoTxt bolder">
-                        0 IO
+                        {{getTokenBalance(Position.Left,event.side)}} “{{getToken(Position.Left,event.side)}}”
                       </div>     
                       
-                      <div class="eventInfoTxt--small eventInfoTransfer">
+                      <div class="eventInfoTxt--small eventInfoTransfer" (click)="continue(getToken(Position.Left, event.side), Position.Left, event.status)">
                         Transfer >
                       </div>                           
                       
                     </div>
-                    <div class="btnMint green bolder border--green" (click)="continue(getToken(Position.Left, event.side), Position.Left)">
-                      <span>Mint “{{getToken(Position.Left,event.side)}}”</span>
-                    </div>
+                    <ion-button *ngIf="event.status === Status.Staking" class="btnMint green bolder border--green" (click)="continue(getToken(Position.Left, event.side), Position.Left, event.status)">
+                      <span>Stake “{{getToken(Position.Left,event.side)}}”</span>
+                    </ion-button>
                   </li>
                   
                   <li class="mintOption">
@@ -97,17 +97,17 @@
                         My balance:
                       </div>          
                       <div class="eventInfoTxt bolder">
-                        5.0 IO
+                        {{getTokenBalance(Position.Right,event.side)}} “{{getToken(Position.Right,event.side)}}”
                       </div>                         
                       
-                      <div class="eventInfoTxt--small eventInfoTransfer">
+                      <div class="eventInfoTxt--small eventInfoTransfer" (click)="continue(getToken(Position.Right, event.side), Position.Right, event.status)">
                         Transfer >
                       </div>                         
                       
                     </div>
-                    <div class="btnMint red bolder border--red" (click)="continue(getToken(Position.Right, event.side), Position.Right)">
-                      <span>Mint “{{getToken(Position.Right, event.side)}}”</span>
-                    </div>
+                    <ion-button *ngIf="event.status === Status.Staking" class="btnMint red bolder border--red" (click)="continue(getToken(Position.Right, event.side), Position.Right, event.status)">
+                      <span>Stake “{{getToken(Position.Right, event.side)}}”</span>
+                    </ion-button>
                   </li>                  
                   
                 </ul>              

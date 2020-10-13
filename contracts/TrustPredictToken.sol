@@ -50,8 +50,14 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
         return true;
     }
 
-    function transferFrom(address _eventId, address from, address to, uint256 amount, uint8 selection) external returns(bool) {
+    function burn(address _eventId, address _address, uint amount, uint8 selection) external returns(bool) {
         onlyEvent();
+
+        _burn(_address, getTokenID(_eventId, Utils.Token(selection)), amount);
+        return true;
+    }
+
+    function transferFrom(address _eventId, address from, address to, uint256 amount, uint8 selection) external returns(bool) {
 
         safeTransferFrom(from, to, getTokenID(_eventId, Utils.Token(selection)), amount, "");
         return true;
@@ -61,14 +67,6 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
         Token memory _token = getToken(_eventId, selection);
         return balanceOf(_address, _token.id);
     }
-
-    function burn(address _eventId, address _address, uint amount, uint8 selection) external returns(bool) {
-        onlyEvent();
-
-        _burn(_address, getTokenID(_eventId, Utils.Token(selection)), amount);
-        return true;
-    }
-
 
     /************** Start view functions *****************/
     function getTokenID(address _eventId, Utils.Token selection) internal view returns (uint256){

@@ -93,7 +93,8 @@ export class EventSettledPage implements OnInit {
     console.log('address: ' + address);
     const balances = await this.eventsService.balanceOfAddress(this.eventId, address);
     console.log('balances: ' + balances);
-    console.log('has tokens: ' + (balances[this.eventsService.events[eventId].winner] > 0));
+    console.log('has tokens: ' + (balances[this.eventsService.events[eventId].winner].gt(0)));
+
     return balances[this.eventsService.events[eventId].winner] > 0;
   }
 

@@ -71,6 +71,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
         const _event = this.opEventService.events[_eventKey];
         this.opEventService.balanceOfAddress(_event.id, address).then((balance) => {
           balances[_event.id] = balance[0] + balance[1];
+          console.log('balances[_event.id]: ' + balances[_event.id].toString());
         });
       }));
 
@@ -99,7 +100,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
     (event.status === Status.Staking) ? this.navCtrl.navigateForward(`/event-overview/${event.id}`) :
     (event.status === Status.Expired) ? this.navCtrl.navigateForward(`/event-expired/${event.id}`) :
     (event.status === Status.Settled) ? this.navCtrl.navigateForward(`/event-settled/${event.id}`) :
-    (event.status === Status.Active);
+    (event.status ===  Status.Active) ? this.navCtrl.navigateForward(`/event-overview/${event.id}`) : '';
   }
 
   displayEventType(eventType: number) {

@@ -22,7 +22,7 @@
                   </li>
                   <li>
                     <div class="eventInfoTxt--small"> 
-                      “{{ tokenName }}” Token success condition:
+                      “{{ token }}” Token success condition:
                     </div>                
                     <div class="eventInfoTxt bolder"> 
                       {{ event.asset_ticker }}
@@ -90,7 +90,7 @@
                     <div class="winRatioEstimator"  [ngClass]="{'red': position === Position.Right, 'green': position === Position.Left}">
                       <div class="winRatioEstimatorInner">
                         <div class="eventInfoTxt--small"> 
-                          Estimated “{{ tokenName }}” Token win ratio:
+                          Estimated “{{ token }}” Token win ratio:
                         </div>                
                         <div class="eventInfoTxt bolder"> 
                           400%
@@ -122,7 +122,7 @@
                        [disabled]="form.invalid" 
                        type="submit"
                        (click)="continue()">
-                          <span>Mint “{{ tokenName }}”</span>
+                          <span>Mint “{{ token }}”</span>
                       </ion-button>
                     </div>  
                     
