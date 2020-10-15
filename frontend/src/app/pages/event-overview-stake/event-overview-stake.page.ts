@@ -4,7 +4,7 @@ import { untilDestroyed } from 'ngx-take-until-destroy';
 import { ActivatedRoute } from '@angular/router';
 import { OpEventService } from '@app/services/op-event-service/op-event.service';
 import { OpEventQuery } from '@app/services/op-event-service/op-event.service.query';
-import { NavController } from '@ionic/angular';
+import { NavController, ToastController } from '@ionic/angular';
 import { BaseForm } from '@app/helpers/BaseForm';
 import { FormBuilder, Validators } from '@angular/forms';
 import { OptionService } from '@app/services/option-service/option.service';
@@ -47,7 +47,8 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     private ui: UiService,
     private eventsService: OpEventService,
     private eventsQuery: OpEventQuery,
-    private authQuery: AuthQuery) {
+    private authQuery: AuthQuery,
+    private toastCtrl: ToastController) {
       super();
       this.availableOptions = this.optService.availableOptions;
 
@@ -73,17 +74,17 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
 
   async continue() {
     const eventId = this.activatedRoute.snapshot.params.eventId;
-    const numTokensStakedToStake = parseFloat(this.form.controls['option_stake'].value);
-    const selection = this.activatedRoute.snapshot.params.stake;
+    const numTokensStakedToMint = this.form.controls['option_stake'].value;
+    const selection = (this.token === 'IO') ? 0 : 1;
 
     try {
      const interaction = await this.ui
-                             .loading(  this.eventsService.stake(eventId, numTokensStakedToStake, selection),
+                             .loading(  this.eventsService.stake(eventId, numTokensStakedToMint, selection),
                              'You will be prompted for 2 contract interactions, please approve both to successfully take part and please be patient as it may take a few moments to broadcast to the network.' )
                              .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) );
 
      if (interaction) {
-      alert('Success ! Your stake has been placed');
+      this.showStakeSuccess();
     }
     } catch (error) {
       alert(`Error ! ${error}`);
@@ -128,6 +129,20 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
   // replace with live terms and conditons url
   openTnC() {
     this.ui.openIAB(this.termsAndConditions);
+  }
+
+  async showStakeSuccess() {
+    const toast = await this.toastCtrl.create({
+      position: 'middle',
+      duration: 2000,
+      cssClass: 'successToast',
+      message: 'Success ! Your stake has been placed.'
+    });
+    await toast.present();
+    setTimeout( async () => {
+      await toast.dismiss();
+      this.navCtrl.navigateForward('/my-events');
+    }, 2500);
   }
 
 

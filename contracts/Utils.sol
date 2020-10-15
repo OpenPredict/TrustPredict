@@ -9,11 +9,11 @@ library Utils {
     enum Side {Lower, Higher}
 
     string constant network = "development";
-    //string memory network = "kovan";
+    //string constant network = "kovan";
 
     //************ variables that differ between networks (development, kovan) **********************************
     function GetOPUSDAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0xB876a52ABD933a02426C31d8231e9B9352864214 : 0xBf610614CaA08d9fe7a4F61082cc32951e547a91;
+        _address = compare(network, "kovan") ? 0x168A6Ca87D06CBac65413b19afd2C7d0cd36d1AC : 0xBf610614CaA08d9fe7a4F61082cc32951e547a91;
     }
 
     function GetChainLinkAddress() external pure returns (address _address) {
@@ -21,29 +21,27 @@ library Utils {
     }
 
     function GetOracleAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0x4eb24Db3F49F82A475281d49D3d327f623B6e3dA : 0xc6ACe392cE166D3f2013302d751Bfc26C166048e;
+        _address = compare(network, "kovan") ? 0x5d8f0A41406369E0a403764404e1befb7C2b5C19 : 0xc6ACe392cE166D3f2013302d751Bfc26C166048e;
     }
 
     function GetTrustPredictAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0xd620622a91Ad6F1b25Acc8Dca502a577068F48B7 : 0x30690193C75199fdcBb7F588eF3F966402249315;
+        _address = compare(network, "kovan") ? 0x7EaB3f84F1cdd3104724EC000fd19A064390c0A9 : 0x30690193C75199fdcBb7F588eF3F966402249315;
     }
 
     function GetOPEventFactoryAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0xd620622a91Ad6F1b25Acc8Dca502a577068F48B7 : 0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C;
+        _address = compare(network, "kovan") ? 0xdFB8a38D4BfE32BDA20995FeCCFb33f263a3Ede7 : 0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C;
     }
-
-
 
     function GetNetwork() external pure returns(string memory){        
         return network;
     }
     
     function GetDepositPeriod() external pure returns (uint _depositPeriod) {
-        _depositPeriod = compare(network, "kovan") ? 86400 : 10;
+        _depositPeriod = compare(network, "kovan") ? 200 : 10;
     }
 
     function GetMinimumTokenAmountPerEvent() external pure returns (uint _minimumTokenAmountPerEvent) {
-        _minimumTokenAmountPerEvent = compare(network, "kovan") ? 500000000000000000000 : 10000000000000000000;
+        _minimumTokenAmountPerEvent = compare(network, "kovan") ? 10000000000000000000 : 10000000000000000000;
     }
     //************ variables that differ between networks (development, kovan) **********************************
 
@@ -132,7 +130,7 @@ library Utils {
 
 
     //**************************** Start Oracle helper functions *****************************************
-    function newRequest(uint256 _until, address _priceAggregator, address _oracle, address _eventId) external returns(bool) {
+    function newRequest(uint256 _until, address _priceAggregator, address _eventId, address _oracle) external returns(bool) {
         (bool success, bytes memory result) = _oracle.call(
             (abi.encodeWithSignature("newRequest(uint256,address,address)", 
              _until, _priceAggregator, _eventId)

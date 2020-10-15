@@ -52,7 +52,7 @@
                       </div>                                                             
                     </div>
                     
-                    <div class="btnMint smokey bolder" (click)="continue()">
+                    <div class="btnMint smokey bolder" *ngIf="hasBalanceInAnyToken$ | async" (click)="continue()">
                       <span>Withdraw Deposit</span>
                     </div>                    
                     
