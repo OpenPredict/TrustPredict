@@ -97,9 +97,9 @@ export class EventOverviewPage implements OnInit, OnDestroy {
    * @param token token string
    * @param position if coming from the LHS or RHS
    */
-  continue(token: string, position: Position, status: Status): void {
-    (status === Status.Staking) ? this.navCtrl.navigateForward(`/event-overview-stake/${this.eventId}/${token}/${position}`) :
-    (status ===  Status.Active) ? this.navCtrl.navigateForward(`/transfer-token/${this.eventId}/${token}/${position}`) : '';
+  continue(token: string, position: Position, option: string): void {
+    (option === 'stake') ? this.navCtrl.navigateForward(`/event-overview-stake/${this.eventId}/${token}/${position}`) :
+    (option === 'transfer') ? this.navCtrl.navigateForward(`/transfer-token/${this.eventId}/${token}/${position}`) : '';
   }
 
 }

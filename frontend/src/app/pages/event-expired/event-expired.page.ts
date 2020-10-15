@@ -7,6 +7,7 @@ import { OpEventQuery } from '@app/services/op-event-service/op-event.service.qu
 import { NavController, ToastController } from '@ionic/angular';
 import { UiService } from '@app/services/ui-service/ui.service';
 import { Position, Side } from '@app/data-model';
+import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 
 @Component({
   selector: 'app-event-expired',
@@ -21,15 +22,18 @@ export class EventExpiredPage implements OnInit {
   }
 
   event$ = this.eventsQuery.selectEntity(this.eventId);
+  hasBalanceInAnyToken$ = this.hasBalanceInAnyToken();
 
   constructor(
     private navCtrl: NavController,
     private activatedRoute: ActivatedRoute,
     private eventsService: OpEventService,
     private eventsQuery: OpEventQuery,
+    private authQuery: AuthQuery,
     private toastCtrl: ToastController,
     private ui: UiService) {
       console.log('created');
+      this.hasBalanceInAnyToken();
     }
 
   ngOnInit() {
@@ -89,5 +93,18 @@ export class EventExpiredPage implements OnInit {
       await toast.dismiss();
       this.navCtrl.navigateForward('/my-events');
     }, 2500);
+  }
+
+  async hasBalanceInAnyToken() {
+    const _USER: any  = this.authQuery.getValue();
+    const signer: any = _USER.signer;
+
+    const eventId = this.activatedRoute.snapshot.params.eventId;
+    const address = await signer.getAddress();
+    console.log('address: ' + address);
+    const balances = await this.eventsService.balanceOfAddress(this.eventId, address);
+    console.log('balances: ' + balances);
+
+    return balances[0] > 0 || balances[1] > 0;
   }
 }

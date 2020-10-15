@@ -65,13 +65,14 @@ module.exports = {
     },
 
     getNextContractAddress: function (address, nonce){
+        const { toChecksumAddress } = require('ethereum-checksum-address')
         rlp = require('rlp')
         keccak = require('keccak')
         var input_arr = [ address, nonce ];
         var rlp_encoded = rlp.encode(input_arr);
         var contract_address_long = keccak('keccak256').update(rlp_encoded).digest('hex');
         var contract_address = '0x'.concat(contract_address_long.substring(24));
-        return contract_address;
+        return toChecksumAddress(contract_address);
     },
 
     getTransactionCount: async function (index) {

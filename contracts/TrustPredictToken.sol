@@ -7,6 +7,8 @@ import "openzeppelin-solidity/contracts/token/ERC1155/ERC1155Burnable.sol";
 
 contract TrustPredictToken is ERC1155, ERC1155Burnable {
 
+    event TransferFrom(address, address, address, uint256, uint8);
+
     // Token data
     struct Token {
         uint256 id;
@@ -42,48 +44,49 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
         return true;
     }
 
-    function mint(address _eventId, address beneficiary, uint amount, uint8 selection) external returns(bool) {
+    function mint(address eventId, address beneficiary, uint amount, uint8 selection) external returns(bool) {
         onlyEvent();
 
-        _mint(beneficiary, getTokenID(_eventId, Utils.Token(selection)), amount, "");
-        TokenPairs[_eventId].tokens[Utils.Token(selection)].balance += amount;
+        _mint(beneficiary, getTokenID(eventId, Utils.Token(selection)), amount, "");
+        TokenPairs[eventId].tokens[Utils.Token(selection)].balance += amount;
         return true;
     }
 
-    function burn(address _eventId, address _address, uint amount, uint8 selection) external returns(bool) {
+    function burn(address eventId, address _address, uint amount, uint8 selection) external returns(bool) {
         onlyEvent();
 
-        _burn(_address, getTokenID(_eventId, Utils.Token(selection)), amount);
+        _burn(_address, getTokenID(eventId, Utils.Token(selection)), amount);
         return true;
     }
 
-    function transferFrom(address _eventId, address from, address to, uint256 amount, uint8 selection) external returns(bool) {
+    function transferFrom(address eventId, address from, address to, uint256 amount, uint8 selection) external returns(bool) {
 
-        safeTransferFrom(from, to, getTokenID(_eventId, Utils.Token(selection)), amount, "");
+        safeTransferFrom(from, to, getTokenID(eventId, Utils.Token(selection)), amount, "");
+        emit TransferFrom(eventId, from, to, amount, selection);
         return true;
     }
 
-    function balanceOfAddress(address _eventId, address _address, uint8 selection) view external returns(uint256) {
-        Token memory _token = getToken(_eventId, selection);
+    function balanceOfAddress(address eventId, address _address, uint8 selection) view external returns(uint256) {
+        Token memory _token = getToken(eventId, selection);
         return balanceOf(_address, _token.id);
     }
 
     /************** Start view functions *****************/
-    function getTokenID(address _eventId, Utils.Token selection) internal view returns (uint256){
-        return TokenPairs[_eventId].tokens[selection].id;
+    function getTokenID(address eventId, Utils.Token selection) internal view returns (uint256){
+        return TokenPairs[eventId].tokens[selection].id;
     }
 
-    function getToken(address _eventId, uint8 selection) public view returns(Token memory){
-        return TokenPairs[_eventId].tokens[Utils.Token(selection)];
+    function getToken(address eventId, uint8 selection) public view returns(Token memory){
+        return TokenPairs[eventId].tokens[Utils.Token(selection)];
     }
 
-    function getTokenBalance(address _eventId, uint8 selection) public view returns (uint256){
-        return TokenPairs[_eventId].tokens[Utils.Token(selection)].balance;
+    function getTokenBalance(address eventId, uint8 selection) public view returns (uint256){
+        return TokenPairs[eventId].tokens[Utils.Token(selection)].balance;
     }
 
-    function getTokenBalances(address _eventId) external view returns (uint, uint){
-        return (getTokenBalance(_eventId, uint8(Utils.Token.O)), 
-                getTokenBalance(_eventId, uint8(Utils.Token.IO)));
+    function getTokenBalances(address eventId) external view returns (uint, uint){
+        return (getTokenBalance(eventId, uint8(Utils.Token.O)), 
+                getTokenBalance(eventId, uint8(Utils.Token.IO)));
     }
     /************** End view functions *****************/
 }

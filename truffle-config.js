@@ -18,13 +18,12 @@
  *
  */
 
-const HDWalletProvider = require('truffle-hdwallet-provider');
 require('dotenv').config()
+const HDWalletProvider = require('truffle-hdwallet-provider');
 
-// const infuraKey = "fj4jll3k.....";
-//
-// const fs = require('fs');
-const privateKey = "18f53bff05faa130eb987e6a29c5956df1f2ebc71499d6757a935daa558e454e";
+const PRIVATE_KEY="306457bd352a67c7ed34f51dc71c217a4f24cee08729f64722d81b927e6e2e96"
+INFURA_KEY="fb44167f83e740898c90737b6ec456d8"
+
 module.exports = {
   /**
    * Networks define how you connect to your ethereum client and let you set the
@@ -51,11 +50,11 @@ module.exports = {
     },
 
     kovan: {
-      provider: new HDWalletProvider(privateKey, "https://kovan.infura.io/v3/fb44167f83e740898c90737b6ec456d8"),
+      provider: new HDWalletProvider(PRIVATE_KEY, "https://kovan.infura.io/v3/" + INFURA_KEY),
       network_id: 42,
       gas: 10000000,
       skipDryRun: true,
-      secret : '0x' + privateKey
+      secret : '0x' + PRIVATE_KEY
     }
     // Another network with more advanced options...
     // advanced: {

@@ -4,6 +4,7 @@ import { OptionService } from '@services/option-service/option.service';
 import { AuthQuery } from '@services/auth-service/auth.service.query';
 
 import { ethers } from 'ethers';
+const BigNumber = ethers.BigNumber;
 
 import { map, mapTo, tap } from 'rxjs/operators';
 import { ID, cacheable } from '@datorama/akita';
@@ -14,7 +15,7 @@ import { timer } from 'rxjs/internal/observable/timer';
 import { WEB3 } from '@app/web3';
 import Web3 from 'web3';
 import { EventsStore } from './op-event.service.store';
-import { IEvent, Status, Position, Side, Token } from '@app/data-model';
+import { IEvent, IBalance, Status, Position, Side, Token } from '@app/data-model';
 
 const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
 const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
@@ -23,16 +24,27 @@ const Oracle            = require('@truffle/build/contracts/Oracle.json');
 const TrustPredictToken = require('@truffle/build/contracts/TrustPredictToken.json');
 const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json');
 
+const contractAddresses = [];
+const kovan = false;
+
+contractAddresses['OPUSD']          = kovan ? '0x168A6Ca87D06CBac65413b19afd2C7d0cd36d1AC' : '0xBf610614CaA08d9fe7a4F61082cc32951e547a91';
+contractAddresses['ChainLink']      = kovan ? '0xa36085F69e2889c224210F603D836748e7dC0088' : '0x4C6f9E62b4EDB743608757D9D5F16B0B67B41285';
+contractAddresses['Utils']          = kovan ? '0x3CC0CCf97178f6A14f2d2762596ab8e052A28d9E' : '0x6c6387F01EddCd8fEcb674332D22d665c5313a90';
+contractAddresses['Oracle']         = kovan ? '0xbd0b4c43DA0dAFc4143C47ecf15f7E5c8Ff19E84' : '0xc6ACe392cE166D3f2013302d751Bfc26C166048e';
+contractAddresses['TrustPredict']   = kovan ? '0x71b388f51d95cc5a6E983D7e9D5ceCFf1b54293C' : '0x30690193C75199fdcBb7F588eF3F966402249315';
+contractAddresses['OPEventFactory'] = kovan ? '0xec71D6030Ac5DE2bc4849A9dE9CE0131381d3F62' : '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
+
 @Injectable({
   providedIn: 'root'
 })
 export class OpEventService {
 
   events = {} as IEvent;
+  balances = {} as IBalance;
 
   address = '';
   depositPeriod = 10;
-  minimumTokenAmountPerEvent = ethers.BigNumber.from(ethers.utils.parseUnits('10'));
+  minimumTokenAmountPerEvent = BigNumber.from(ethers.utils.parseUnits('10'));
 
   constructor(
     private crypto: CryptoService,
@@ -41,6 +53,7 @@ export class OpEventService {
     private eventsStore: EventsStore,
     @Inject(WEB3) private web3: Web3) {
       this.events = {};
+      this.balances = {};
     }
 
     timeConverter(timestamp) {
@@ -73,7 +86,7 @@ export class OpEventService {
       const ticker = pairing.pair.replace('/USD', '');
       const asset = this.optService.availableAssets[ticker];
 
-      const totalBalance = ethers.BigNumber.from(tokenBalances[0]).add(ethers.BigNumber.from(tokenBalances[1]));
+      const totalBalance = BigNumber.from(tokenBalances[0]).add(BigNumber.from(tokenBalances[1]));
 
       ethers.utils.formatUnits(tokenBalances[0].add(tokenBalances[1]).valueOf().toString());
 
@@ -101,6 +114,62 @@ export class OpEventService {
       console.log('events length after push: ' + Object.keys(this.events).length);
     }
 
+    async setupBalanceSubscriber(trustPredict, walletAddress){
+
+
+      // You can also pull in your JSON ABI; I'm not sure of the structure inside artifacts
+      //
+      const abi = new ethers.utils.Interface([
+        'event TransferFrom(address,address,address,uint256,uint8)'
+      ]);
+
+      this.crypto.provider().on( {
+          address: trustPredict.address,
+          topics: [
+              ethers.utils.id('TransferFrom(address,address,address,uint256,uint8)'),
+            ],
+        }, async (log) => {
+          const events = abi.parseLog(log);
+          const from = events['args'][1];
+          const   to = events['args'][2];
+          console.log('from: ' + from);
+          console.log('to: ' + to);
+          console.log('walletAddress: ' + walletAddress);
+          if (from === walletAddress || to === walletAddress) {
+            const eventId = events['args'][0];
+            const amount = ethers.BigNumber.from(events['args'][3]);
+            const selection = events['args'][4];
+
+            console.log('eventId: ' + eventId);
+            console.log('amount: ' + amount);
+            console.log('selection: ' + selection);
+            // If this is the first call just get balances from the chain. otherwise update from log.
+            if (!(eventId in this.balances)) {
+              // get initial balances
+              const balances = await trustPredict.getTokenBalances(eventId);
+              console.log('balances: ' + balances);
+              const balanceEntry = {
+                IOToken: BigNumber.from(balances[0]),
+                 OToken: BigNumber.from(balances[1]),
+              };
+              this.balances[eventId] = balanceEntry;
+            } else {
+              if (to === walletAddress) {
+                console.log('Balance add - to wallet address from: ' + to + ' selection: ' + selection.valueOf().toString());
+                (selection === 0) ? this.balances[eventId].IOToken = this.balances[eventId].IOToken.add(amount)
+                                  : this.balances[eventId].OToken  = this.balances[eventId].OToken.add(amount);
+              }
+              if (from === walletAddress) {
+                console.log('Balance sub - from wallet address to: ' + to + ' selection: ' + selection.valueOf().toString());
+                (selection === 0) ? this.balances[eventId].IOToken = this.balances[eventId].IOToken.sub(amount)
+                                  : this.balances[eventId].OToken  = this.balances[eventId].OToken.sub(amount);
+              }
+            }
+            console.log('balances: ' + JSON.stringify(this.balances[eventId]));
+          }
+        });
+    }
+
     async setupEventSubscriber(){
       // OPEventFactory initial data gathering
       const _USER: any  = this.authQ.getValue();
@@ -110,11 +179,10 @@ export class OpEventService {
       console.log('signer address: ' + this.address);
 
       const contracts = [];
-      const contractAddresses = [];
-      contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
-      contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
       contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, signer);
       contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
+
+      this.setupBalanceSubscriber(contracts['TrustPredict'], this.address);
 
       contracts['OPEventFactory'].getNonce().then(async (lastNonce) => {
           console.log('lastNonce: ' + lastNonce);
@@ -165,15 +233,6 @@ export class OpEventService {
 
       // constants
       const contracts = [];
-      const contractAddresses = [];
-      // Contract Addresses (local)
-      contractAddresses['OPUSD'] = '0xBf610614CaA08d9fe7a4F61082cc32951e547a91';
-      contractAddresses['ChainLink'] = '0x4C6f9E62b4EDB743608757D9D5F16B0B67B41285';
-      contractAddresses['Utils'] = '0x6c6387F01EddCd8fEcb674332D22d665c5313a90';
-      contractAddresses['Oracle'] = '0xc6ACe392cE166D3f2013302d751Bfc26C166048e';
-      contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
-      contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
-
       const OPUSDOptionRatio = 100;
       const priceFeedDecimals = 8;
 
@@ -240,10 +299,6 @@ export class OpEventService {
 
             // constants
             const contracts = [];
-            const contractAddresses = [];
-            // Contract Addresses (local)
-            contractAddresses['OPUSD'] = '0xBf610614CaA08d9fe7a4F61082cc32951e547a91';
-            contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
 
             const OPUSDOptionRatio = 100;
             const priceFeedDecimals = 8;
@@ -273,7 +328,7 @@ export class OpEventService {
               waitForInteractions.then( async (res) => {
                 const approveOPWait = await res[0].wait();
                 if (approveOPWait.status === 1) {
-                  console.log(`Placing stake with | eventId: ${eventId}| numTokensStakedToMint: ${numTokensStakedToMint} || selection: ${selection}`);
+                  console.log(`Placing stake with | eventId: ${eventId}| numTokensToMint: ${numTokensToMint} || selection: ${selection}`);
                   await contracts['OPEventFactory'].stake(eventId, numTokensToMint, selection);
                   resolve(true);
                 }
@@ -295,10 +350,6 @@ export class OpEventService {
     return new Promise( async (resolve, reject) => {
       // constants
       const contracts = [];
-      const contractAddresses = [];
-      // Contract Addresses (local)
-      contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
-      contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
 
       const _USER: any       = this.authQ.getValue();
       const _signer: any = _USER.signer;
@@ -343,10 +394,6 @@ export class OpEventService {
     return new Promise( async (resolve, reject) => {
       // constants
       const contracts = [];
-      const contractAddresses = [];
-      // Contract Addresses (local)
-      contractAddresses['OPEventFactory'] = '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
-      contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
 
       const _USER: any       = this.authQ.getValue();
       const _signer: any = _USER.signer;
@@ -393,8 +440,6 @@ export class OpEventService {
     return new Promise( async (resolve, reject) => {
       // constants
       const contracts = [];
-      const contractAddresses = [];
-      contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
 
       const _USER: any       = this.authQ.getValue();
       const _signer: any = _USER.signer;
@@ -405,7 +450,7 @@ export class OpEventService {
 
       // log
       console.log('eventId: ' + eventId);
-      console.log('from: ' + from);
+      console.log('from: ' + from.address);
       console.log('to: ' + to);
       console.log('amountEncoded: ' + amountEncoded.toString());
       console.log('selection: ' + selection);
@@ -448,9 +493,6 @@ export class OpEventService {
       const signer: any = _USER.signer;
 
       const contracts = [];
-      const contractAddresses = [];
-
-      contractAddresses['TrustPredict'] = '0x30690193C75199fdcBb7F588eF3F966402249315';
       contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
 
       let balanceO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, 0);
@@ -519,9 +561,9 @@ export class OpEventService {
   }
 
   getStatusText(event: any) {
-    return  (event.status === Status.Staking) ? 'Staking in Progress'       :
-            (event.status === Status.Settled) ? 'Settled, Claim Rewards'    :
-            (event.status === Status.Expired) ? 'Expired, Withdraw Deposit' :
-            'Active (Staking Complete): ' + (event.betSide === 1 ? 'Higher ' : 'Lower ') + 'than ' + event.condition_price + ' USD';
+    return  (event.status === Status.Staking) ? 'Staking in Progress' :
+            (event.status === Status.Settled) ? 'Settled'             :
+            (event.status === Status.Expired) ? 'Expired'             :
+            'Active (Staking Complete)';
   }
 }

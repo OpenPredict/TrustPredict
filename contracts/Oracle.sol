@@ -31,6 +31,8 @@ contract Oracle is ChainlinkClient {
     function _hasGrantedAllowance() internal {
         require(Utils.allowance(tx.origin, address(this), Utils.GetChainLinkAddress()) ==  (1 * LINK), 
                 "Oracle: Required LINK amount not granted.");
+        // Transfer here so that it can be used by the LINK contract
+        //Utils.transfer(address(this), (1 * LINK), Utils.GetChainLinkAddress());
     }
 
 
@@ -99,8 +101,8 @@ contract Oracle is ChainlinkClient {
         address _event = eventIDs[_requestId];
         int256 settledPrice = 36560000000; // for tests
         (bool success, bytes memory result) = Utils.GetOPEventFactoryAddress().call(
-            (abi.encodeWithSignature("settle(int256,address)",
-            settledPrice, _event)
+            (abi.encodeWithSignature("settle(address,int256)",
+            _event, settledPrice)
         ));
         require(success, "Oracle: call to event contract failed");
     }

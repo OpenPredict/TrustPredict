@@ -119,7 +119,7 @@ contract OPEventFactory {
         events[_eventId] = data;
 
         // Create Oracle request. give the callback some leeway
-        Utils.newRequest(data.endTime + 2 minutes, _priceAggregator, _oracle, _eventId); 
+        Utils.newRequest(data.endTime + 2 minutes, _priceAggregator, _eventId, _oracle);
         
         // Create event entry in TrustPredictToken.
         Utils.createTokens(_eventId, _token);

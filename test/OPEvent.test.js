@@ -12,7 +12,7 @@ const ethers = require('ethers');
 const { AssertionError } = require("chai");
 let Constants = utils.Constants
 
-OPUSDTokenValue = ethers.utils.parseUnits((Constants.numTokens * 10 * Constants.OPUSDOptionRatio).toString())
+OPUSDTokenValue = ethers.utils.parseUnits((Constants.numTokens * 1000 * Constants.OPUSDOptionRatio).toString())
 
 
 async function sendTokensToAddresses(contracts, accounts) {

@@ -1,4 +1,5 @@
 import { ID } from '@datorama/akita';
+import { ethers } from 'ethers';
 
 export enum Token {
   IO = 0,
@@ -39,18 +40,24 @@ export interface LedgerWallet {
 
 
 export interface IEvent {
-    id?: ID;
-    asset_name?: string;
-    asset_ticker?: string;
-    asset_icon?: string;
-    side?: Side;
-    creator?: string;
-    condition_price?: string | number; // whatever the contract returns
-    settled_price?: string | number; // whatever the contract returns
-    winner?: Token;
-    completion?: string | Date;
-    created?: string;
-    value?: string;
-    status?: Status;
-    ratio?: string;
-  }
+  id?: ID;
+  asset_name?: string;
+  asset_ticker?: string;
+  asset_icon?: string;
+  side?: Side;
+  creator?: string;
+  condition_price?: string | number; // whatever the contract returns
+  settled_price?: string | number; // whatever the contract returns
+  winner?: Token;
+  completion?: string | Date;
+  created?: string;
+  value?: string;
+  status?: Status;
+  ratio?: string;
+}
+
+
+export interface IBalance {
+  OToken?: ethers.BigNumber;
+  IOToken?: ethers.BigNumber;
+}
