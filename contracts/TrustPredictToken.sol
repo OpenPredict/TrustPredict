@@ -26,16 +26,16 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
     mapping(address => TokenPair) TokenPairs;
 
     // ********** start modifiers ******************************
-    function onlyEvent() internal view {
+    function _onlyEvent() internal view {
         require(msg.sender==Utils.GetOPEventFactoryAddress(),
-                "TrustPredictToken: Caller is not designated OPEventFactory.");
+                "TrustPredictToken: Caller is not the designated OPEventFactory address.");
     }
     // ********** end modifiers ******************************
 
     constructor(string memory uri) public ERC1155(uri) {}
 
     function createTokens(address _eventId) external returns(bool){
-        onlyEvent();
+        _onlyEvent();
 
         // Create IDs for O/IO tokens.
         TokenPairs[_eventId].tokens[Utils.Token.O]  = Token(uint256(keccak256(abi.encodePacked(_eventId, Utils.Token.O))), 0);
@@ -45,7 +45,7 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
     }
 
     function mint(address eventId, address beneficiary, uint amount, uint8 selection) external returns(bool) {
-        onlyEvent();
+        _onlyEvent();
 
         _mint(beneficiary, getTokenID(eventId, Utils.Token(selection)), amount, "");
         TokenPairs[eventId].tokens[Utils.Token(selection)].balance += amount;
@@ -53,7 +53,7 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
     }
 
     function burn(address eventId, address _address, uint amount, uint8 selection) external returns(bool) {
-        onlyEvent();
+        _onlyEvent();
 
         _burn(_address, getTokenID(eventId, Utils.Token(selection)), amount);
         return true;

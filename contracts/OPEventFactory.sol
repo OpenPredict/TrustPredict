@@ -4,11 +4,12 @@ pragma experimental ABIEncoderV2;
 import "./Utils.sol";
 
 contract OPEventFactory {
-    // ********** Events ***************
-
+    // ********** Start Events ***************
     event EventUpdate(address);
+    // ********** End Events ***************
 
-    // ********** start state vars **********    
+
+    // ********** Start State variables **********    
     // constants
     uint constant maxEventPeriod = 315360000; // max time any one event can last for (10y in seconds)
 
@@ -32,8 +33,10 @@ contract OPEventFactory {
     mapping(address => EventData) events;
 
     uint nonce = 1; // have to keep track of nonce independently. Used for deterministic event ID generation.
+    // ********** End State variables **********    
 
-    // ********** start gatekeeping functions *********
+
+    // ************************************ start gatekeeping functions *************************************************
     function _validEventPeriod(uint _eventPeriod) view internal {
         // require that event takes place within maxEventPeriod time
         uint _endTime = SafeMath.add(block.timestamp, _eventPeriod);
@@ -93,15 +96,17 @@ contract OPEventFactory {
         else
             require(block.timestamp < events[_eventId].endTime, "OPEventFactory: Event concluded.");
      }
-    
-    // ********** end gatekeeping functions *********
+    // ************************************ end gatekeeping functions ***************************************************
 
+
+    // ************************************ start external functions ****************************************************
     function createOPEvent(int _betPrice, 
                            int8 _betSide, 
                            uint _eventPeriod,
                            uint numTokensToMint,
                            address _priceAggregator)
-            external 
+            external
+            returns(bool)
     {
         _validEventPeriod(_eventPeriod);
         _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
@@ -129,11 +134,14 @@ contract OPEventFactory {
         Utils.mint(_eventId, msg.sender, numTokensToMint, Utils.Token.O, _token);
 
         emit EventUpdate(_eventId);
+        return true;
     }
 
-    // ************************************ start external functions ****************************************************
-    function stake(address _eventId, uint numTokensToMint, Utils.Token selection)
-        external 
+    function stake(address _eventId, 
+                   uint numTokensToMint, 
+                   Utils.Token selection)
+        external
+        returns(bool)
     {
         _isSettled(_eventId, false);
         _minimumTimeReached(_eventId, false);
@@ -144,10 +152,13 @@ contract OPEventFactory {
         Utils.mint(_eventId, msg.sender, numTokensToMint, selection, _token);
 
         emit EventUpdate(_eventId);
+        return true;
     }
 
-    function settle(address _eventId, int _settledPrice) 
+    function settle(address _eventId, 
+                    int _settledPrice) 
         external
+        returns(bool)
     {
         _minimumAmountReached(_eventId, true);
         _isConcluded(_eventId, true);
@@ -175,10 +186,12 @@ contract OPEventFactory {
         );
         data.eventSettled = true;
         emit EventUpdate(_eventId);
+        return true;
     }
     
     function claim(address _eventId)
         external
+        returns(bool)
     {
         _isSettled(_eventId, true);
 
@@ -205,10 +218,12 @@ contract OPEventFactory {
         Utils.burn(_eventId, msg.sender, tokenHoldings, data.winner, _token);
 
         emit EventUpdate(_eventId);
+        return true;
     }
 
     function revoke(address _eventId) 
-        external 
+        external
+        returns(bool)
     {
         _minimumAmountReached(_eventId, false);
         _minimumTimeReached(_eventId, true);
@@ -231,13 +246,12 @@ contract OPEventFactory {
         }
 
         emit EventUpdate(_eventId);
+        return true;
     }
-    // ************************************ start external functions ****************************************************
+    // ************************************ End external functions ****************************************************
     
     
-
-
-    // ************************************ start local util functions **************************************************
+    // ************************************ start view functions **************************************************
     function getEventData(address _eventId) view public returns(EventData memory) {
         return events[_eventId];
     }
@@ -245,5 +259,5 @@ contract OPEventFactory {
     function getNonce() view external returns(uint256) {
        return nonce;
     }
-   // ************************************ end local util functions **************************************************
+   // ************************************ end view functions **************************************************
 }
