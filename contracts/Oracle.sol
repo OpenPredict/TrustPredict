@@ -17,8 +17,7 @@ contract Oracle is ChainlinkClient {
     // ChainLink data (Kovan network)
     address _token            = 0xa36085F69e2889c224210F603D836748e7dC0088; // ChainLink ERC20
     address _oracle           = 0x2f90A6D021db21e1B2A077c5a37B3C7E75D15b7e; // oracle contract
-    string _jobId             =         "a7ab70d561d34eb49e9b1612fd2e044b"; // callback job
-
+    bytes32 _jobId             =        "a7ab70d561d34eb49e9b1612fd2e044b"; // callback job
 
     // gatekeepers
     function _validPriceAggregator(address _priceAggregator) view internal {
@@ -32,7 +31,12 @@ contract Oracle is ChainlinkClient {
         require(Utils.allowance(tx.origin, address(this), Utils.GetChainLinkAddress()) ==  (1 * LINK), 
                 "Oracle: Required LINK amount not granted.");
         // Transfer here so that it can be used by the LINK contract
-        //Utils.transfer(address(this), (1 * LINK), Utils.GetChainLinkAddress());
+        Utils.transferFrom(tx.origin, address(this), (1 * LINK), Utils.GetChainLinkAddress());
+    }
+
+    function _onlyEvent() internal view {
+        require(msg.sender==Utils.GetOPEventFactoryAddress(),
+                "TrustPredictToken: Caller is not the designated OPEventFactory address.");
     }
 
 
@@ -77,10 +81,11 @@ contract Oracle is ChainlinkClient {
     {
         _validPriceAggregator(_priceAggregator);
         _hasGrantedAllowance();
+        _onlyEvent();
 
         if(Utils.compare(Utils.GetNetwork(), "kovan")) {
             Chainlink.Request memory req = buildChainlinkRequest(
-                stringToBytes32(_jobId),
+                _jobId,
                 address(this), 
                 this.fullfillRequest.selector
             );
@@ -121,11 +126,5 @@ contract Oracle is ChainlinkClient {
      */
     function getLatestPrice(address _priceAggregator) external view returns (int256) {
         return AggregatorInterface(_priceAggregator).latestAnswer();
-    }
-
-    function stringToBytes32(string memory source) internal pure returns (bytes32 result) {    
-        assembly {
-            result := mload(add(source, 32))
-        }
     }
 }

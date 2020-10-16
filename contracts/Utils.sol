@@ -21,15 +21,15 @@ library Utils {
     }
 
     function GetOracleAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0x5d8f0A41406369E0a403764404e1befb7C2b5C19 : 0xc6ACe392cE166D3f2013302d751Bfc26C166048e;
+        _address = compare(network, "kovan") ? 0xa3Db5Bec4b065D36917E2b595FAa7C28B24f212B : 0xc6ACe392cE166D3f2013302d751Bfc26C166048e;
     }
 
     function GetTrustPredictAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0x7EaB3f84F1cdd3104724EC000fd19A064390c0A9 : 0x30690193C75199fdcBb7F588eF3F966402249315;
+        _address = compare(network, "kovan") ? 0x29457D06F7e62cAab17BA7D6EE0f785EB0392184 : 0x30690193C75199fdcBb7F588eF3F966402249315;
     }
 
     function GetOPEventFactoryAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0xdFB8a38D4BfE32BDA20995FeCCFb33f263a3Ede7 : 0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C;
+        _address = compare(network, "kovan") ? 0x1B4FD8d3624Ec12F832ca9c4DcB3f23aA8Cf6EEE : 0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C;
     }
 
     function GetNetwork() external pure returns(string memory){        
@@ -48,7 +48,7 @@ library Utils {
 
 
 
-    //*************** Generic helper functions *******************************************************************/
+    //**************************** Start generic helper functions ****************************
 
     function getOtherToken(Token selection) pure external returns (Token) {
         return (selection == Token.O) ? Token.IO : Token.O;
@@ -78,12 +78,10 @@ library Utils {
             _address := mload(0)
         }
     }
-    //*************** Generic helper functions *******************************************************************/
+    //**************************** End generic helper functions ****************************
 
 
-
-
-    //************************* Start "call" return value/conversion helper functions *************************************
+    //**************************** Start conversion helper functions *****************************
     function bytesToString(bytes memory _bytes) private pure returns (string memory _string) {
         assembly {
             _string := mload(0x40)                               // Load string address
@@ -124,18 +122,16 @@ library Utils {
             result := mload(add(_string, 0x20))
         }
     }
-    //************************* End "call" return value/conversion helper functions *************************************
+    //**************************** End conversion helper functions ****************************
 
 
-
-
-    //**************************** Start Oracle helper functions *****************************************
+    //**************************** Start Oracle helper functions ****************************
     function newRequest(uint256 _until, address _priceAggregator, address _eventId, address _oracle) external returns(bool) {
         (bool success, bytes memory result) = _oracle.call(
             (abi.encodeWithSignature("newRequest(uint256,address,address)", 
              _until, _priceAggregator, _eventId)
         ));
-        require(success, "OPEvent: call to Oracle contract failed (newRequest)");
+        require(success, "Utils: call to Oracle contract failed (newRequest)");
         return bytesToBool(result);
     }
 
@@ -144,7 +140,7 @@ library Utils {
             (abi.encodeWithSignature("getLatestPrice(address)", 
              _priceAggregator)
         ));
-        require(success, "OPEvent: call to Oracle contract failed (getLatestPrice)");
+        require(success, "Utils: call to Oracle contract failed (getLatestPrice)");
         return bytesToInt(result);
     }
 
@@ -153,12 +149,10 @@ library Utils {
             (abi.encodeWithSignature("getPairing(address)", 
              _priceAggregator)
         ));
-        require(success, "OPEvent: call to Oracle contract failed (getPairing)");
+        require(success, "Utils: call to Oracle contract failed (getPairing)");
         return bytesToString(result);
     }
     //**************************** End Oracle helper functions *****************************************
-
-
 
 
     //**************************** Start ERC20 helper functions *****************************************
@@ -187,12 +181,10 @@ library Utils {
         uint resultUint = bytesToUint(result);
         return resultUint;
     }
-    //****************************/ End ERC20 helper functions *****************************************
+    //**************************** End ERC20 helper functions *****************************************
 
 
-
-
-    //**************  Start ERC1155 helper functions for TrustPredictToken *****************************************
+    //**************************** Start ERC1155 helper functions *************************************
    function createTokens(address _eventId, address _token) external {
         (bool success, bytes memory result) = _token.call(
             (abi.encodeWithSignature("createTokens(address)", 
@@ -262,5 +254,5 @@ library Utils {
             result := mload(add(res, 0x20))
         }
     }
-    //**************** End ERC1155 helper functions for OPEventFactory *****************************************
+    //**************************** End ERC1155 helper functions *****************************************
 }
