@@ -9,6 +9,10 @@ export class OpEventQuery extends QueryEntity<State, IEvent> {
     super(store);
   }
 
+  clearState() {
+    this.store.remove()
+  }
+  
   getEvent(term: string) {
     return this.selectAll({
       filterBy: entity => entity.id == term
