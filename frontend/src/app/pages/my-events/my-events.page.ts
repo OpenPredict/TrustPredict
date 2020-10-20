@@ -48,7 +48,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
 
   async ngOnInit() {
     this.opEventService.get().subscribe();
-    this.allEvents();
+    await this.allEvents();
     this.form.valueChanges.subscribe(
       (res) => {
         if (this.form.controls['event_id'].valid) {
@@ -60,7 +60,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
     );
   }
 
-  allEvents() {
+  async allEvents() {
     const _USER: any  = this.authQ.getValue();
     const signer: any = _USER.signer;
 
@@ -82,10 +82,6 @@ export class MyEventsPage extends BaseForm implements OnInit {
       this.activeEvents$ = this.eventQuery.selectAll({
         filterBy: state => state.status === Status.Active
       });
-      
-      this.eventQuery.selectAll().subscribe( res => console.log(`events with status Active ${JSON.stringify(res)}`) )
-      
-      
       this.myEvents$ = this.eventQuery.selectAll({
         filterBy: state => ((state.creator === address) || (balances[state.id] > 0))
       });
