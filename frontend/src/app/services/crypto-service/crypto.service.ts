@@ -7,8 +7,6 @@ import AppEth from '@ledgerhq/hw-app-eth';
 
 import 'rxjs/add/operator/share';
 import 'rxjs/add/operator/map';
-import { AuthService } from '../auth-service/auth.service';
-import { OpEventService } from '../op-event-service/op-event.service';
 
 const rlp = require('rlp');
 const keccak = require('keccak');
@@ -22,22 +20,8 @@ export class CryptoService {
   wallet: Wallet;
   maxDecimals = 18;
 
-  constructor(
-    public router: Router,
-    // public _auth: AuthService,
-    // public opEvent: OpEventService
-    ) {}
+  constructor( public router: Router ) {}
 
-  netChange() {
-    // const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-    // provider.on("network", (newNetwork, oldNetwork) => {
-    //     if (oldNetwork) {
-    //         window.location.reload();
-    //     }
-    // });  
-  }
-  
-  
   provider() {
     return new ethers.providers.Web3Provider(window.ethereum);
   }
@@ -58,7 +42,6 @@ export class CryptoService {
       try {
         await window.ethereum.enable();
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        
         const accs: Array<string> = await provider.listAccounts();
         if (accs && accs.length) {
           resolve(accs);
