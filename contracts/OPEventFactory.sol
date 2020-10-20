@@ -14,8 +14,8 @@ contract OPEventFactory {
     uint constant maxEventPeriod = 315360000; // max time any one event can last for (10y in seconds)
 
     // addresses
-    address _oracle = Utils.GetOracleAddress();
-    address _token = Utils.GetTrustPredictAddress();
+    address _oracle;
+    address _token;
     
     // event data
     struct EventData {
@@ -110,6 +110,10 @@ contract OPEventFactory {
     {
         _validEventPeriod(_eventPeriod);
         _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
+
+        // set event addresses
+        _oracle = Utils.GetOracleAddress();
+        _token = Utils.GetTrustPredictAddress();
 
         // get next OPEvent ID
         address _eventId = Utils.addressFrom(address(this), nonce++);

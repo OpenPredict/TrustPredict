@@ -34,7 +34,7 @@ contract Oracle is ChainlinkClient {
         Utils.transferFrom(tx.origin, address(this), (1 * LINK), Utils.GetChainLinkAddress());
     }
 
-    function _onlyEvent() internal view {
+    function _onlyEvent() internal {
         require(msg.sender==Utils.GetOPEventFactoryAddress(),
                 "TrustPredictToken: Caller is not the designated OPEventFactory address.");
     }
