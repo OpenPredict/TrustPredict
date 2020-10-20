@@ -8,28 +8,43 @@ library Utils {
     enum Token {IO, O}
     enum Side {Lower, Higher}
 
+    // Changed during deployment
     string constant network = "development";
     //string constant network = "kovan";
 
+    function GetContractProxy() private pure returns(address _contractProxy) {
+        _contractProxy = compare(network, "kovan") ? 0x328eC87d3AE746169DF56089ED96DEa8e34453B1 : 0xBf610614CaA08d9fe7a4F61082cc32951e547a91;
+    }
+
     //************ variables that differ between networks (development, kovan) **********************************
-    function GetOPUSDAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0x168A6Ca87D06CBac65413b19afd2C7d0cd36d1AC : 0xBf610614CaA08d9fe7a4F61082cc32951e547a91;
+    function GetOPUSDAddress() external returns (address) {
+        (bool success, bytes memory result) = GetContractProxy().call(abi.encodeWithSignature("getOPUSDAddress()"));
+        require(success, "Utils: call to ContractProxy contract failed (getOPUSDAddress)");
+        return bytesToAddress(result);
     }
 
-    function GetChainLinkAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0xa36085F69e2889c224210F603D836748e7dC0088 : 0x4C6f9E62b4EDB743608757D9D5F16B0B67B41285;
+    function GetChainLinkAddress() external returns (address _address) {
+        (bool success, bytes memory result) = GetContractProxy().call(abi.encodeWithSignature("getChainLinkAddress()"));
+        require(success, "Utils: call to ContractProxy contract failed (getChainLinkAddress)");
+        return bytesToAddress(result);
     }
 
-    function GetOracleAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0xa3Db5Bec4b065D36917E2b595FAa7C28B24f212B : 0xc6ACe392cE166D3f2013302d751Bfc26C166048e;
+    function GetOracleAddress() external returns (address _address) {
+        (bool success, bytes memory result) = GetContractProxy().call(abi.encodeWithSignature("getOracleAddress()"));
+        require(success, "Utils: call to ContractProxy contract failed (getOracleAddress)");
+        return bytesToAddress(result);
     }
 
-    function GetTrustPredictAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0x29457D06F7e62cAab17BA7D6EE0f785EB0392184 : 0x30690193C75199fdcBb7F588eF3F966402249315;
+    function GetTrustPredictAddress() external returns (address _address) {
+        (bool success, bytes memory result) = GetContractProxy().call(abi.encodeWithSignature("getTrustPredictAddress()"));
+        require(success, "Utils: call to ContractProxy contract failed (getTrustPredictAddress)");
+        return bytesToAddress(result);
     }
 
-    function GetOPEventFactoryAddress() external pure returns (address _address) {
-        _address = compare(network, "kovan") ? 0x1B4FD8d3624Ec12F832ca9c4DcB3f23aA8Cf6EEE : 0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C;
+    function GetOPEventFactoryAddress() external returns (address _address) {
+        (bool success, bytes memory result) = GetContractProxy().call(abi.encodeWithSignature("getOPEventFactoryAddress()"));
+        require(success, "Utils: call to ContractProxy contract failed (getOPEventFactoryAddress)");
+        return bytesToAddress(result);
     }
 
     function GetNetwork() external pure returns(string memory){        
@@ -88,6 +103,13 @@ library Utils {
             mstore(    _string,        mload(add(_bytes, 0x40))) // Set length
             mstore(add(_string, 0x20), mload(add(_bytes, 0x60))) // Set value
             mstore(0x40, add(_string, 0x40))                     // Increment free memory pointer
+        }
+    }
+
+    function bytesToAddress(bytes memory _bytes) private pure returns (address result) {
+        require(_bytes.length >= 32, "Read out of bounds");
+        assembly {
+            result := mload(add(_bytes, 0x20))
         }
     }
 

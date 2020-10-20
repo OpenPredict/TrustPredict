@@ -1,3 +1,4 @@
+const ContractProxy = artifacts.require('ContractProxy');
 const OPUSDToken = artifacts.require('OPUSDToken');
 const ChainLinkToken = artifacts.require('ChainLinkToken');
 const Utils = artifacts.require('Utils');
@@ -69,6 +70,7 @@ async function deployEvent(contracts, accounts) {
     args[Constants.priceAggregator] = Constants.pairings['ETH/USD']
 
     // deploy event
+    console.log("Event deployment..")
     await contracts['OPEventFactory'].createOPEvent(args[Constants.betPrice], 
                                                     args[Constants.betSide], 
                                                     args[Constants.eventPeriod], 
@@ -150,12 +152,14 @@ contract("TrustPredict", async (accounts) => {
 
     before( async () => {
         let accountIndex = 0
+        contracts['ContractProxy']  = await ContractProxy.at(    utils.getNextContractAddress(accounts[0], accountIndex++));
         contracts['OPUSD']          = await OPUSDToken.at(       utils.getNextContractAddress(accounts[0], accountIndex++));
         contracts['ChainLink']      = await ChainLinkToken.at(   utils.getNextContractAddress(accounts[0], accountIndex++));
         contracts['Utils']          = await Utils.at(            utils.getNextContractAddress(accounts[0], accountIndex++));
         contracts['Oracle']         = await Oracle.at(           utils.getNextContractAddress(accounts[0], accountIndex++));
         contracts['TrustPredict']   = await TrustPredictToken.at(utils.getNextContractAddress(accounts[0], accountIndex++));
         contracts['OPEventFactory'] = await OPEventFactory.at(   utils.getNextContractAddress(accounts[0], accountIndex++));
+
         // Give all accounts 1000 OPUSD
         await sendTokensToAddresses(contracts, accounts);
     })
@@ -285,9 +289,8 @@ contract("TrustPredict", async (accounts) => {
         balanceAccount2Contract = await contracts['OPUSD'].balanceOf(accounts[2])
         balanceAccount3Contract = await contracts['OPUSD'].balanceOf(accounts[3])
         // calculate new balance
-        originalAmount = ethers.utils.parseUnits((Constants.numTokens * 10 * Constants.OPUSDOptionRatio).toString());
         depositedAmount = ethers.utils.parseUnits((Constants.numTokens * 3 * Constants.OPUSDOptionRatio).toString());
-        balanceAccount = originalAmount.add(depositedAmount.mul(amountPerWinningToken).div(ethers.utils.parseUnits('1')));
+        balanceAccount = OPUSDTokenValue.add(depositedAmount.mul(amountPerWinningToken).div(ethers.utils.parseUnits('1')));
         // verify balance is the same
         assert.equal(balanceAccount2Contract.valueOf().toString(), balanceAccount.valueOf().toString());
         assert.equal(balanceAccount3Contract.valueOf().toString(), balanceAccount.valueOf().toString());
@@ -384,10 +387,10 @@ contract("TrustPredict", async (accounts) => {
 
 
         // - valid revokes from all minters
-        //await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, true);
+        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, true);
 
         // - invalid follow-up revokes
-        //await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: no holdings for sender in any token.");
+        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: no holdings for sender in any token.");
     })
 
 
@@ -432,5 +435,42 @@ contract("TrustPredict", async (accounts) => {
         settlementPrice = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2).sub(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
         await contracts['OPEventFactory'].settle(OPEventID, settlementPrice);
 
+    })
+
+    // test case D (misc functions)
+    it("Should pass for test case D", async () => {
+
+        // - valid contract deployment
+        IDs = await deployEvent(contracts, accounts);
+        OPEventID = IDs[0]
+        OToken = IDs[1]
+        IOToken = IDs[2]
+
+        // safeTransfer tokens to another account
+        await contracts['TrustPredict'].transferFrom(OPEventID, accounts[1], accounts[2], ethers.utils.parseUnits('1'), Constants.OTokenSelection,  {from: accounts[1]});
+
+        // attempt to set contract address in ContractProxy from non-owner
+        await truffleAssert.reverts(
+            contracts['ContractProxy'].setUtilsAddress(contracts['OPUSD'].address,  {from: accounts[1]}),
+            "ContractProxy: attempt to set address from non-owner."
+        );
+        // assert UtilsAddress is the same
+        const UtilsAddress = await contracts['ContractProxy'].getUtilsAddress()
+        assert.equal(UtilsAddress, contracts['Utils'].address);
+
+
+        // attempt to create tokens, mint and burn for OPEventID from any EOA. Here we try the event creation EOA
+        await truffleAssert.reverts(
+            contracts['TrustPredict'].createTokens(OPEventID,  {from: accounts[1]}),
+            "TrustPredictToken: Caller is not the designated OPEventFactory address."
+        ); 
+        await truffleAssert.reverts(
+            contracts['TrustPredict'].mint(OPEventID, accounts[1], ethers.utils.parseUnits('100'), Constants.OTokenSelection,  {from: accounts[1]}),
+            "TrustPredictToken: Caller is not the designated OPEventFactory address."
+        );
+        await truffleAssert.reverts(
+            contracts['TrustPredict'].burn(OPEventID, accounts[1], ethers.utils.parseUnits('100'), Constants.OTokenSelection,  {from: accounts[1]}),
+            "TrustPredictToken: Caller is not the designated OPEventFactory address."
+        );
     })
 })

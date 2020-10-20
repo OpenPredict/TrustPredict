@@ -26,7 +26,7 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
     mapping(address => TokenPair) TokenPairs;
 
     // ********** start modifiers ******************************
-    function _onlyEvent() internal view {
+    function _onlyEvent() internal {
         require(msg.sender==Utils.GetOPEventFactoryAddress(),
                 "TrustPredictToken: Caller is not the designated OPEventFactory address.");
     }
