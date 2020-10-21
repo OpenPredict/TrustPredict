@@ -17,7 +17,7 @@
                       ({{ event.asset_ticker }})
                     </div>     
                     <div class="eventInfoTxt--small"> 
-                      Created: {{ event.created }}
+                      Created: {{ event.creation }}
                     </div>                                    
                   </li>
                   <li>
@@ -34,7 +34,7 @@
                   </li>  
                   <li>
                     <div class="eventInfoTxt--small"> 
-                      Event expiration date:
+                      Event settlement date:
                     </div>                
                     <div class="eventInfoTxt bolder"> 
                       {{ event.completion }}
@@ -64,11 +64,8 @@
                         Amount is required
                       </div>           
                       <div *ngIf="hasError('transfer_amount', 'min')" class="standardInputErr">
-                        Amount must be greater than 100
-                      </div>                        
-                      <div *ngIf="hasError('transfer_amount', 'pattern')" class="standardInputErr">
-                        Amount must be a multiple of 100
-                      </div>                        
+                        Amount must be greater than 0
+                      </div>
                     </div>                                      
                     
                     <h2 class="eventHeader">

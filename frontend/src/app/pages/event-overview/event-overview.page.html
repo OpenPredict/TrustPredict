@@ -17,7 +17,7 @@
                       ({{ event.asset_ticker }})
                     </div>     
                     <div class="eventInfoTxt--small"> 
-                      Created: {{ event.created }}
+                      Created: {{ event.creation }}
                     </div>                                    
                   </li>
                   <li>
@@ -34,10 +34,18 @@
                   </li>  
                   <li>
                     <div class="eventInfoTxt--small"> 
-                      Event expiration date:
+                      Event settlement date:
                     </div>                
                     <div class="eventInfoTxt bolder"> 
                       {{ event.completion }}
+                    </div>                     
+                  </li> 
+                  <li>
+                    <div class="eventInfoTxt--small"> 
+                      Event value:
+                    </div>
+                    <div class="eventInfoTxt bolder"> 
+                      ${{ event.value[Token.IO] + event.value[Token.O] }} USD (${{event.value[Token.O]}} USD O Token, ${{event.value[Token.IO]}} USD IO Token)
                     </div>                     
                   </li>                                    
                 </ul>
@@ -69,7 +77,9 @@
                       </div>     
                       
                       <div class="eventInfoTxt--small eventInfoTransfer" (click)="continue(getToken(Position.Left, event.side), Position.Left, 'transfer')">
-                        Transfer >
+                        <div [ngClass]="getTransferClass(Position.Left, event.side)">
+                          Transfer >
+                        </div>
                       </div>                           
                       
                     </div>
@@ -101,7 +111,9 @@
                       </div>                         
                       
                       <div class="eventInfoTxt--small eventInfoTransfer" (click)="continue(getToken(Position.Right, event.side), Position.Right, 'transfer')">
-                        Transfer >
+                        <div [ngClass]="getTransferClass(Position.Right, event.side)">
+                          Transfer >
+                        </div>
                       </div>                         
                       
                     </div>
