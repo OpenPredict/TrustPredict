@@ -1,5 +1,5 @@
 import { ID } from '@datorama/akita';
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 
 export enum Token {
   IO = 0,
@@ -49,15 +49,16 @@ export interface IEvent {
   condition_price?: string | number; // whatever the contract returns
   settled_price?: string | number; // whatever the contract returns
   winner?: Token;
+  creation?: string | Date;
+  deposit_period_end?: string | Date;
   completion?: string | Date;
-  created?: string;
-  value?: string;
+  value?: number[];
   status?: Status;
   ratio?: string;
 }
 
 
 export interface IBalance {
-  OToken?: ethers.BigNumber;
-  IOToken?: ethers.BigNumber;
+  OToken?: BigNumber;
+  IOToken?: BigNumber;
 }

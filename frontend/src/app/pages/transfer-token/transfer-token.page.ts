@@ -32,7 +32,7 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
   }
 
   get position() {
-    return this.activatedRoute.snapshot.params.position;
+    return (this.activatedRoute.snapshot.params.position === '1') ? Position.Left : Position.Right;
   }
 
   balances = [];
@@ -56,7 +56,7 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
       this.availableOptions = this.optService.availableOptions;
 
       this.form = this.fb.group({
-        transfer_amount: [null, Validators.compose([Validators.required, Validators.min(0), Validators.pattern('^[1-9]+[0-9]*$')])],
+        transfer_amount: [null, Validators.compose([Validators.required, Validators.min(0)])],
         transfer_to: [null, Validators.compose(
           [Validators.required, Validators.minLength(42), Validators.maxLength(42), CustomValidators.isAddress])
         ],

@@ -27,6 +27,10 @@ export class EventItemComponent implements OnInit {
     return this.eventService.getStatusText(event);
   }
 
+  getTotalValue(value: any): string {
+    return this.eventService.getTotalValue(value);
+  }
+
 }
 
 

@@ -7,7 +7,7 @@ import "openzeppelin-solidity/contracts/token/ERC1155/ERC1155Burnable.sol";
 
 contract TrustPredictToken is ERC1155, ERC1155Burnable {
 
-    event TransferFrom(address, address, address, uint256, uint8);
+    event BalanceChange(address, address, address, uint256, uint8);
 
     // Token data
     struct Token {
@@ -16,7 +16,7 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
     }
 
     uint test = 0;
-
+    
     // Event data
     struct TokenPair {
         mapping(Utils.Token => Token) tokens;
@@ -44,25 +44,27 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
         return true;
     }
 
-    function mint(address eventId, address beneficiary, uint amount, uint8 selection) external returns(bool) {
+    function mint(address eventId, address to, uint amount, uint8 selection) external returns(bool) {
         _onlyEvent();
 
-        _mint(beneficiary, getTokenID(eventId, Utils.Token(selection)), amount, "");
+        _mint(to, getTokenID(eventId, Utils.Token(selection)), amount, "");
         TokenPairs[eventId].tokens[Utils.Token(selection)].balance += amount;
+        emit BalanceChange(eventId, address(0), to, amount, selection);
         return true;
     }
 
-    function burn(address eventId, address _address, uint amount, uint8 selection) external returns(bool) {
+    function burn(address eventId, address from, uint amount, uint8 selection) external returns(bool) {
         _onlyEvent();
 
-        _burn(_address, getTokenID(eventId, Utils.Token(selection)), amount);
+        _burn(from, getTokenID(eventId, Utils.Token(selection)), amount);
+        emit BalanceChange(eventId, from, address(0), amount, selection);
         return true;
     }
 
     function transferFrom(address eventId, address from, address to, uint256 amount, uint8 selection) external returns(bool) {
 
         safeTransferFrom(from, to, getTokenID(eventId, Utils.Token(selection)), amount, "");
-        emit TransferFrom(eventId, from, to, amount, selection);
+        emit BalanceChange(eventId, from, to, amount, selection);
         return true;
     }
 
@@ -85,8 +87,8 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
     }
 
     function getTokenBalances(address eventId) external view returns (uint, uint){
-        return (getTokenBalance(eventId, uint8(Utils.Token.O)), 
-                getTokenBalance(eventId, uint8(Utils.Token.IO)));
+        return (getTokenBalance(eventId, uint8(Utils.Token.IO)), 
+                getTokenBalance(eventId, uint8(Utils.Token.O)));
     }
     /************** End view functions *****************/
 }

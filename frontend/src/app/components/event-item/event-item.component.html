@@ -16,8 +16,8 @@
           <li *ngIf="event.expiration">
             expiration: {{ event.expiration}}
           </li>    
-          <li *ngIf="event.value">
-            value: {{ event.value}}
+          <li>
+            value: ${{ this.getTotalValue(event.value) }} USD
           </li>                    
         </ul>
         <div class="lb"></div>
@@ -25,8 +25,8 @@
           <li class="status-status">
             {{ getStatusText(event) }}
           </li>
-          <li *ngIf="event.value">
-            value: {{ event.value }}
+          <li>
+            value: ${{ this.getTotalValue(event.value) }} USD 
           </li>
           <li *ngIf="event.ratio">
             win ratio: {{ event.ratio }}

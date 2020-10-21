@@ -43,7 +43,7 @@ export class OpEventService {
   balances = {} as IBalance;
 
   address = '';
-  depositPeriod = 10;
+  depositPeriod = 200;
   minimumTokenAmountPerEvent = BigNumber.from(ethers.utils.parseUnits('10'));
 
   constructor(
@@ -86,9 +86,12 @@ export class OpEventService {
       const ticker = pairing.pair.replace('/USD', '');
       const asset = this.optService.availableAssets[ticker];
 
-      const totalBalance = BigNumber.from(tokenBalances[0]).add(BigNumber.from(tokenBalances[1]));
+      const totalBalance = BigNumber.from(tokenBalances[Token.IO]).add(BigNumber.from(tokenBalances[Token.O]));
+      const balances = [parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenBalances[Token.IO]).mul(100))),
+                        parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenBalances[Token.O]).mul(100)))];
 
-      ethers.utils.formatUnits(tokenBalances[0].add(tokenBalances[1]).valueOf().toString());
+      console.log('balances parseEventData: ' + balances);
+      //ethers.utils.formatUnits(tokenBalances[0].add(tokenBalances[1]).valueOf().toString());
 
       const eventEntry = {
         id: eventId,
@@ -100,10 +103,11 @@ export class OpEventService {
         condition_price: ethers.utils.formatUnits(eventData['betPrice'].valueOf().toString(), 8).toString(),
         settled_price: ethers.utils.formatUnits(eventData['settledPrice'].valueOf().toString(), 8).toString(),
         winner: Number(eventData['winner']),
+        creation:  this.timeConverter(eventData['startTime']),
+        deposit_period_end:  this.timeConverter((Number(eventData['startTime']) + this.depositPeriod).toString()),
         completion: this.timeConverter(eventData['endTime']),
-        created:  this.timeConverter(eventData['startTime']),
         status: this.parseEventStatus(eventData, totalBalance),
-        value: ethers.utils.formatUnits(totalBalance.mul(100).toString()).toString() + ' USD',
+        value: balances,
         ratio: parseFloat(ethers.utils.formatUnits(eventData['amountPerWinningToken']).toString()).toFixed(2) + '%'
       };
 
@@ -120,13 +124,16 @@ export class OpEventService {
       // You can also pull in your JSON ABI; I'm not sure of the structure inside artifacts
       //
       const abi = new ethers.utils.Interface([
-        'event TransferFrom(address,address,address,uint256,uint8)'
+        'event BalanceChange(address,address,address,uint256,uint8)'
       ]);
+
+      console.log('trustPredict address: ' + trustPredict.address);
+      console.log('wallet address: ' + walletAddress);
 
       this.crypto.provider().on( {
           address: trustPredict.address,
           topics: [
-              ethers.utils.id('TransferFrom(address,address,address,uint256,uint8)'),
+              ethers.utils.id('BalanceChange(address,address,address,uint256,uint8)'),
             ],
         }, async (log) => {
           const events = abi.parseLog(log);
@@ -197,6 +204,7 @@ export class OpEventService {
             const eventData = await contracts['OPEventFactory'].getEventData(eventID);
             console.log('\nEvent Data: ' + eventData);
             const balances = await contracts['TrustPredict'].getTokenBalances(eventID);
+            console.log('\nbalances: ' + balances);
             await this.parseEventData(eventID, eventData, balances);
           }));
         });
@@ -550,6 +558,10 @@ export class OpEventService {
 
   parseTokenAmount(amount) {
     return ethers.utils.formatUnits(amount).toString();
+  }
+
+  getTotalValue(value) {
+    return value[0] + value[1];
   }
 
   /**
