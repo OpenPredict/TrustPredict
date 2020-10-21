@@ -27,12 +27,12 @@ const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json'
 const contractAddresses = [];
 const kovan = false;
 
-contractAddresses['OPUSD']          = kovan ? '0x168A6Ca87D06CBac65413b19afd2C7d0cd36d1AC' : '0xBf610614CaA08d9fe7a4F61082cc32951e547a91';
-contractAddresses['ChainLink']      = kovan ? '0xa36085F69e2889c224210F603D836748e7dC0088' : '0x4C6f9E62b4EDB743608757D9D5F16B0B67B41285';
-contractAddresses['Utils']          = kovan ? '0x3CC0CCf97178f6A14f2d2762596ab8e052A28d9E' : '0x6c6387F01EddCd8fEcb674332D22d665c5313a90';
-contractAddresses['Oracle']         = kovan ? '0xbd0b4c43DA0dAFc4143C47ecf15f7E5c8Ff19E84' : '0xc6ACe392cE166D3f2013302d751Bfc26C166048e';
-contractAddresses['TrustPredict']   = kovan ? '0x71b388f51d95cc5a6E983D7e9D5ceCFf1b54293C' : '0x30690193C75199fdcBb7F588eF3F966402249315';
-contractAddresses['OPEventFactory'] = kovan ? '0xec71D6030Ac5DE2bc4849A9dE9CE0131381d3F62' : '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
+contractAddresses['OPUSD']          = kovan ? '0x168A6Ca87D06CBac65413b19afd2C7d0cd36d1AC' : '0x4C6f9E62b4EDB743608757D9D5F16B0B67B41285';
+contractAddresses['ChainLink']      = kovan ? '0xa36085F69e2889c224210F603D836748e7dC0088' : '0x6c6387F01EddCd8fEcb674332D22d665c5313a90';
+contractAddresses['Utils']          = kovan ? '0x3CC0CCf97178f6A14f2d2762596ab8e052A28d9E' : '0xc6ACe392cE166D3f2013302d751Bfc26C166048e';
+contractAddresses['Oracle']         = kovan ? '0xbd0b4c43DA0dAFc4143C47ecf15f7E5c8Ff19E84' : '0x30690193C75199fdcBb7F588eF3F966402249315';
+contractAddresses['TrustPredict']   = kovan ? '0x71b388f51d95cc5a6E983D7e9D5ceCFf1b54293C' : '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
+contractAddresses['OPEventFactory'] = kovan ? '0xec71D6030Ac5DE2bc4849A9dE9CE0131381d3F62' : '0x4eb24Db3F49F82A475281d49D3d327f623B6e3dA';
 
 @Injectable({
   providedIn: 'root'
