@@ -21,6 +21,7 @@ export class CryptoService {
   private activeDerivation = `m/44'/60'/0'/0/0`;
   wallet: Wallet;
   maxDecimals = 18;
+  _provider = null;
 
   constructor(
     public router: Router,
@@ -34,12 +35,15 @@ export class CryptoService {
     //     if (oldNetwork) {
     //         window.location.reload();
     //     }
-    // });  
+    // });
   }
-  
-  
+
+
   provider() {
-    return new ethers.providers.Web3Provider(window.ethereum);
+    if (this._provider === null){
+      this._provider = new ethers.providers.Web3Provider(window.ethereum);
+    }
+    return this._provider;
   }
 
   signer(): any {
@@ -58,7 +62,7 @@ export class CryptoService {
       try {
         await window.ethereum.enable();
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        
+
         const accs: Array<string> = await provider.listAccounts();
         if (accs && accs.length) {
           resolve(accs);

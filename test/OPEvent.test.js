@@ -114,7 +114,7 @@ async function OPEventFactory_stake(contracts, accounts, arguments, start, end){
         await contracts['OPEventFactory'].stake(argument.eventId, 
                                                 ethers.utils.parseUnits((argument.numTokensToMint).toString()), 
                                                 argument.selection, 
-                                                {from: account })                                             
+                                                {from: account })
         // // assert correct staked balance
         balanceAfter = await contracts['TrustPredict'].balanceOfAddress.call(argument.eventId, 
                                                                              account, 
@@ -203,6 +203,14 @@ contract("TrustPredict", async (accounts) => {
         stake[accounts[4]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.OTokenSelection };
         await OPEventFactory_stake(contracts, accounts, stake, 2, 3); // we require this call to be semi-syncronous so first call 2 and 3, and then 4
         await OPEventFactory_stake(contracts, accounts, stake, 4, 4);
+
+        // assert it overflows with maxUint setting
+        await truffleAssert.reverts(
+            contracts['OPEventFactory'].stake(OPEventID,
+                                              ethers.constants.MaxUint256,
+                                              Constants.IOTokenSelection),
+            "SafeMath: multiplication overflow"
+        );
 
         // Ensure settlement price is higher
         settlementPrice = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2).add(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
@@ -445,6 +453,8 @@ contract("TrustPredict", async (accounts) => {
         OPEventID = IDs[0]
         OToken = IDs[1]
         IOToken = IDs[2]
+
+
 
         // safeTransfer tokens to another account
         await contracts['TrustPredict'].transferFrom(OPEventID, accounts[1], accounts[2], ethers.utils.parseUnits('1'), Constants.OTokenSelection,  {from: accounts[1]});

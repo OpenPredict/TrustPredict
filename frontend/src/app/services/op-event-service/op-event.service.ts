@@ -153,25 +153,25 @@ export class OpEventService {
             // If this is the first call just get balances from the chain. otherwise update from log.
             if (!(eventId in this.balances)) {
               // get initial balances
-              const balances = await trustPredict.getTokenBalances(eventId);
-              console.log('balances: ' + balances);
+              //const balances = await trustPredict.getTokenBalances(eventId);
+              //console.log('balances: ' + balances);
               const balanceEntry = {
-                IOToken: BigNumber.from(balances[0]),
-                 OToken: BigNumber.from(balances[1]),
+                IOToken: BigNumber.from(0),
+                 OToken: BigNumber.from(0),
               };
               this.balances[eventId] = balanceEntry;
-            } else {
-              if (to === walletAddress) {
-                console.log('Balance add - to wallet address from: ' + to + ' selection: ' + selection.valueOf().toString());
-                (selection === 0) ? this.balances[eventId].IOToken = this.balances[eventId].IOToken.add(amount)
-                                  : this.balances[eventId].OToken  = this.balances[eventId].OToken.add(amount);
-              }
-              if (from === walletAddress) {
-                console.log('Balance sub - from wallet address to: ' + to + ' selection: ' + selection.valueOf().toString());
-                (selection === 0) ? this.balances[eventId].IOToken = this.balances[eventId].IOToken.sub(amount)
-                                  : this.balances[eventId].OToken  = this.balances[eventId].OToken.sub(amount);
-              }
             }
+            if (to === walletAddress) {
+              console.log('Balance add - to wallet address from: ' + to + ' selection: ' + selection.valueOf().toString());
+              (selection === 0) ? this.balances[eventId].IOToken = this.balances[eventId].IOToken.add(amount)
+                                : this.balances[eventId].OToken  = this.balances[eventId].OToken.add(amount);
+            }
+            if (from === walletAddress) {
+              console.log('Balance sub - from wallet address to: ' + to + ' selection: ' + selection.valueOf().toString());
+              (selection === 0) ? this.balances[eventId].IOToken = this.balances[eventId].IOToken.sub(amount)
+                                : this.balances[eventId].OToken  = this.balances[eventId].OToken.sub(amount);
+            }
+
             console.log('balances: ' + JSON.stringify(this.balances[eventId]));
           }
         });
@@ -189,27 +189,10 @@ export class OpEventService {
       contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, signer);
       contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
 
+      this.crypto.provider().resetEventsBlock(0);
       this.setupBalanceSubscriber(contracts['TrustPredict'], this.address);
 
-      contracts['OPEventFactory'].getNonce().then(async (lastNonce) => {
-          console.log('lastNonce: ' + lastNonce);
-          const nonceRange = [...Array(parseInt(lastNonce)).keys()];
-          console.log('nonceRange: ' + nonceRange);
-          await Promise
-          .all(nonceRange
-          .filter(nonce => nonce > 0)
-          .map(async (nonce) => {
-            const eventID = this.crypto.getNextContractAddress(contracts['OPEventFactory'].address, nonce);
-            console.log('\nEvent ID: ' + eventID);
-            const eventData = await contracts['OPEventFactory'].getEventData(eventID);
-            console.log('\nEvent Data: ' + eventData);
-            const balances = await contracts['TrustPredict'].getTokenBalances(eventID);
-            console.log('\nbalances: ' + balances);
-            await this.parseEventData(eventID, eventData, balances);
-          }));
-        });
-
-        // OPEventFactory subscriber
+      // OPEventFactory subscriber
       this.crypto.provider().on( {
           address: contracts['OPEventFactory'].address,
           topics: [ethers.utils.id('EventUpdate(address)')], // OPEventFactory

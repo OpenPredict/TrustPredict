@@ -104,7 +104,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
    * @param position if coming from the LHS or RHS
    */
   continue(token: string, position: Position, option: string): void {
-    if (this.balances[token === 'IO' ? 0 : 1] == 0){
+    if (option === 'transfer' && this.balances[token === 'IO' ? 0 : 1] == 0){
       return;
     }
     (option === 'stake') ? this.navCtrl.navigateForward(`/event-overview-stake/${this.eventId}/${token}/${position}`) :
