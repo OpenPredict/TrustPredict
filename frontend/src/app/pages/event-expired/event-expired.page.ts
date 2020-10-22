@@ -22,6 +22,7 @@ export class EventExpiredPage implements OnInit {
   }
 
   event$ = this.eventsQuery.selectEntity(this.eventId);
+  balances$ = [];
   hasBalanceInAnyToken$ = this.hasBalanceInAnyToken();
 
   constructor(
@@ -102,9 +103,9 @@ export class EventExpiredPage implements OnInit {
     const eventId = this.activatedRoute.snapshot.params.eventId;
     const address = await signer.getAddress();
     console.log('address: ' + address);
-    const balances = await this.eventsService.balanceOfAddress(this.eventId, address);
-    console.log('balances: ' + balances);
+    this.balances$ = await this.eventsService.balanceOfAddress(this.eventId, address);
+    console.log('this.balances: ' + this.balances$);
 
-    return balances[0] > 0 || balances[1] > 0;
+    return this.balances$[0] > 0 || this.balances$[1] > 0;
   }
 }

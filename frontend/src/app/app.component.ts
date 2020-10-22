@@ -24,7 +24,7 @@ export class AppComponent {
     public crypto: CryptoService,
     public navCtrl: NavController,
     public opEventService: OpEventService,
-    public opEventQuery: OpEventQuery,    
+    public opEventQuery: OpEventQuery,
     public _auth: AuthService,
   ) {
     this.initializeApp();
@@ -34,21 +34,21 @@ export class AppComponent {
     this.optionsSrv.get().subscribe();
 
 
-    this.crypto.netChange()
-    
+    this.crypto.netChange();
+
     this.platform.ready().then( async () => {
-      
+
       window.ethereum.on('accountsChanged', async (accounts) => {
         if(accounts) {
-          this.initialize() 
+          this.initialize();
         }
-      })
+      });
       window.ethereum.on('networkChanged', async (networkId) => {
         window.location.reload();
-      })          
-      
-      this.initialize()
-    
+      });
+
+      this.initialize();
+
       this.config.set('navAnimation', null);
       this.config.set('animated', false);
 
@@ -56,30 +56,30 @@ export class AppComponent {
       this.splashScreen.hide();
     });
   }
-  
+
   async initialize() {
-    const wallet: any = await this.activeSigner()
+    const wallet: any = await this.activeSigner();
     this._auth.login(wallet.wallet, wallet.signer);
     this.opEventService.setupEventSubscriber();
-    this.navCtrl.navigateForward('/landing');    
+    this.navCtrl.navigateForward('/landing');
   }
-  
+
   async activeSigner() {
     return new Promise( async (resolve, reject) => {
       try {
-        this.opEventQuery.clearState()
+        this.opEventQuery.clearState();
         const signer: any = await this.crypto.getSigner();
         const wallet: any = await this.crypto.signerAddress();
         if (wallet && signer) {
-         return resolve({ wallet, signer})
-        }          
+         return resolve({ wallet, signer});
+        }
       } catch (error) {
-       return reject(false)
-      }    
-    })
-        
+       return reject(false);
+      }
+    });
+
   }
-  
-  
+
+
 
 }
