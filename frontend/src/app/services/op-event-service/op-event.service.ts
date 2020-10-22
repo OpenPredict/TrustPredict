@@ -8,7 +8,7 @@ const BigNumber = ethers.BigNumber;
 
 import { map, mapTo, tap } from 'rxjs/operators';
 import { ID, cacheable } from '@datorama/akita';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { timer } from 'rxjs/internal/observable/timer';
 
 
@@ -45,6 +45,9 @@ export class OpEventService {
   address = '';
   depositPeriod = 200;
   minimumTokenAmountPerEvent = BigNumber.from(ethers.utils.parseUnits('10'));
+  
+	private _currentBalance = new BehaviorSubject<any>({})
+			$currentBalance: Observable<Readonly<any>> = this._currentBalance.asObservable()
 
   constructor(
     private crypto: CryptoService,
@@ -172,6 +175,7 @@ export class OpEventService {
                                   : this.balances[eventId].OToken  = this.balances[eventId].OToken.sub(amount);
               }
             }
+            this._currentBalance.next(this.balances);
             console.log('balances: ' + JSON.stringify(this.balances[eventId]));
           }
         });
