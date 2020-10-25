@@ -49,9 +49,9 @@ export interface IEvent {
   condition_price?: string | number; // whatever the contract returns
   settled_price?: string | number; // whatever the contract returns
   winner?: Token;
-  creation?: string | Date;
-  deposit_period_end?: string | Date;
-  completion?: string | Date;
+  creation?: number;
+  deposit_period_end?: number;
+  completion?: number;
   value?: number[];
   status?: Status;
   ratio?: string;

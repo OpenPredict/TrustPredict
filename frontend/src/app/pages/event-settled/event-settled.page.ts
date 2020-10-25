@@ -69,6 +69,17 @@ export class EventSettledPage implements OnInit {
     this.navCtrl.back();
   }
 
+  goTransfer(winner: Token, betSide: Side) {
+    /*
+      essentially: is the winning token the same as what's being rendered for event data using betSide.
+      if IO token wins then no; send the inverse for position
+      if O token wins then yes. send the same value.
+    */
+    const position = (winner === Token.IO) ? 1 - betSide : betSide;
+    const winnerString = (winner === Token.IO) ? 'IO' : 'O';
+    this.navCtrl.navigateForward(`/transfer-token/${this.eventId}/${winnerString}/${position}`);
+  }
+
   getClass(betSide: Side): string {
     return (betSide === Side.Higher) ? 'status-green' : 'status-red';
   }
@@ -79,6 +90,10 @@ export class EventSettledPage implements OnInit {
 
   getWinningTokenText(winner: Token): string {
     return (winner === Token.O) ? 'O' : 'IO';
+  }
+
+  getDate(timestamp: number){
+    return this.eventsService.timestampToDate(timestamp);
   }
 
   async hasBalanceInWinningToken() {

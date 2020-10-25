@@ -48,7 +48,7 @@ export class OpEventService {
 
   constructor(
     private crypto: CryptoService,
-    private authQ: AuthQuery,
+    private authQuery: AuthQuery,
     private optService: OptionService,
     private eventsStore: EventsStore,
     @Inject(WEB3) private web3: Web3) {
@@ -56,7 +56,52 @@ export class OpEventService {
       this.balances = {};
     }
 
-    timeConverter(timestamp) {
+    updateStatusFollowingDepositPeriod(depositPeriodEnd, eventId) {
+      // set a timer to update the status following depositPeriodEnd.
+      setTimeout(() => {
+          console.log('ending timeout for eventId ' + eventId);
+          let eventEntry = this.events[eventId];
+          // call status update function, upsert result
+          const totalTokenValue = eventEntry.token_values_raw[0].add(eventEntry.token_values_raw[1]);
+          console.log('ending timeout for eventId ' + eventId);
+          console.log('totalTokenValue ' + totalTokenValue);
+          console.log('this.minimumTokenAmountPerEvent ' + this.minimumTokenAmountPerEvent);
+
+          const isDepositPeriod = (new Date() < new Date(this.timestampToDate(eventEntry.deposit_period_end)));
+          const status =   isDepositPeriod                                                           ? Status.Staking :
+                           eventEntry.Status === Status.Settled                                      ? Status.Settled :
+                           !isDepositPeriod && (totalTokenValue.lt(this.minimumTokenAmountPerEvent)) ? Status.Expired :
+                                                                                                       Status.Active;
+
+          console.log('new status: ' + status);
+
+          const eventEntryNew = {
+            id: this.events[eventId].id,
+            asset_name: this.events[eventId].asset_name,
+            asset_ticker: this.events[eventId].asset_ticker,
+            asset_icon: this.events[eventId].asset_icon,
+            side: this.events[eventId].side,
+            creator: this.events[eventId].creator,
+            condition_price: this.events[eventId].condition_price,
+            settled_price: this.events[eventId].settled_price,
+            winner: this.events[eventId].winner,
+            creation: this.events[eventId].creation,
+            deposit_period_end: this.events[eventId].deposit_period_end,
+            completion: this.events[eventId].completion,
+            status: status,
+            staked_values: this.events[eventId].staked_values,
+            staked_values_raw: this.events[eventId].staked_values_raw,
+            token_values: this.events[eventId].token_values,
+            token_values_raw: this.events[eventId].token_values_raw,
+            ratio: this.events[eventId].ratio,
+          };
+
+          this.events[eventId] = eventEntryNew;
+          this.eventsStore.upsert(eventId, eventEntryNew);
+      }, depositPeriodEnd);
+   }
+
+    timestampToDate(timestamp) {
       const a = new Date(timestamp * 1000);
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const year = a.getFullYear();
@@ -69,29 +114,32 @@ export class OpEventService {
       return time.toString();
     }
 
-    parseEventStatus(eventData, totalBalance: ethers.BigNumber) {
-      const date = new Date();
-      return  (date < new Date(this.timeConverter(eventData['startTime'])))
-              ? Status.Staking :
-              (eventData['eventSettled'] === true)
-              ? Status.Settled :
-              (date > new Date(this.timeConverter(eventData['startTime'])) && totalBalance.lt(this.minimumTokenAmountPerEvent))
-              ? Status.Expired :
-              Status.Active;
+    parseEventStatus(eventData, tokenValuesRaw: ethers.BigNumber[]) {
+      const totalTokenValue = tokenValuesRaw[0].add(tokenValuesRaw[1]);
+      const isDepositPeriod = (new Date() < new Date(this.timestampToDate(Number(eventData['startTime']))));
+      return  isDepositPeriod                                                         ? Status.Staking :
+              (eventData['eventSettled'] === true)                                    ? Status.Settled :
+              !isDepositPeriod && totalTokenValue.lt(this.minimumTokenAmountPerEvent) ? Status.Expired :
+                                                                                        Status.Active;
     }
 
-    async parseEventData(eventId, eventData, tokenBalances){
+    async parseEventData(eventId, eventData, tokenValuesRaw){
 
       const pairing = this.optService.availablePairs[eventData['priceAggregator']];
       const ticker = pairing.pair.replace('/USD', '');
       const asset = this.optService.availableAssets[ticker];
 
-      const totalBalance = BigNumber.from(tokenBalances[Token.IO]).add(BigNumber.from(tokenBalances[Token.O]));
-      const balances = [parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenBalances[Token.IO]).mul(100))),
-                        parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenBalances[Token.O]).mul(100)))];
+      const tokenValues = [parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenValuesRaw[Token.IO]))),
+                           parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenValuesRaw[Token.O])))];
 
-      console.log('balances parseEventData: ' + balances);
-      //ethers.utils.formatUnits(tokenBalances[0].add(tokenBalances[1]).valueOf().toString());
+      const stakedValuesRaw = [tokenValuesRaw[Token.IO].mul(100), tokenValuesRaw[Token.O].mul(100)];
+      const stakedValues = [parseFloat(ethers.utils.formatUnits(BigNumber.from(stakedValuesRaw[Token.IO]))),
+                           parseFloat(ethers.utils.formatUnits(BigNumber.from(stakedValuesRaw[Token.O])))];
+
+      console.log('tokenValuesRaw: ' + tokenValuesRaw);
+      console.log('tokenValues: ' + tokenValues);
+      console.log('stakedValuesRaw: ' + stakedValuesRaw);
+      console.log('stakedValues: ' + stakedValues);
 
       const eventEntry = {
         id: eventId,
@@ -103,18 +151,34 @@ export class OpEventService {
         condition_price: ethers.utils.formatUnits(eventData['betPrice'].valueOf().toString(), 8).toString(),
         settled_price: ethers.utils.formatUnits(eventData['settledPrice'].valueOf().toString(), 8).toString(),
         winner: Number(eventData['winner']),
-        creation:  this.timeConverter(eventData['startTime']),
-        deposit_period_end:  this.timeConverter((Number(eventData['startTime']) + this.depositPeriod).toString()),
-        completion: this.timeConverter(eventData['endTime']),
-        status: this.parseEventStatus(eventData, totalBalance),
-        value: balances,
+        creation:  Number(eventData['startTime']) - this.depositPeriod,
+        deposit_period_end:  (Number(eventData['startTime'])),
+        completion: eventData['endTime'],
+        status: this.parseEventStatus(eventData, tokenValuesRaw),
+        staked_values: stakedValues,
+        staked_values_raw: stakedValuesRaw,
+        token_values: tokenValues,
+        token_values_raw: tokenValuesRaw,
         ratio: parseFloat(ethers.utils.formatUnits(eventData['amountPerWinningToken']).toString()).toFixed(2) + '%'
       };
 
-      this.events[eventId] = eventEntry;
-      (eventId in this.events) ? this.eventsStore.upsert(eventId, eventEntry) :
-                                 this.eventsStore.add(eventEntry, { prepend: true });
+      if (eventId in this.events) {
+        this.eventsStore.upsert(eventId, eventEntry);
+      }else {
+        console.log('adding new eventId ' + eventId);
+        this.eventsStore.add(eventEntry, { prepend: true })
+        // set timeout for deposit_period_end if it hasn't happened yet
+        if (eventEntry.status === Status.Staking) {
+          console.log('adding timeout for eventId ' + eventId);
+          console.log('Date.now(): ' + Date.now());
+          console.log('StartTime: ' + (Number(eventData['startTime'])) * 1000);
+          const timeUntilDepositEnd = ((Number(eventData['startTime']) * 1000) -  Date.now());
+          console.log('timeUntilDepositEnd: ' + timeUntilDepositEnd);
+          this.updateStatusFollowingDepositPeriod(timeUntilDepositEnd, eventId);
+        }
+      }
 
+      this.events[eventId] = eventEntry;
       console.log('events length after push: ' + Object.keys(this.events).length);
     }
 
@@ -153,8 +217,6 @@ export class OpEventService {
             // If this is the first call just get balances from the chain. otherwise update from log.
             if (!(eventId in this.balances)) {
               // get initial balances
-              //const balances = await trustPredict.getTokenBalances(eventId);
-              //console.log('balances: ' + balances);
               const balanceEntry = {
                 IOToken: BigNumber.from(0),
                  OToken: BigNumber.from(0),
@@ -179,7 +241,7 @@ export class OpEventService {
 
     async setupEventSubscriber(){
       // OPEventFactory initial data gathering
-      const _USER: any  = this.authQ.getValue();
+      const _USER: any  = this.authQuery.getValue();
       const signer: any = _USER.signer;
 
       this.address = await signer.getAddress();
@@ -227,7 +289,7 @@ export class OpEventService {
       const OPUSDOptionRatio = 100;
       const priceFeedDecimals = 8;
 
-      const _USER: any       = this.authQ.getValue();
+      const _USER: any       = this.authQuery.getValue();
       const _wallet: any = _USER.wallet;
       const _signer: any = _USER.signer;
 
@@ -294,7 +356,7 @@ export class OpEventService {
             const OPUSDOptionRatio = 100;
             const priceFeedDecimals = 8;
 
-            const _USER: any       = this.authQ.getValue();
+            const _USER: any       = this.authQuery.getValue();
             const _wallet: any = _USER.wallet;
             const _signer: any = _USER.signer;
 
@@ -342,7 +404,7 @@ export class OpEventService {
       // constants
       const contracts = [];
 
-      const _USER: any       = this.authQ.getValue();
+      const _USER: any       = this.authQuery.getValue();
       const _signer: any = _USER.signer;
 
       if (!_signer) {
@@ -386,7 +448,7 @@ export class OpEventService {
       // constants
       const contracts = [];
 
-      const _USER: any       = this.authQ.getValue();
+      const _USER: any       = this.authQuery.getValue();
       const _signer: any = _USER.signer;
 
       if (!_signer) {
@@ -394,7 +456,6 @@ export class OpEventService {
           new Error(`Please log in via Metamask!`)
         );
       }
-
       contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, _signer);
       contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, _signer);
       try {
@@ -432,7 +493,7 @@ export class OpEventService {
       // constants
       const contracts = [];
 
-      const _USER: any       = this.authQ.getValue();
+      const _USER: any       = this.authQuery.getValue();
       const _signer: any = _USER.signer;
 
       // parse values for contract call
@@ -480,16 +541,16 @@ export class OpEventService {
       console.log('eventId: ' + eventId);
       console.log('address: ' + address);
 
-      const _USER: any  = this.authQ.getValue();
+      const _USER: any  = this.authQuery.getValue();
       const signer: any = _USER.signer;
 
       const contracts = [];
       contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
 
-      let balanceO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, 0);
-      console.log('balanceO: ' + balanceO);
-      let balanceIO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, 1);
+      let balanceIO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, Token.IO);
       console.log('balanceIO: ' + balanceIO);
+      let balanceO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, Token.O);
+      console.log('balanceO: ' + balanceO);
 
       balanceO = Number(ethers.utils.formatUnits(balanceO.toString()).toString());
       balanceIO = Number(ethers.utils.formatUnits(balanceIO.toString()).toString());
@@ -497,7 +558,7 @@ export class OpEventService {
       console.log('balanceO encoded: ' + balanceO);
       console.log('balanceIO encoded: ' + balanceIO);
 
-      return [balanceO, balanceIO];
+      return [balanceIO, balanceO];
   }
 
   get(): Observable<void> {

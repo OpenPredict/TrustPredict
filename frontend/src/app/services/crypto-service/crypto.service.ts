@@ -41,7 +41,7 @@ export class CryptoService {
 
   provider() {
     if (this._provider === null){
-      this._provider = new ethers.providers.Web3Provider(window.ethereum);
+      window.ethereum.enable().then(this._provider = new ethers.providers.Web3Provider(window.ethereum));
     }
     return this._provider;
   }

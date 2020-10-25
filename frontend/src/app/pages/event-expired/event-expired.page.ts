@@ -81,6 +81,9 @@ export class EventExpiredPage implements OnInit {
     return this.eventsService.getToken(position, betSide);
   }
 
+  getDate(timestamp: number){
+    return this.eventsService.timestampToDate(timestamp);
+  }
 
   async showRevokeSuccess() {
     const toast = await this.toastCtrl.create({
