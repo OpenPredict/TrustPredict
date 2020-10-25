@@ -98,6 +98,10 @@ export class EventOverviewPage implements OnInit, OnDestroy {
            ((this.balances[other] * 1.0 / this.balances[selection]) * 100).toFixed(2);
   }
 
+  getDate(timestamp: number){
+    return this.eventsService.timestampToDate(timestamp);
+  }
+
   /**
    * Opens the staking page
    * @param token token string

@@ -17,7 +17,7 @@
                       ({{ event.asset_ticker }})
                     </div>     
                     <div class="eventInfoTxt--small"> 
-                      Created: {{ event.creation }}
+                      Created: {{ getDate(event.creation) }}
                     </div>                                    
                   </li>
                   <li>
@@ -37,7 +37,7 @@
                       Event expiration date:
                     </div>
                     <div class="eventInfoTxt bolder">
-                      {{ event.deposit_period_end }}
+                      {{ getDate(event.deposit_period_end) }}
                     </div>                     
                   </li>
                 </ul>

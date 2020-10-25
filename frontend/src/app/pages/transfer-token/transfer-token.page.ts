@@ -108,6 +108,10 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
     return this.eventsService.getClass(this.position);
   }
 
+  getDate(timestamp: number){
+    return this.eventsService.timestampToDate(timestamp);
+  }
+
   async getTokenBalances() {
     const _USER: any  = this.authQuery.getValue();
     const signer: any = _USER.signer;

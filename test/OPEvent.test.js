@@ -185,7 +185,7 @@ contract("TrustPredict", async (accounts) => {
     // - invalid revokes from all addresses involved
     // - invalid settlement call
     // - invalid mint call
-    it("Should pass for test case A", async () => {
+    it.only("Should pass for test case A", async () => {
 
         // Mint tokens to addresses
         IDs = await deployEvent(contracts, accounts);
@@ -209,7 +209,7 @@ contract("TrustPredict", async (accounts) => {
             contracts['OPEventFactory'].stake(OPEventID,
                                               ethers.constants.MaxUint256,
                                               Constants.IOTokenSelection),
-            "SafeMath: multiplication overflow"
+            "SafeMath: addition overflow"
         );
 
         // Ensure settlement price is higher
