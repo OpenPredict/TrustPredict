@@ -6,7 +6,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { PipesModule } from "@pipes/pipes.module";
 import { ComponentsModule } from "@components/components.module";
 import { DirectivesModule } from "@directives/directives.module";
-
+import { TextMaskModule } from 'angular2-text-mask';
 
 @NgModule({
   imports: [
@@ -18,6 +18,7 @@ import { DirectivesModule } from "@directives/directives.module";
     ReactiveFormsModule,
     ComponentsModule,
     DirectivesModule,
+    TextMaskModule
   ],
   providers: [CurrencyPipe, DecimalPipe],
   declarations: [],  
@@ -31,6 +32,7 @@ import { DirectivesModule } from "@directives/directives.module";
     ReactiveFormsModule,
     ComponentsModule,
     DirectivesModule,
+    TextMaskModule
   ]
 })
 export class SharedModule {}

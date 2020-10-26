@@ -18,7 +18,8 @@ import { AuthQuery } from '@app/services/auth-service/auth.service.query';
   styleUrls: ['./event-overview-stake.page.scss'],
 })
 export class EventOverviewStakePage extends BaseForm implements OnInit {
-  private Position = Position;
+  
+  Position = Position;
 
   balances = [];
 
