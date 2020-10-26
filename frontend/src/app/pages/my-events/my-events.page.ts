@@ -49,6 +49,9 @@ export class MyEventsPage extends BaseForm implements OnInit {
   async ngOnInit() {
     this.opEventService.get().subscribe();
     this.allEvents();
+    
+    this.opEventService.$currentBalance.subscribe( bal => console.log(`Balance Observable here ${JSON.stringify(bal)}`) )
+    
     this.form.valueChanges.subscribe(
       (res) => {
         if (this.form.controls['event_id'].valid) {

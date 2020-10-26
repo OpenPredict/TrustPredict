@@ -8,7 +8,7 @@ const BigNumber = ethers.BigNumber;
 
 import { map, mapTo, tap } from 'rxjs/operators';
 import { ID, cacheable } from '@datorama/akita';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { timer } from 'rxjs/internal/observable/timer';
 
 
@@ -45,7 +45,8 @@ export class OpEventService {
   address = '';
   depositPeriod = 200;
   minimumTokenAmountPerEvent = BigNumber.from(ethers.utils.parseUnits('10'));
-
+  private _currentBalance = new BehaviorSubject<any>({});
+  $currentBalance: Observable<Readonly<any>> = this._currentBalance.asObservable();
   constructor(
     private crypto: CryptoService,
     private authQuery: AuthQuery,
@@ -60,13 +61,13 @@ export class OpEventService {
       // set a timer to update the status following depositPeriodEnd.
       setTimeout(() => {
           console.log('ending timeout for eventId ' + eventId);
-          let eventEntry = this.events[eventId];
+          const eventEntry = this.events[eventId];
           // call status update function, upsert result
           const totalTokenValue = eventEntry.token_values_raw[0].add(eventEntry.token_values_raw[1]);
+
           console.log('ending timeout for eventId ' + eventId);
           console.log('totalTokenValue ' + totalTokenValue);
           console.log('this.minimumTokenAmountPerEvent ' + this.minimumTokenAmountPerEvent);
-
           const isDepositPeriod = (new Date() < new Date(this.timestampToDate(eventEntry.deposit_period_end)));
           const status =   isDepositPeriod                                                           ? Status.Staking :
                            eventEntry.Status === Status.Settled                                      ? Status.Settled :
@@ -207,7 +208,8 @@ export class OpEventService {
           console.log('to: ' + to);
           console.log('walletAddress: ' + walletAddress);
           if (from === walletAddress || to === walletAddress) {
-            const eventId = events['args'][0];
+            // eventId is used as ID type in IEvent, which stores in lower case.
+            const eventId = events['args'][0].toLowerCase();
             const amount = ethers.BigNumber.from(events['args'][3]);
             const selection = events['args'][4];
 
@@ -233,7 +235,7 @@ export class OpEventService {
               (selection === 0) ? this.balances[eventId].IOToken = this.balances[eventId].IOToken.sub(amount)
                                 : this.balances[eventId].OToken  = this.balances[eventId].OToken.sub(amount);
             }
-
+            this._currentBalance.next(this.balances);
             console.log('balances: ' + JSON.stringify(this.balances[eventId]));
           }
         });
@@ -541,19 +543,22 @@ export class OpEventService {
       console.log('eventId: ' + eventId);
       console.log('address: ' + address);
 
-      const _USER: any  = this.authQuery.getValue();
-      const signer: any = _USER.signer;
+      // const _USER: any  = this.authQuery.getValue();
+      // const signer: any = _USER.signer;
+      //const contracts = [];
+      //contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
+      // let balanceIO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, Token.IO);
+      // console.log('balanceIO: ' + balanceIO);
+      // let balanceO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, Token.O);
+      // console.log('balanceO: ' + balanceO);
 
-      const contracts = [];
-      contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
+      console.log('this.balances: ' + JSON.stringify(this.balances));
+      console.log('this.balances keys: ' + Object.keys(this.balances));
+      console.log('eventId: ' + eventId);
+      console.log('this.balances[eventId]: ' + this.balances[eventId]);
 
-      let balanceIO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, Token.IO);
-      console.log('balanceIO: ' + balanceIO);
-      let balanceO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, Token.O);
-      console.log('balanceO: ' + balanceO);
-
-      balanceO = Number(ethers.utils.formatUnits(balanceO.toString()).toString());
-      balanceIO = Number(ethers.utils.formatUnits(balanceIO.toString()).toString());
+      const balanceO  = Number(ethers.utils.formatUnits(this.balances[eventId].OToken.toString()).toString());
+      const balanceIO = Number(ethers.utils.formatUnits(this.balances[eventId].IOToken.toString()).toString());
 
       console.log('balanceO encoded: ' + balanceO);
       console.log('balanceIO encoded: ' + balanceIO);
