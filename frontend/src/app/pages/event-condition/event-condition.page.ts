@@ -6,7 +6,8 @@ import { OptionQuery } from '@services/option-service/option.service.query';
 import { BaseForm } from '@app/helpers/BaseForm';
 import { FormBuilder, Validators } from '@angular/forms';
 import { OptionsStore } from '@app/services/option-service/option.service.store';
-import { CurrencyPipe, DecimalPipe} from '@angular/common';
+// import { CurrencyPipe, DecimalPipe} from '@angular/common';
+import createNumberMask from 'text-mask-addons/dist/createNumberMask'
 
 @Component({
   selector: 'app-event-condition',
@@ -17,14 +18,22 @@ export class EventConditionPage  extends BaseForm implements OnInit {
 
   loading$: Observable<boolean>;
   formattedAmount: any;
-
+  
+  numberMask = createNumberMask({
+    prefix: '$ ',
+    suffix: '', // This will put the dollar sign at the end, with a space.
+    allowDecimal: true,
+    decimalSymbol: '.',    
+  })  
+  
+  
   constructor(
     private fb: FormBuilder,
     private optService: OptionService,
     private optQry: OptionQuery,
     private optStr: OptionsStore,
-    private currencyPipe: CurrencyPipe,
-    private decimalPipe: DecimalPipe,
+    // private currencyPipe: CurrencyPipe,
+    // private decimalPipe: DecimalPipe,
     public navCtrl: NavController ) {
       super();
       this.form = this.fb.group({
@@ -40,8 +49,8 @@ export class EventConditionPage  extends BaseForm implements OnInit {
     }
 
     transformAmount(element){
-      this.formattedAmount = this.decimalPipe.transform(this.form.controls['wager'].value, "0.2-2" );
-      this.form.controls['wager'].patchValue(this.formattedAmount);
+      // this.formattedAmount = this.decimalPipe.transform(this.form.controls['wager'].value, "0.2-2" );
+      // this.form.controls['wager'].patchValue(this.formattedAmount);
   }
 
 
@@ -51,7 +60,11 @@ export class EventConditionPage  extends BaseForm implements OnInit {
         return;
       }
       try {
-        const condition_price = parseFloat((this.form.controls['wager'].value).replace(',', ''));
+        // const condition_price = parseFloat((this.form.controls['wager'].value).replace(',', ''));
+        // const condition_price = parseFloat((this.form.controls['wager'].value).replace(/\D/g,'')); // strip all non numerics from the string
+        let condition_price =  this.form.controls['wager'].value.replace('$', '').replace(',', '') 
+            condition_price = parseFloat(condition_price)
+            console.log(`Sending over the wire ${condition_price} ${typeof condition_price}`)
         const condition = (this.form.controls['condition'].value === '1') ? true : false;
         this.optStr.upsert(1, { condition_price, condition } );
         this.navCtrl.navigateForward([`/event-expiration`]);

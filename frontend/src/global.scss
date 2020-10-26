@@ -81,7 +81,15 @@ html, body {
   }
   
   
-  
+  input.form__input {
+    padding-left: 12px;
+    border-radius: 15px;
+    border: 1px solid var(--ion-color-primary);
+    padding: 10px;
+    width: 100%;
+    background-color: transparent;  
+    outline: none;
+  }
   
   
   

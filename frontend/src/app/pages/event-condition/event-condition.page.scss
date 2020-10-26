@@ -1,12 +1,14 @@
 /* Chrome, Safari, Edge, Opera */
 ion-input::-webkit-outer-spin-button,
-ion-input::-webkit-inner-spin-button {
+ion-input::-webkit-inner-spin-button,
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button{
   -webkit-appearance: none;
   margin: 0;
 }
 
 /* Firefox */
-ion-input[type=number] {
+ion-input[type=number], input[type=number] {
   -moz-appearance: textfield;
 }
 

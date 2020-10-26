@@ -37,14 +37,27 @@
                     <div class="form__label"> 
                       Input settled price in USD
                     </div>
-                    <ion-input 
+                    
+                    <input 
+                    (ionFocus)="clearAmount($event)"                        
+                    class="form__input"
+                    type="text"
+                    min="0"
+                    formControlName="wager"
+                    placeholder="0.00"                    
+                    [textMask]="{mask: numberMask }" />                    
+                                        
+                    
+                    <!-- <ion-input 
                       (ionBlur)="transformAmount($event)"
                       (ionFocus)="clearAmount($event)"                      
                       class="form__input"
-                      type="text"
+                      type="number"
+                      min="0"
+                      oninput="this.value = !!this.value && Math.abs(this.value) >= 0 ? Math.abs(this.value) : null"
                       formControlName="wager"
                       placeholder="0.00">
-                   </ion-input>                     
+                   </ion-input>                      -->
                     <div *ngIf="hasError('wager', 'required')" class="standardInputErr">
                       Wager is required
                     </div>   
