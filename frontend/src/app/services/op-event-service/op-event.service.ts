@@ -543,15 +543,6 @@ export class OpEventService {
       console.log('eventId: ' + eventId);
       console.log('address: ' + address);
 
-      // const _USER: any  = this.authQuery.getValue();
-      // const signer: any = _USER.signer;
-      //const contracts = [];
-      //contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
-      // let balanceIO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, Token.IO);
-      // console.log('balanceIO: ' + balanceIO);
-      // let balanceO = await contracts['TrustPredict'].balanceOfAddress(eventId, address, Token.O);
-      // console.log('balanceO: ' + balanceO);
-
       console.log('this.balances: ' + JSON.stringify(this.balances));
       console.log('this.balances keys: ' + Object.keys(this.balances));
       console.log('eventId: ' + eventId);
