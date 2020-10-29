@@ -8,6 +8,8 @@ import { NavController, ToastController } from '@ionic/angular';
 import { UiService } from '@app/services/ui-service/ui.service';
 import { Position, Side } from '@app/data-model';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
+import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
+import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
 
 @Component({
   selector: 'app-event-expired',
@@ -22,13 +24,13 @@ export class EventExpiredPage implements OnInit {
   }
 
   event$ = this.eventsQuery.selectEntity(this.eventId);
-  balances$ = [];
   hasBalanceInAnyToken$ = this.hasBalanceInAnyToken();
 
   constructor(
     private navCtrl: NavController,
     private activatedRoute: ActivatedRoute,
     private eventsService: OpEventService,
+    private balancesService: OpBalanceService,
     private eventsQuery: OpEventQuery,
     private authQuery: AuthQuery,
     private toastCtrl: ToastController,
@@ -100,15 +102,7 @@ export class EventExpiredPage implements OnInit {
   }
 
   async hasBalanceInAnyToken() {
-    const _USER: any  = this.authQuery.getValue();
-    const signer: any = _USER.signer;
-
-    const eventId = this.activatedRoute.snapshot.params.eventId;
-    const address = await signer.getAddress();
-    console.log('address: ' + address);
-    this.balances$ = await this.eventsService.balanceOfAddress(this.eventId, address);
-    console.log('this.balances: ' + this.balances$);
-
-    return this.balances$[0] > 0 || this.balances$[1] > 0;
+    const balancesFormatted = this.balancesService.getById(this.eventId);
+    return balancesFormatted.IOToken > 0 || balancesFormatted.OToken > 0;
   }
 }

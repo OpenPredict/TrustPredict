@@ -43,7 +43,7 @@
                 </ul>
               </div>
               
-              <div class="mintingFormWrap"> 
+              <div class="mintingFormWrap" *ngIf="(balance$ | async) as balance"> 
                 
                 <div class="separator"></div>
                 
@@ -53,10 +53,11 @@
                     <div class="form__item buffer"> 
                       <div class="form__label"> 
                         Input amount
-                        <div class="form__label-info">Balance: {{getTokenBalance()}}</div>
+                        <div class="form__label-info">Balance: {{getTokenBalance(balance)}}</div>
                       </div>
                       <div class="form__input--wrapped">
-                        <ion-input class="form__input" type="number" formControlName="transfer_amount" placeholder="0.00"></ion-input>                                      
+                        <!-- <ion-input class="form__input" type="number" formControlName="transfer_amount" placeholder="0.00"></ion-input> -->
+                        <input class="form__input" type="text" min="0" formControlName="transfer_amount" placeholder="0.00" [textMask]="{mask: tokenMask }" />
                         <div class="form__input--token">“{{ token }}” Token</div>
                       </div>
                      

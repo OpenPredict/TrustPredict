@@ -1,16 +1,17 @@
-import { FormControl, FormGroup, AbstractControl } from '@angular/forms';
+import { OnInit } from '@angular/core';
+import { FormControl, FormGroup, AbstractControl, ValidatorFn, ValidationErrors } from '@angular/forms';
+import { BaseForm } from '@app/helpers/BaseForm';
 
 export class CustomValidators {
-    
     /**
-     * Validate an email 
+     * Validate an email
      * @param c email field in the form
      */
-    static validateEmail(c: FormControl) {   
-        let EMAIL_REGEXP = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    static validateEmail(c: FormControl) {
+        const EMAIL_REGEXP = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         return EMAIL_REGEXP.test(c.value) ? null : {emailValid: true};
     }
-    
+
     /**
      * Count up the percentage fields of multiple array controls in other form groups
      * @param c array of AbstractControl items
@@ -21,19 +22,19 @@ export class CustomValidators {
             vestingActual += Number( control.get('percentage').value )
         })
         if (vestingActual < 100) {
-            return { 
-              vesting_percent_low: true 
+            return {
+              vesting_percent_low: true
             };
-          }  
-          if (vestingActual > 100) {            
-            return { 
-              vesting_percent_high: true 
+          }
+        if (vestingActual > 100) {
+            return {
+              vesting_percent_high: true
             };
-          }                  
+          }
         return null;
-      }        
-      
-      
+      }
+
+
     /**
      * Count up the sho_allocation fields of multiple array controls in other form groups
      * @param totalRaise the value set in the main offering as the total raise amount which is the sum of all the individual SHO items
@@ -46,14 +47,14 @@ export class CustomValidators {
         })
         if (shoCount < totalRaise) {
             return { less_than_total_raise: true };
-          }  
-          if (shoCount > totalRaise) {       
+          }
+        if (shoCount > totalRaise) {
             return { greater_than_total_raise: true };
-          }                  
+          }
         return null;
-      }        
-    
-      
+      }
+
+
     /**
      * Validate an ERC/ETh address to ensure it is formatted correctly
      */
@@ -65,16 +66,16 @@ export class CustomValidators {
           return { invalid_address: true };
         }
         return null;
-      }    
-    
-    
+      }
+
+
     static passwordValidation(c: FormGroup){
-        let passwords: any = {
+        const passwords: any = {
             password: c.controls['password'],
             passwordConfirm: c.controls['passwordConfirm']
         }
         // reset all password errors
-        for (let pwdField in passwords){
+        for (const pwdField in passwords){
             passwords[pwdField].setErrors(null);
         }
         // check if currentPassword is empty
@@ -86,11 +87,25 @@ export class CustomValidators {
         if (passwords.password.value.length < 6 ){
             passwords.password.setErrors({ minlength: true});
             return null;
-        }          
-        if (passwords.password.value != passwords.passwordConfirm.value)
+        }
+        if (passwords.password.value != passwords.passwordConfirm.value){
             passwords.passwordConfirm.setErrors({passwordMismatch: true})
+        }
 
-        return null
+        return null;
     }
 
+
+    static minimumNumber(minimum: number): ValidatorFn {
+      return (control: AbstractControl): ValidationErrors | null => {
+
+        const error: ValidationErrors = { number: true };
+        console.log('control.value: ' + control.value);
+        const parsed = BaseForm.transformAmount(control.value);
+        const result = (parsed < minimum || isNaN(parsed)) ? error : null;
+
+        control.setErrors(result);
+        return result;
+      };
+    }
 }

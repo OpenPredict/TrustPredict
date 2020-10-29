@@ -3,9 +3,9 @@ import { CommonModule, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 // import { TranslateModule} from "@ngx-translate/core"
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { PipesModule } from "@pipes/pipes.module";
-import { ComponentsModule } from "@components/components.module";
-import { DirectivesModule } from "@directives/directives.module";
+import { PipesModule } from '@pipes/pipes.module';
+import { ComponentsModule } from '@components/components.module';
+import { DirectivesModule } from '@directives/directives.module';
 import { TextMaskModule } from 'angular2-text-mask';
 
 @NgModule({
@@ -21,8 +21,8 @@ import { TextMaskModule } from 'angular2-text-mask';
     TextMaskModule
   ],
   providers: [CurrencyPipe, DecimalPipe],
-  declarations: [],  
-  entryComponents: [],  
+  declarations: [],
+  entryComponents: [],
   exports: [
     CommonModule,
     IonicModule,

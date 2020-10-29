@@ -13,6 +13,7 @@ import { CustomValidators } from '@app/helpers/CustomValidators';
 import { IEvent, Status } from '@app/data-model';
 import { OpEventQuery } from '@services/op-event-service/op-event.service.query';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
+import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
 
 
 @Component({
@@ -32,6 +33,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
     private optService: OptionService,
     private optQry: OptionQuery,
     public opEventService: OpEventService,
+    public opBalanceService: OpBalanceService,
     private authQ: AuthQuery,
     private eventQuery: OpEventQuery,
     private optStr: OptionsStore,
@@ -49,9 +51,9 @@ export class MyEventsPage extends BaseForm implements OnInit {
   async ngOnInit() {
     this.opEventService.get().subscribe();
     this.allEvents();
-    
-    this.opEventService.$currentBalance.subscribe( bal => console.log(`Balance Observable here ${JSON.stringify(bal)}`) )
-    
+
+    //this.opEventService.$currentBalance.subscribe( bal => console.log(`Balance Observable here ${JSON.stringify(bal)}`) );
+
     this.form.valueChanges.subscribe(
       (res) => {
         if (this.form.controls['event_id'].valid) {
@@ -72,11 +74,11 @@ export class MyEventsPage extends BaseForm implements OnInit {
     signer.getAddress().then(async (address) => {
       await Promise.all(Object.keys(this.opEventService.events).map(async (_eventKey) => {
         const _event = this.opEventService.events[_eventKey];
-        this.opEventService.balanceOfAddress(_event.id, address).then((balance) => {
-          balances[_event.id] = balance[0] + balance[1];
-          console.log('balances[_event.id]: ' + balances[_event.id].toString());
-          console.log('address:' + address);
-        });
+        console.log('_event.id: ' + _event.id);
+        const balance = this.opBalanceService.getById(_event.id);
+        balances[_event.id] = balance.IOToken + balance.OToken;
+        console.log('balances[_event.id]: ' + balances[_event.id].toString());
+        console.log('address:' + address);
       }));
 
       this.pendingEvents$ = this.eventQuery.selectAll({
@@ -86,7 +88,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
         filterBy: state => state.status === Status.Active
       });
 
-      this.eventQuery.selectAll().subscribe( res => console.log(`events with status Active ${JSON.stringify(res)}`) )
+      this.eventQuery.selectAll().subscribe( res => console.log(`events with status Active ${JSON.stringify(res)}`) );
 
 
       this.myEvents$ = this.eventQuery.selectAll({

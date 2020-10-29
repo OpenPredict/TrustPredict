@@ -52,13 +52,17 @@ export interface IEvent {
   creation?: number;
   deposit_period_end?: number;
   completion?: number;
-  value?: number[];
+  staked_values: number[];
+  staked_values_raw: BigNumber[];
+  token_values: number[];
+  token_values_raw: BigNumber[];
   status?: Status;
   ratio?: string;
 }
 
 
 export interface IBalance {
+  id?: ID;
   OToken?: BigNumber;
   IOToken?: BigNumber;
 }

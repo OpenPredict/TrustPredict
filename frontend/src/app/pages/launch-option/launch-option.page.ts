@@ -9,6 +9,8 @@ import { UiService } from '@services/ui-service/ui.service';
 import { Observable } from 'rxjs';
 import { BaseForm } from '@app/helpers/BaseForm';
 import { FormBuilder, Validators } from '@angular/forms';
+import createNumberMask from 'text-mask-addons/dist/createNumberMask';
+import { CustomValidators } from '@app/helpers/CustomValidators';
 
 @Component({
   selector: 'app-launch-option',
@@ -20,6 +22,13 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
   loading$: Observable<boolean>;
 
   availableOptions: any[];
+
+  dollarMask = createNumberMask({
+    prefix: '$ ',
+    suffix: '', // This will put the dollar sign at the end, with a space.
+    allowDecimal: true,
+    decimalSymbol: '.',
+  });
 
   constructor(
     private fb: FormBuilder,
@@ -37,19 +46,18 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
 
       this.form = this.fb.group({
         option_asset: [this.availableOptions[0], Validators.compose([Validators.required])],
-        option_stake: [null, Validators.compose([Validators.required, Validators.min(100), Validators.pattern('^[1-9]+[0-9]*00$')])],
+        option_stake: [null, Validators.compose([Validators.required])],
       });
+
+      this.form.get('option_stake').setValidators([CustomValidators.minimumNumber(100)]);
     }
 
-  ngOnInit() {
-
-  }
-
+  ngOnInit() {}
 
   async continue() {
 
       const option_asset = this.form.controls['option_asset'].value;
-      const option_stake = this.form.controls['option_stake'].value;
+      const option_stake = BaseForm.transformAmount(this.form.controls['option_stake'].value);
       const item = { option_asset: option_asset.pair_contract, option_stake };
       this.optStr.upsert(1, item); // update the state object first
 
@@ -59,6 +67,12 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
       const numTokensStakedToMint = currentOptions[0].option_stake;
       const rawBetPrice = currentOptions[0].condition_price;
       const pairContract = currentOptions[0].pair_contract;
+
+      console.log('betSide: ' + betSide);
+      console.log('eventPeriod: ' + eventPeriod);
+      console.log('numTokensStakedToMint: ' + numTokensStakedToMint);
+      console.log('rawBetPrice: ' + rawBetPrice);
+      console.log('pairContract: ' + pairContract);
 
       try {
        const interaction = await this.ui

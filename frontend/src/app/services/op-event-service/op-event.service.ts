@@ -16,6 +16,7 @@ import { WEB3 } from '@app/web3';
 import Web3 from 'web3';
 import { EventsStore } from './op-event.service.store';
 import { IEvent, IBalance, Status, Position, Side, Token } from '@app/data-model';
+import { OpBalanceService } from '../op-balance-service/op-balance.service';
 
 const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
 const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
@@ -40,22 +41,17 @@ contractAddresses['OPEventFactory'] = kovan ? '0xec71D6030Ac5DE2bc4849A9dE9CE013
 export class OpEventService {
 
   events = {} as IEvent;
-  balances = {} as IBalance;
 
   address = '';
   depositPeriod = 200;
   minimumTokenAmountPerEvent = BigNumber.from(ethers.utils.parseUnits('10'));
-  private _currentBalance = new BehaviorSubject<any>({});
-  $currentBalance: Observable<Readonly<any>> = this._currentBalance.asObservable();
   constructor(
     private crypto: CryptoService,
     private authQuery: AuthQuery,
     private optService: OptionService,
     private eventsStore: EventsStore,
-    @Inject(WEB3) private web3: Web3) {
-      this.events = {};
-      this.balances = {};
-    }
+    private balanceService: OpBalanceService,
+    @Inject(WEB3) private web3: Web3) {}
 
     updateStatusFollowingDepositPeriod(depositPeriodEnd, eventId) {
       // set a timer to update the status following depositPeriodEnd.
@@ -127,6 +123,8 @@ export class OpEventService {
     async parseEventData(eventId, eventData, tokenValuesRaw){
 
       const pairing = this.optService.availablePairs[eventData['priceAggregator']];
+      console.log('pairing: ' + pairing);
+
       const ticker = pairing.pair.replace('/USD', '');
       const asset = this.optService.availableAssets[ticker];
 
@@ -183,64 +181,6 @@ export class OpEventService {
       console.log('events length after push: ' + Object.keys(this.events).length);
     }
 
-    async setupBalanceSubscriber(trustPredict, walletAddress){
-
-
-      // You can also pull in your JSON ABI; I'm not sure of the structure inside artifacts
-      //
-      const abi = new ethers.utils.Interface([
-        'event BalanceChange(address,address,address,uint256,uint8)'
-      ]);
-
-      console.log('trustPredict address: ' + trustPredict.address);
-      console.log('wallet address: ' + walletAddress);
-
-      this.crypto.provider().on( {
-          address: trustPredict.address,
-          topics: [
-              ethers.utils.id('BalanceChange(address,address,address,uint256,uint8)'),
-            ],
-        }, async (log) => {
-          const events = abi.parseLog(log);
-          const from = events['args'][1];
-          const   to = events['args'][2];
-          console.log('from: ' + from);
-          console.log('to: ' + to);
-          console.log('walletAddress: ' + walletAddress);
-          if (from === walletAddress || to === walletAddress) {
-            // eventId is used as ID type in IEvent, which stores in lower case.
-            const eventId = events['args'][0].toLowerCase();
-            const amount = ethers.BigNumber.from(events['args'][3]);
-            const selection = events['args'][4];
-
-            console.log('eventId: ' + eventId);
-            console.log('amount: ' + amount);
-            console.log('selection: ' + selection);
-            // If this is the first call just get balances from the chain. otherwise update from log.
-            if (!(eventId in this.balances)) {
-              // get initial balances
-              const balanceEntry = {
-                IOToken: BigNumber.from(0),
-                 OToken: BigNumber.from(0),
-              };
-              this.balances[eventId] = balanceEntry;
-            }
-            if (to === walletAddress) {
-              console.log('Balance add - to wallet address from: ' + to + ' selection: ' + selection.valueOf().toString());
-              (selection === 0) ? this.balances[eventId].IOToken = this.balances[eventId].IOToken.add(amount)
-                                : this.balances[eventId].OToken  = this.balances[eventId].OToken.add(amount);
-            }
-            if (from === walletAddress) {
-              console.log('Balance sub - from wallet address to: ' + to + ' selection: ' + selection.valueOf().toString());
-              (selection === 0) ? this.balances[eventId].IOToken = this.balances[eventId].IOToken.sub(amount)
-                                : this.balances[eventId].OToken  = this.balances[eventId].OToken.sub(amount);
-            }
-            this._currentBalance.next(this.balances);
-            console.log('balances: ' + JSON.stringify(this.balances[eventId]));
-          }
-        });
-    }
-
     async setupEventSubscriber(){
       // OPEventFactory initial data gathering
       const _USER: any  = this.authQuery.getValue();
@@ -254,7 +194,7 @@ export class OpEventService {
       contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
 
       this.crypto.provider().resetEventsBlock(0);
-      this.setupBalanceSubscriber(contracts['TrustPredict'], this.address);
+      this.balanceService.setupBalanceSubscriber(contracts['TrustPredict'], this.address);
 
       // OPEventFactory subscriber
       this.crypto.provider().on( {
@@ -301,7 +241,8 @@ export class OpEventService {
         );
       }
 
-      const betPrice        = ethers.utils.parseUnits((rawBetPrice           *              100).toString(), priceFeedDecimals - 2);
+      console.log(Math.ceil(rawBetPrice * 100).toString());
+      const betPrice        = ethers.utils.parseUnits(Math.ceil(rawBetPrice  *              100).toString(), priceFeedDecimals - 2);
       const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / OPUSDOptionRatio).toString());
       console.log(numTokensToMint);
       contracts['ChainLink'] = new ethers.Contract(contractAddresses['ChainLink'], ChainLink.abi, _signer);
@@ -537,24 +478,6 @@ export class OpEventService {
         );
       }
     });
-  }
-
-  async balanceOfAddress(eventId, address) {
-      console.log('eventId: ' + eventId);
-      console.log('address: ' + address);
-
-      console.log('this.balances: ' + JSON.stringify(this.balances));
-      console.log('this.balances keys: ' + Object.keys(this.balances));
-      console.log('eventId: ' + eventId);
-      console.log('this.balances[eventId]: ' + this.balances[eventId]);
-
-      const balanceO  = Number(ethers.utils.formatUnits(this.balances[eventId].OToken.toString()).toString());
-      const balanceIO = Number(ethers.utils.formatUnits(this.balances[eventId].IOToken.toString()).toString());
-
-      console.log('balanceO encoded: ' + balanceO);
-      console.log('balanceIO encoded: ' + balanceIO);
-
-      return [balanceIO, balanceO];
   }
 
   get(): Observable<void> {

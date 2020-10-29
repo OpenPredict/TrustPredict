@@ -36,19 +36,13 @@
                       Select amount 
                       <!-- <div class="form__label-info">Balance: 5000.245</div> -->
                     </div>
-                    <ion-input class="form__input" type="number" formControlName="option_stake" placeholder="0.00"></ion-input>                     
-                    <div class="form__label form__label--sub"> 
-                      Minimum amount: $100.00
-                    </div>                    
-                    <div *ngIf="hasError('option_stake', 'required')" class="standardInputErr">
-                      Amount is required
-                    </div>           
-                    <div *ngIf="hasError('option_stake', 'min')" class="standardInputErr">
-                      Amount must be greater than 100
-                    </div>                        
-                    <div *ngIf="hasError('option_stake', 'pattern')" class="standardInputErr">
-                      Amount must be a multiple of 100
-                    </div>                        
+                    <input              
+                    class="form__input"
+                    type="text"
+                    min="0"
+                    formControlName="option_stake"
+                    placeholder="0.00"                    
+                    [textMask]="{mask: dollarMask }" />  
                   </div>                  
                   
                   <div class="form__item"> 
