@@ -44,10 +44,15 @@ html, body {
     background-color: #182640;
     padding: 20px;
     border-radius: 14px;
-    max-width: 500px;
+    max-width: 600px;
     margin: 45px auto;
 }
 
+ion-header {
+    &.header-md:after {
+        background: none;
+    }
+}
 
 .header {
     font-family: Montserrat;
