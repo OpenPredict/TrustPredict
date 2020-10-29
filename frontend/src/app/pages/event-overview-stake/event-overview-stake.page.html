@@ -72,8 +72,11 @@
                       <div class="form__label"> 
                         Select amount 
                       </div>
-                      <ion-input class="form__input" type="number" formControlName="option_stake" placeholder="0.00"></ion-input>                     
-                      <div class="form__label form__label--sub"> 
+                      <!-- <ion-input class="form__input" type="number" formControlName="option_stake" placeholder="0.00"></ion-input> -->
+
+                      <input class="form__input" type="text" min="0" formControlName="option_stake" placeholder="0.00" [textMask]="{mask: dollarMask }" />
+
+                      <!-- <div class="form__label form__label--sub"> 
                         Minimum amount: $100.00
                       </div>                    
                       <div *ngIf="hasError('option_stake', 'required')" class="standardInputErr">
@@ -84,7 +87,7 @@
                       </div>                        
                       <div *ngIf="hasError('option_stake', 'pattern')" class="standardInputErr">
                         Amount must be a multiple of 100
-                      </div>                        
+                      </div>                         -->
                     </div>                  
                     
                     <div class="winRatioEstimator"  [ngClass]="{'red': position === Position.Right, 'green': position === Position.Left}">
@@ -92,8 +95,8 @@
                         <div class="eventInfoTxt--small"> 
                           “{{ token }}” Token win ratio:
                         </div>                
-                        <div class="eventInfoTxt bolder"> 
-                          {{getRatio()}}%
+                        <div class="eventInfoTxt bolder" *ngIf="(balance$ | async) as balance"> 
+                          {{getRatio(balance)}}%
                         </div>                         
                       </div>                       
                     </div>

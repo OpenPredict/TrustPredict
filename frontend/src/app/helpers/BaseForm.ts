@@ -1,4 +1,5 @@
-import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors} from '@angular/forms';
+import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn} from '@angular/forms';
+import createNumberMask from 'text-mask-addons/dist/createNumberMask';
 import {OnInit} from '@angular/core';
 
 export abstract class BaseForm implements OnInit {
@@ -77,8 +78,6 @@ export abstract class BaseForm implements OnInit {
 
     getFormValidationErrors() {
 
-
-
         console.log('Checking for errors...' +         this.form.getError('allornone'));
         return Object.keys(this.form.controls).forEach(key => {
          console.log('Checking for errors...' + key);
@@ -93,6 +92,29 @@ export abstract class BaseForm implements OnInit {
     }
 
 
+    /**
+     * transform an input string from a currency mask into a float
+     * @param {number} value
+     */
+    static transformAmount(value){
+        return (value==null) ? 0 : parseFloat(value.replace('$', '').replace(',', ''));
+      }
+
+    static dollarMask = createNumberMask({
+        prefix: '$ ',
+        suffix: '',
+        allowDecimal: true,
+        decimalSymbol: '.',
+        decimalLimit: 2,
+    });
+
+    static tokenMask = createNumberMask({
+        prefix: '',
+        suffix: '',
+        allowDecimal: true,
+        decimalSymbol: '.',
+        decimalLimit: 8,
+    });
 
 
     /**
@@ -136,7 +158,4 @@ export abstract class BaseForm implements OnInit {
             && control.errors !== null
             && control.errors[errorName];
     }
-
-
-
 }

@@ -13,6 +13,8 @@ import { Position, Side, Token } from '@app/data-model';
 import { of } from 'rxjs';
 import { CustomValidators } from '@app/helpers/CustomValidators';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
+import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
+import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
 
 @Component({
   selector: 'app-transfer-token',
@@ -22,6 +24,7 @@ import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 export class TransferTokenPage  extends BaseForm implements OnInit {
 
   public Position = Position;
+  tokenMask = BaseForm.tokenMask;
 
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
@@ -35,11 +38,9 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
     return (this.activatedRoute.snapshot.params.position === '1') ? Position.Left : Position.Right;
   }
 
-  balances = [];
-
   // termsAndConditions = 'https://openpredict.io';
   event$ = this.eventsQuery.selectEntity(this.eventId);
-
+  balance$ = this.balancesQuery.selectEntity(this.eventId);
   availableOptions: any[];
 
   constructor(
@@ -49,7 +50,9 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
     private optService: OptionService,
     private ui: UiService,
     private eventsService: OpEventService,
+    private balancesService: OpBalanceService,
     private eventsQuery: OpEventQuery,
+    private balancesQuery: OpBalanceQuery,
     private authQuery: AuthQuery,
     private toastCtrl: ToastController) {
       super();
@@ -61,8 +64,7 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
           [Validators.required, Validators.minLength(42), Validators.maxLength(42), CustomValidators.isAddress])
         ],
       });
-
-      this.getTokenBalances();
+      this.form.get('transfer_amount').setValidators([CustomValidators.minimumNumber(0.00000001)]);
     }
 
   ngOnInit() {
@@ -72,6 +74,13 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
         untilDestroyed(this),
         switchMap(id => this.eventsService.getEvent(id))
       ).subscribe();
+
+    this.activatedRoute.paramMap.pipe(
+        map( params => params.get('eventId') ),
+        filter(id => !this.balancesQuery.hasEntity(id)),
+        untilDestroyed(this),
+        switchMap(id => this.balancesService.getBalance(id))
+      ).subscribe();
   }
 
   ngOnDestroy(){}
@@ -79,7 +88,7 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
   async continue() {
     const eventId = this.activatedRoute.snapshot.params.eventId;
     const to = this.form.controls['transfer_to'].value;
-    const amount = parseFloat(this.form.controls['transfer_amount'].value);
+    const amount = BaseForm.transformAmount(this.form.controls['transfer_amount'].value);
     const selection = (this.activatedRoute.snapshot.params.token === 'IO' ? 0 : 1);
 
     try {
@@ -112,20 +121,10 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
     return this.eventsService.timestampToDate(timestamp);
   }
 
-  async getTokenBalances() {
-    const _USER: any  = this.authQuery.getValue();
-    const signer: any = _USER.signer;
-
-    const eventId = this.activatedRoute.snapshot.params.eventId;
-
-    const address = await signer.getAddress();
-    console.log('address: ' + address);
-    this.balances = await this.eventsService.balanceOfAddress(this.eventId, address);
-    console.log('balances getTokenBalances: ' + this.balances);
-  }
-
-  getTokenBalance(){
-    return this.balances[this.token === 'IO' ? 0 : 1];
+  getTokenBalance(balances: any){
+    console.log('transfer-token balances: ' + balances);
+    const balancesFormatted = this.balancesService.format(balances);
+    return this.token === 'IO' ? balancesFormatted.IOToken : balancesFormatted.OToken;
   }
 
   // replace with live terms and conditons url

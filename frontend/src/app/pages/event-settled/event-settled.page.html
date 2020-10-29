@@ -71,8 +71,8 @@
                       <div class="eventInfoTxt--small divideBal">
                         My balance:
                       </div>          
-                      <div class="eventInfoTxt bolder">
-                        {{getTokenBalance()}} ”{{getWinningTokenText(event.winner)}}”
+                      <div class="eventInfoTxt bolder" *ngIf="(balance$ | async) as balance">
+                        {{getTokenBalance(balance)}} ”{{getWinningTokenText(event.winner)}}”
                       </div>                         
                       
                       <div class="eventInfoTxt--small eventInfoTransfer" (click)="goTransfer(event.winner, event.side)">

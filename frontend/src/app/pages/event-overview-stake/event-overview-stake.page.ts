@@ -11,6 +11,9 @@ import { OptionService } from '@app/services/option-service/option.service';
 import { UiService } from '@app/services/ui-service/ui.service';
 import { Position } from '@app/data-model';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
+import { CustomValidators } from '@app/helpers/CustomValidators';
+import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
+import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
 
 @Component({
   selector: 'app-event-overview-stake',
@@ -18,10 +21,9 @@ import { AuthQuery } from '@app/services/auth-service/auth.service.query';
   styleUrls: ['./event-overview-stake.page.scss'],
 })
 export class EventOverviewStakePage extends BaseForm implements OnInit {
-  
-  Position = Position;
 
-  balances = [];
+  Position = Position;
+  dollarMask = BaseForm.dollarMask;
 
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
@@ -38,6 +40,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
 
   termsAndConditions = 'https://openpredict.io';
   event$ = this.eventsQuery.selectEntity(this.eventId);
+  balance$ = this.balancesQuery.selectEntity(this.eventId);
   availableOptions: any[];
 
   constructor(
@@ -47,7 +50,9 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     private optService: OptionService,
     private ui: UiService,
     private eventsService: OpEventService,
+    private balancesService: OpBalanceService,
     private eventsQuery: OpEventQuery,
+    private balancesQuery: OpBalanceQuery,
     private authQuery: AuthQuery,
     private toastCtrl: ToastController) {
       super();
@@ -55,11 +60,11 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
 
       this.form = this.fb.group({
         option_asset: [this.availableOptions[0], Validators.compose([Validators.required])],
-        option_stake: [null, Validators.compose([Validators.required, Validators.min(100), Validators.pattern('^[1-9]+[0-9]*00$')])],
+        option_stake: [null, Validators.compose([Validators.required])],
         agreedTerms: [false, Validators.requiredTrue ],
       });
 
-      this.getTokenBalances();
+      this.form.get('option_stake').setValidators([CustomValidators.minimumNumber(0.01)]);
     }
 
   ngOnInit() {
@@ -69,13 +74,21 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
         untilDestroyed(this),
         switchMap(id => this.eventsService.getEvent(id))
       ).subscribe();
+
+    this.activatedRoute.paramMap.pipe(
+        map( params => params.get('eventId') ),
+        filter(id => !this.balancesQuery.hasEntity(id)),
+        untilDestroyed(this),
+        switchMap(id => this.balancesService.getBalance(id))
+      ).subscribe();
   }
 
   ngOnDestroy(){}
 
   async continue() {
+    console.log('in continue');
     const eventId = this.activatedRoute.snapshot.params.eventId;
-    const numTokensStakedToMint = this.form.controls['option_stake'].value;
+    const numTokensStakedToMint = BaseForm.transformAmount(this.form.controls['option_stake'].value);
     const selection = (this.token === 'IO') ? 0 : 1;
 
     try {
@@ -108,27 +121,16 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     return this.eventsService.timestampToDate(timestamp);
   }
 
-  async getTokenBalances() {
-    const _USER: any  = this.authQuery.getValue();
-    const signer: any = _USER.signer;
+  getRatio(balances: any){
+    console.log('balances: ' + JSON.stringify(balances));
+    const balancesFormatted = this.balancesService.format(balances);
 
-    const eventId = this.activatedRoute.snapshot.params.eventId;
-
-    const address = await signer.getAddress();
-    console.log('address: ' + address);
-    this.balances = await this.eventsService.balanceOfAddress(this.eventId, address);
-    console.log('balances getTokenBalances: ' + this.balances);
-  }
-
-  getRatio(){
-    console.log('this.balances: ' + this.balances);
-
-    const selection = (this.token === 'IO') ? 0 : 1;
-    const other = 1 - selection;
+    const selection = (this.token === 'IO') ? balancesFormatted.IOToken : balancesFormatted.OToken;
+    const other     = (this.token === 'IO') ? balancesFormatted.OToken : balancesFormatted.IOToken;
 
     // (loser / winner) * 100
-    return (this.balances[selection] === 0) ? 0.0 :
-           ((this.balances[other] * 1.0 / this.balances[selection]) * 100).toFixed(2);
+    return (selection == 0) ? '0.00' :
+           ((other * 1.0 / selection) * 100).toFixed(2);
   }
 
   // replace with live terms and conditons url

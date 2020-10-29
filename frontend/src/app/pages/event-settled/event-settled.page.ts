@@ -8,7 +8,8 @@ import { NavController, ToastController } from '@ionic/angular';
 import { UiService } from '@app/services/ui-service/ui.service';
 import { Side, Token } from '@app/data-model';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
-import { ethers } from 'ethers';
+import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
+import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
 
 @Component({
   selector: 'app-event-settled',
@@ -23,14 +24,16 @@ export class EventSettledPage implements OnInit {
   }
 
   event$ = this.eventsQuery.selectEntity(this.eventId);
-  balances = [];
+  balance$ = this.balancesQuery.selectEntity(this.eventId);
   hasBalanceInWinningToken$ = this.hasBalanceInWinningToken();
 
   constructor(
     private navCtrl: NavController,
     private activatedRoute: ActivatedRoute,
     private eventsService: OpEventService,
+    private balancesService: OpBalanceService,
     private eventsQuery: OpEventQuery,
+    private balancesQuery: OpBalanceQuery,
     private authQuery: AuthQuery,
     public toastCtrl: ToastController,
     private ui: UiService) {
@@ -43,6 +46,13 @@ export class EventSettledPage implements OnInit {
         filter(id => !this.eventsQuery.hasEntity(id)),
         untilDestroyed(this),
         switchMap(id => this.eventsService.getEvent(id))
+      ).subscribe();
+
+    this.activatedRoute.paramMap.pipe(
+        map( params => params.get('eventId') ),
+        filter(id => !this.balancesQuery.hasEntity(id)),
+        untilDestroyed(this),
+        switchMap(id => this.balancesService.getBalance(id))
       ).subscribe();
   }
 
@@ -97,25 +107,17 @@ export class EventSettledPage implements OnInit {
   }
 
   async hasBalanceInWinningToken() {
-    const _USER: any  = this.authQuery.getValue();
-    const signer: any = _USER.signer;
-
-    const eventId = this.activatedRoute.snapshot.params.eventId;
-
-    console.log('eventId: ' + eventId);
-    console.log('winner: ' + this.eventsService.events[eventId].winner);
-
-
-    const address = await signer.getAddress();
-    console.log('address: ' + address);
-    this.balances = await this.eventsService.balanceOfAddress(this.eventId, address);
-    console.log('balances: ' + this.balances);
-
-    return this.balances[this.eventsService.events[eventId].winner] > 0;
+    const balancesFormatted = this.balancesService.getById(this.eventId);
+    console.log('balancesFormatted: ' + balancesFormatted);
+    const winner = (this.eventsService.events[this.eventId].winner === 0) ? balancesFormatted.IOToken : balancesFormatted.OToken;
+    return winner > 0;
   }
 
-  getTokenBalance(){
-    return this.balances[this.eventsService.events[this.eventId].winner];
+  getTokenBalance(balances: any){
+    const balancesFormatted = this.balancesService.format(balances);
+    console.log('balancesFormatted: ' + balancesFormatted);
+    const winner = (this.eventsService.events[this.eventId].winner === 0) ? balancesFormatted.IOToken : balancesFormatted.OToken;
+    return winner;
   }
 
   async showClaimSuccess() {

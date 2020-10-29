@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { QueryEntity } from '@datorama/akita';
-import { EventsStore, State } from '@services/op-event-service/op-event.service.store';
-import { IEvent } from '@app/data-model';
+import { BalancesStore, State } from '@services/op-balance-service/op-balance.service.store';
+import { IBalance } from '@app/data-model';
 
 @Injectable({ providedIn: 'root' })
-export class OpEventQuery extends QueryEntity<State, IEvent> {
-  constructor(protected store: EventsStore) {
+export class OpBalanceQuery extends QueryEntity<State, IBalance> {
+  constructor(protected store: BalancesStore) {
     super(store);
   }
 
@@ -13,7 +13,7 @@ export class OpEventQuery extends QueryEntity<State, IEvent> {
     this.store.remove();
   }
 
-  getEvent(term: string) {
+  getBalance(term: string) {
     return this.selectAll({
       filterBy: entity => entity.id == term
     });

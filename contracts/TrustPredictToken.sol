@@ -7,7 +7,7 @@ import "openzeppelin-solidity/contracts/token/ERC1155/ERC1155Burnable.sol";
 
 contract TrustPredictToken is ERC1155, ERC1155Burnable {
 
-    event BalanceChange(address, address, address, uint256, uint8);
+    event BalanceChange(uint256, address, address, address, uint256, uint8);
 
     // Token data
     struct Token {
@@ -15,7 +15,8 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
         uint256 balance;
     }
 
-    uint test = 0;
+    // can't get eg. txid or nonce, so we use an ID when publishing balance updates.
+    uint changeId = 0;
     
     // Event data
     struct TokenPair {
@@ -49,7 +50,7 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
 
         _mint(to, getTokenID(eventId, Utils.Token(selection)), amount, "");
         TokenPairs[eventId].tokens[Utils.Token(selection)].balance += amount;
-        emit BalanceChange(eventId, address(0), to, amount, selection);
+        emit BalanceChange(uint256(keccak256(abi.encodePacked(changeId++))), eventId, address(0), to, amount, selection);
         return true;
     }
 
@@ -57,14 +58,14 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
         _onlyEvent();
 
         _burn(from, getTokenID(eventId, Utils.Token(selection)), amount);
-        emit BalanceChange(eventId, from, address(0), amount, selection);
+        emit BalanceChange(uint256(keccak256(abi.encodePacked(changeId++))), eventId, from, address(0), amount, selection);
         return true;
     }
 
     function transferFrom(address eventId, address from, address to, uint256 amount, uint8 selection) external returns(bool) {
 
         safeTransferFrom(from, to, getTokenID(eventId, Utils.Token(selection)), amount, "");
-        emit BalanceChange(eventId, from, to, amount, selection);
+        emit BalanceChange(uint256(keccak256(abi.encodePacked(changeId++))), eventId, from, to, amount, selection);
         return true;
     }
 
