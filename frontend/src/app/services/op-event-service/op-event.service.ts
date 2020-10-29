@@ -18,6 +18,7 @@ import { EventsStore } from './op-event.service.store';
 import { IEvent, IBalance, Status, Position, Side, Token } from '@app/data-model';
 import { OpBalanceService } from '../op-balance-service/op-balance.service';
 
+const ContractProxy     = require('@truffle/build/contracts/ContractProxy.json');
 const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
 const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
 const Utils             = require('@truffle/build/contracts/Utils.json');
@@ -25,15 +26,9 @@ const Oracle            = require('@truffle/build/contracts/Oracle.json');
 const TrustPredictToken = require('@truffle/build/contracts/TrustPredictToken.json');
 const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json');
 
+const contracts = [];
 const contractAddresses = [];
-const kovan = false;
-
-contractAddresses['OPUSD']          = kovan ? '0x168A6Ca87D06CBac65413b19afd2C7d0cd36d1AC' : '0x4C6f9E62b4EDB743608757D9D5F16B0B67B41285';
-contractAddresses['ChainLink']      = kovan ? '0xa36085F69e2889c224210F603D836748e7dC0088' : '0x6c6387F01EddCd8fEcb674332D22d665c5313a90';
-contractAddresses['Utils']          = kovan ? '0x3CC0CCf97178f6A14f2d2762596ab8e052A28d9E' : '0xc6ACe392cE166D3f2013302d751Bfc26C166048e';
-contractAddresses['Oracle']         = kovan ? '0xbd0b4c43DA0dAFc4143C47ecf15f7E5c8Ff19E84' : '0x30690193C75199fdcBb7F588eF3F966402249315';
-contractAddresses['TrustPredict']   = kovan ? '0x71b388f51d95cc5a6E983D7e9D5ceCFf1b54293C' : '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C';
-contractAddresses['OPEventFactory'] = kovan ? '0xec71D6030Ac5DE2bc4849A9dE9CE0131381d3F62' : '0x4eb24Db3F49F82A475281d49D3d327f623B6e3dA';
+const kovan = true;
 
 @Injectable({
   providedIn: 'root'
@@ -121,7 +116,7 @@ export class OpEventService {
     }
 
     async parseEventData(eventId, eventData, tokenValuesRaw){
-
+      console.log('priceAggregator: ' + eventData['priceAggregator']);
       const pairing = this.optService.availablePairs[eventData['priceAggregator']];
       console.log('pairing: ' + pairing);
 
@@ -181,6 +176,38 @@ export class OpEventService {
       console.log('events length after push: ' + Object.keys(this.events).length);
     }
 
+    async setupContractAddresses(signer, address) {
+      if (kovan) {
+        contractAddresses['ContractProxy'] = '0x328eC87d3AE746169DF56089ED96DEa8e34453B1';
+        contracts['ContractProxy']          = new ethers.Contract(contractAddresses['ContractProxy'], ContractProxy.abi, signer);
+        // contractAddresses['OPUSD']          = await contracts['ContractProxy'].getOPUSDAddress();
+        // contractAddresses['ChainLink']      = await contracts['ContractProxy'].getChainLinkAddress();
+        // contractAddresses['Utils']          = await contracts['ContractProxy'].getUtilsAddress();
+        // contractAddresses['Oracle']         = await contracts['ContractProxy'].getOracleAddress();
+        // contractAddresses['TrustPredict']   = await contracts['ContractProxy'].getTrustPredictAddress();
+        // contractAddresses['OPEventFactory'] = await contracts['ContractProxy'].getOPEventFactoryAddress();
+        contractAddresses['OPUSD']          = '0xb876a52abd933a02426c31d8231e9b9352864214';
+        contractAddresses['ChainLink']      = '0xa36085f69e2889c224210f603d836748e7dc0088';
+        contractAddresses['Utils']          = '0x90B66e6b61abfFD8429d3d0a44082D3fD712EA11';
+        contractAddresses['Oracle']         = '0x892Ef27cC1B1A46646CB064f8d12EE66F74BEFc7';
+        contractAddresses['TrustPredict']   = '0xc79639B08546B516509c48C95AefE3Eb9B160006';
+        contractAddresses['OPEventFactory'] = '0x6668a16b854651653F62038DE61b309dBC1c6543';
+
+        Object.keys(contractAddresses).forEach((key) => {
+          console.log(key + ' address: ' + contractAddresses[key]);
+      })
+      } else {
+        let nonce = 0;
+        contractAddresses['ContractProxy']  = this.crypto.getNextContractAddress(address, nonce++);
+        contractAddresses['OPUSD']          = this.crypto.getNextContractAddress(address, nonce++);
+        contractAddresses['ChainLink']      = this.crypto.getNextContractAddress(address, nonce++);
+        contractAddresses['Utils']          = this.crypto.getNextContractAddress(address, nonce++);
+        contractAddresses['Oracle']         = this.crypto.getNextContractAddress(address, nonce++);
+        contractAddresses['TrustPredict']   = this.crypto.getNextContractAddress(address, nonce++);
+        contractAddresses['OPEventFactory'] = this.crypto.getNextContractAddress(address, nonce++);
+      }
+    }
+
     async setupEventSubscriber(){
       // OPEventFactory initial data gathering
       const _USER: any  = this.authQuery.getValue();
@@ -189,7 +216,8 @@ export class OpEventService {
       this.address = await signer.getAddress();
       console.log('signer address: ' + this.address);
 
-      const contracts = [];
+      await this.setupContractAddresses(signer, this.address);
+
       contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, signer);
       contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
 
@@ -260,18 +288,30 @@ export class OpEventService {
                                                   ethers.utils.parseUnits(numTokensStakedToMint.toString()),
                                                   optionsOP );
 
-        const waitForInteractions = Promise.all([approveCL, approveOP]);
-        waitForInteractions.then( async (res) => {
+        const waitForApprovals = Promise.all([approveCL, approveOP]);
+        waitForApprovals.then( async (res) => {
           const approveCLWait = await res[0].wait();
           const approveOPWait = await res[1].wait();
           if (approveCLWait.status === 1 && approveOPWait.status === 1) {
             console.log(`Deploying event with =>> betPrice: ${betPrice} | betSide: ${Number(betSide)} | eventPeriod: ${eventPeriod} | numTokensToMint: ${numTokensToMint} || pairContract: ${pairContract} `);
-            await contracts['OPEventFactory'].createOPEvent(betPrice,
+            const createOPEvent =  contracts['OPEventFactory'].createOPEvent(betPrice,
                                                             Number(betSide),
                                                             eventPeriod,
                                                             numTokensToMint,
                                                             pairContract );
-            resolve(true);
+
+            const waitForCreation = Promise.all([createOPEvent]);
+            waitForCreation.then( async (res) => {
+              const createOPEventWait = await res[0].wait();
+              if (createOPEventWait.status === 1) {
+                resolve(true);
+              }
+            }).catch( err =>
+              reject(
+                `Error during transaction creation: ${JSON.stringify(err)}`
+              )
+            );
+            
           }
         }).catch( err =>
           reject(
@@ -320,13 +360,24 @@ export class OpEventService {
                                                         ethers.utils.parseUnits(numTokensStakedToMint.toString()),
                                                         optionsOP );
 
-              const waitForInteractions = Promise.all([approveOP]);
-              waitForInteractions.then( async (res) => {
+              const waitForApproval = Promise.all([approveOP]);
+              waitForApproval.then( async (res) => {
                 const approveOPWait = await res[0].wait();
                 if (approveOPWait.status === 1) {
                   console.log(`Placing stake with | eventId: ${eventId}| numTokensToMint: ${numTokensToMint} || selection: ${selection}`);
-                  await contracts['OPEventFactory'].stake(eventId, numTokensToMint, selection);
-                  resolve(true);
+                  const stakeOP = contracts['OPEventFactory'].stake(eventId, numTokensToMint, selection);
+                  const waitForStake = Promise.all([stakeOP]);
+                  waitForStake.then( async (res) => {
+                    const stakeOPWait = await res[0].wait();
+                    if (stakeOPWait.status === 1) {
+                      resolve(true);
+                    }
+                  }).catch( err =>
+                    reject(
+                      `Error during transaction creation: ${JSON.stringify(err)}`
+                    )
+                  );
+
                 }
               }).catch( err =>
                 reject(
@@ -365,12 +416,24 @@ export class OpEventService {
                                                     true,
                                                     optionsTP );
 
-        const waitForInteractions = Promise.all([approveTP]);
-        waitForInteractions.then( async (res) => {
+        const waitForApproval = Promise.all([approveTP]);
+        waitForApproval.then( async (res) => {
           const approveTPWait = await res[0].wait();
           if (approveTPWait.status === 1) {
-            await contracts['OPEventFactory'].revoke(eventId);
-            resolve(true);
+
+            const revokeOP = contracts['OPEventFactory'].revoke(eventId);
+            const waitForRevoke = Promise.all([revokeOP]);
+            waitForRevoke.then( async (res) => {
+              const revokeOPWait = await res[0].wait();
+              if (revokeOPWait.status === 1) {
+                resolve(true);
+              }
+            }).catch( err =>
+              reject(
+                `Error during transaction creation: ${JSON.stringify(err)}`
+              )
+            );
+
           }
         }).catch( err =>
           reject(
@@ -411,8 +474,21 @@ export class OpEventService {
         waitForInteractions.then( async (res) => {
           const approveTPWait = await res[0].wait();
           if (approveTPWait.status === 1) {
-            await contracts['OPEventFactory'].claim(eventId);
-            resolve(true);
+
+            const claimOP = contracts['OPEventFactory'].claim(eventId);
+            const waitForClaim = Promise.all([claimOP]);
+            waitForClaim.then( async (res) => {
+              const claimOPWait = await res[0].wait();
+              if (claimOPWait.status === 1) {
+                resolve(true);
+              }
+            }).catch( err =>
+              reject(
+                `Error during transaction creation: ${JSON.stringify(err)}`
+              )
+            );
+
+
           }
         }).catch( err =>
           reject(

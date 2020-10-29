@@ -13,13 +13,13 @@ module.exports = async function (deployer, network, accounts) {
     console.log("network: " + network)
     process.env.NETWORK = network
     contracts= []
-
-    contracts['ContractProxy'] = await ContractProxy.new();
-
     // Need to deploy OPUSD and ChainLink on local networks
     if(network == "development") {
         contracts['OPUSD'] = await OPUSDToken.new();
         contracts['ChainLink'] = await ChainLinkToken.new();
+        contracts['ContractProxy'] = await ContractProxy.new();
+    }else{
+        contracts['ContractProxy'] = await ContractProxy.at('0x328eC87d3AE746169DF56089ED96DEa8e34453B1');
     }
 
     contracts['Utils'] = await Utils.new();
