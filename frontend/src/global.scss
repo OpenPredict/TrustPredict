@@ -29,6 +29,11 @@ html, body {
     font-family: Montserrat, 'sans-serif';
 }
 
+body, ion-content {
+    --ion-background-color: #1D2C49!important; 
+    background-color: #1D2C49!important;     
+}
+
 :root {
     --ion-font-family: Montserrat, 'sans-serif';
 }
