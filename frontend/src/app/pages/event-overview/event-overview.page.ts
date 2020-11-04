@@ -49,7 +49,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
         switchMap(id => this.eventsService.getEvent(id))
       ).subscribe();
 
-      this.activatedRoute.paramMap.pipe(
+    this.activatedRoute.paramMap.pipe(
         map( params => params.get('eventId') ),
         filter(id => !this.balancesQuery.hasEntity(id)),
         untilDestroyed(this),

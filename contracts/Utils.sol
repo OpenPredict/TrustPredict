@@ -9,8 +9,8 @@ library Utils {
     enum Side {Lower, Higher}
 
     // Changed during deployment
-    //string constant network = "development";
-    string constant network = "kovan";
+    string constant network = "development";
+    //string constant network = "kovan";
 
     function GetContractProxy() private pure returns(address _contractProxy) {
         _contractProxy = compare(network, "kovan") ? 0x328eC87d3AE746169DF56089ED96DEa8e34453B1 : 0xBf610614CaA08d9fe7a4F61082cc32951e547a91;

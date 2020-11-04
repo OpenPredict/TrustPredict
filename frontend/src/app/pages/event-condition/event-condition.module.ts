@@ -7,7 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { EventConditionPageRoutingModule } from './event-condition-routing.module';
 
 import { EventConditionPage } from './event-condition.page';
-import { SharedModule } from "@app/shared.module";
+import { SharedModule } from '@app/shared.module';
 
 @NgModule({
   imports: [
