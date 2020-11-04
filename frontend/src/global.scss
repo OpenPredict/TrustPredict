@@ -29,6 +29,11 @@ html, body {
     font-family: Montserrat, 'sans-serif';
 }
 
+body, ion-content {
+    --ion-background-color: #1D2C49!important; 
+    background-color: #1D2C49!important;     
+}
+
 :root {
     --ion-font-family: Montserrat, 'sans-serif';
 }
@@ -83,6 +88,7 @@ ion-header {
     --padding-start: 12px;
     border-radius: 15px;
     border: 1px solid var(--ion-color-primary);
+    color: white;
   }
   
   
@@ -94,6 +100,7 @@ ion-header {
     width: 100%;
     background-color: transparent;  
     outline: none;
+    color: white;
   }
   
   
@@ -139,6 +146,7 @@ ion-header {
         }        
         .form__select {
         margin: 10px auto 0; 
+        color: white!important;
         }
         .form__label {
         font-family: Montserrat;
@@ -335,6 +343,7 @@ ion-header {
     margin: 16px auto 0;
     width: 100px;
     align-items: center;  
+    cursor: pointer;
     .back__button--icon {
         width: 15px;
         height: 17px;
@@ -639,4 +648,20 @@ ion-checkbox {
         text-align: center;          
     }  
     
+}
+
+
+
+
+ion-alert.select-alert {
+    // --background: black!important;
+
+    button {
+        color: white !important;
+        // font-size: 20px !important;
+    }
+
+    .sc-ion-alert-md {
+        color: white !important;
+    }
 }
