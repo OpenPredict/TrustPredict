@@ -1,6 +1,6 @@
 const OPUSDToken        = artifacts.require("OPUSDToken");
 const ChainLinkToken    = artifacts.require("ChainLinkToken");
-const ContractProxy    = artifacts.require("ContractProxy");
+const ContractProxy     = artifacts.require("ContractProxy");
 const Utils             = artifacts.require("Utils");
 const Oracle            = artifacts.require("Oracle");
 const TrustPredictToken = artifacts.require('TrustPredictToken');
@@ -15,9 +15,9 @@ module.exports = async function (deployer, network, accounts) {
     contracts= []
     // Need to deploy OPUSD and ChainLink on local networks
     if(network == "development") {
+        contracts['ContractProxy'] = await ContractProxy.new();
         contracts['OPUSD'] = await OPUSDToken.new();
         contracts['ChainLink'] = await ChainLinkToken.new();
-        contracts['ContractProxy'] = await ContractProxy.new();
     }else{
         contracts['ContractProxy'] = await ContractProxy.at('0x328eC87d3AE746169DF56089ED96DEa8e34453B1');
     }

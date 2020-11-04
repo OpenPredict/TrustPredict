@@ -38,9 +38,8 @@ export class OpBalanceService {
     async setupBalanceSubscriber(trustPredict, walletAddress){
 
       const abi = new ethers.utils.Interface([
-        'event BalanceChange(uint256,address,address,address,uint256,uint8)'
+        'event BalanceChange(address,address,address,uint256,uint8)'
       ]);
-
       console.log('trustPredict address: ' + trustPredict.address);
       console.log('wallet address: ' + walletAddress);
 
@@ -48,23 +47,22 @@ export class OpBalanceService {
       this.crypto.provider().on( {
           address: trustPredict.address,
           topics: [
-              ethers.utils.id('BalanceChange(uint256,address,address,address,uint256,uint8)'),
+              ethers.utils.id('BalanceChange(address,address,address,uint256,uint8)'),
             ],
         }, async (log) => {
+          console.log('log: ' + JSON.stringify(log));
           const events = abi.parseLog(log);
           console.log(events);
-          const id = events['args'][0];
-          const from = events['args'][2];
-          const   to = events['args'][3];
-          console.log('id: ' + from);
+          const from = events['args'][1];
+          const   to = events['args'][2];
           console.log('from: ' + from);
           console.log('to: ' + to);
           console.log('walletAddress: ' + walletAddress);
           if (from === walletAddress || to === walletAddress) {
             // eventId is used as ID type in IEvent, which stores in lower case.
-            const eventId = events['args'][1].toLowerCase();
-            const amount = ethers.BigNumber.from(events['args'][4]);
-            const selection = events['args'][5];
+            const eventId = events['args'][0].toLowerCase();
+            const amount = ethers.BigNumber.from(events['args'][3]);
+            const selection = events['args'][4];
 
             console.log('eventId: ' + eventId);
             console.log('amount: ' + amount);
@@ -81,6 +79,8 @@ export class OpBalanceService {
               balanceEntry = this.balances[eventId];
             }
 
+            // Gives us a unique log identifier.
+            const id = log['transactionHash'].concat(log['logIndex']);
             if (!(id in this.updates)){
               this.updates[id] = true;
               // We can't assign to values in the state directly (ie. this.balances), so pull out the values and reassign a

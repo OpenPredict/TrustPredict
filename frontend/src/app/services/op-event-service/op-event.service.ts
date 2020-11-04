@@ -28,7 +28,7 @@ const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json'
 
 const contracts = [];
 const contractAddresses = [];
-const kovan = true;
+const kovan = false;
 
 @Injectable({
   providedIn: 'root'
@@ -190,12 +190,12 @@ export class OpEventService {
         contractAddresses['ChainLink']      = '0xa36085f69e2889c224210f603d836748e7dc0088';
         contractAddresses['Utils']          = '0x90B66e6b61abfFD8429d3d0a44082D3fD712EA11';
         contractAddresses['Oracle']         = '0x892Ef27cC1B1A46646CB064f8d12EE66F74BEFc7';
-        contractAddresses['TrustPredict']   = '0xc79639B08546B516509c48C95AefE3Eb9B160006';
+        contractAddresses['TrustPredict']   = '0xb1D9A08BA7d5184829Fa7f84A839Ec98607415dE';
         contractAddresses['OPEventFactory'] = '0x6668a16b854651653F62038DE61b309dBC1c6543';
 
         Object.keys(contractAddresses).forEach((key) => {
           console.log(key + ' address: ' + contractAddresses[key]);
-      })
+      });
       } else {
         let nonce = 0;
         contractAddresses['ContractProxy']  = this.crypto.getNextContractAddress(address, nonce++);
