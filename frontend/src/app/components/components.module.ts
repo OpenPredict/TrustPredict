@@ -3,21 +3,25 @@ import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 // import { TranslateModule} from "@ngx-translate/core"
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { PipesModule } from "@pipes/pipes.module";
+import { PipesModule } from '@pipes/pipes.module';
 import {RouterModule} from '@angular/router';
-import { ConnectWallet } from "@components/connect-wallet/connect-wallet.component";
-import { AppHeaderComponent } from "@components/app-header/app-header.component";
-import { WagerInformationOutputComponent } from "@components/wager-information-output/wager-information-output.component";
-import { WagerSelectedTokenComponent } from "@components/wager-selected-token/wager-selected-token.component";
-import { EventItemComponent } from "@components/event-item/event-item.component";
+import { ConnectWallet } from '@components/connect-wallet/connect-wallet.component';
+import { AppHeaderComponent } from '@components/app-header/app-header.component';
+import { WagerInformationOutputComponent } from '@components/wager-information-output/wager-information-output.component';
+import { WagerSelectedTokenComponent } from '@components/wager-selected-token/wager-selected-token.component';
+import { EventItemComponent } from '@components/event-item/event-item.component';
+import { WalletOptionsModalComponent } from '@components/wallet-options-modal/wallet-options-modal.component';
+import { CryptoAddressDisplayComponent } from '@components/crypto-address-display/crypto-address-display.component';
 
 const components = [
   ConnectWallet,
   AppHeaderComponent,
   WagerInformationOutputComponent,
   WagerSelectedTokenComponent,
-  EventItemComponent
-]
+  EventItemComponent,
+  WalletOptionsModalComponent,
+  CryptoAddressDisplayComponent,
+];
 
 @NgModule({
   imports: [
@@ -30,8 +34,8 @@ const components = [
     RouterModule,
   ],
   providers: [],
-  declarations: components,  
-  entryComponents: components,  
+  declarations: components,
+  entryComponents: components,
   exports: components
 })
 export class ComponentsModule {}

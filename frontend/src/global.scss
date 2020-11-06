@@ -397,6 +397,54 @@ ion-header {
     }
 }
 
+button {
+    width: 200px;
+    box-shadow: -10px -10px 15px -5px #2A3958, 10px 10px 15px -5px rgba(0, 0, 0, 0.25);
+    border-radius: 20px;  
+    padding: 9px;
+    transition: transform 300ms ease-in-out;
+    transform: scale(1.01);
+    outline: none!important;
+    
+    &:disabled {
+        background: #A6AEBE!important;  
+    }
+    
+    &:not(:disabled):hover {
+        transition: transform 300ms ease-in-out;
+        transform: scale(1.04);                
+    }
+    
+    .btnInner {
+        display: flex;
+        justify-content: center;
+        img {
+            margin-right: 10px;
+        }
+    }
+    color: #1D2C49;   
+    
+    span {
+        font-style: normal;
+        font-weight: bold;
+        font-size: 14px;
+        line-height: 17px;                
+    }
+    // &.btn-grey {
+    //     background: #A6AEBE;          
+    // }
+    
+    &.btn-white {
+        background: #ffffff;     
+        
+    }    
+    
+    &.btn-unlock {
+        background: #89F4ED;            
+    }
+                
+}
+
 
 
 
@@ -651,6 +699,14 @@ ion-checkbox {
 }
 
 
+h2.modalHeader {
+    font-style: normal;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 17px;
+    text-align: center;
+    color: #89F4ED;    
+}
 
 
 ion-alert.select-alert {
@@ -665,3 +721,24 @@ ion-alert.select-alert {
         color: white !important;
     }
 }
+
+.deposit-modal {
+    --height: auto;
+    .modal-wrapper{
+    //   width: 90vw;
+    .ion-page {
+        position: relative;
+        contain: content;
+        // max-height: 90vh;
+        .modal-content {
+            overflow: auto;
+        }
+    }
+    // height: 200px;
+    background: #1D2C49;
+    mix-blend-mode: normal;
+    border: 1px solid #89F4ED;
+    box-shadow: -10px -10px 15px -5px #203151, 10px 10px 15px -5px #0E182C;
+    border-radius: 20px;
+    }
+  }
