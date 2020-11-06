@@ -81,6 +81,9 @@ ion-header {
     } 
 }
 
+.align-center {
+    text-align: center; 
+}
 
 
 
@@ -665,3 +668,49 @@ ion-alert.select-alert {
         color: white !important;
     }
 }
+
+
+
+
+.opt-modal {
+    .modal-wrapper {
+        // height: 200px;
+        background: #1D2C49;
+        mix-blend-mode: normal;
+        border: 1px solid #89F4ED;
+        box-shadow: -10px -10px 15px -5px #203151, 10px 10px 15px -5px #0E182C;
+        border-radius: 20px;
+    }
+}
+
+
+
+.opt-modal {
+    --height: auto;
+    @media only screen and (max-width: 767px) {
+        --width: 85%;
+    }    
+    .modal-wrapper{
+    //   width: 90vw;
+      .ion-page {
+        position: relative;
+        contain: content;
+        // max-height: 90vh;
+        .modal-content {
+          overflow: auto;
+        }
+      }
+    }
+  }
+
+
+
+  h2.modalHeader {
+    font-style: normal;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 17px;
+    text-align: center;
+    color: #89F4ED;    
+}
+  
