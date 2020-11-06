@@ -1,0 +1,33 @@
+<h2 class="modalHeader">
+  My Wallet
+</h2>
+             
+  <ul class="list-reset">
+
+    
+    <li class="btnWrap" *ngIf="wallet.wallet">     
+     <button class="btn btn-unlock" (click)="openEtherscan(wallet.wallet)">
+      <div class="btnInner">
+         <span>View on Etherscan</span>                    
+      </div>                  
+      </button>        
+    </li> 
+    
+    <li class="btnWrap" *ngIf="wallet.wallet">     
+      <button class="btn btn-unlock" (click)="logout()">
+       <div class="btnInner">
+          <span>Log out</span>                    
+       </div>                  
+       </button>        
+     </li>     
+    
+    <li class="btnWrap">
+      <button class="btn btn-white" (click)="cancel()">
+        <div class="btnInner">
+           <span>Cancel</span>                    
+        </div>                  
+      </button> 
+    </li>    
+  
+  </ul>
+  
