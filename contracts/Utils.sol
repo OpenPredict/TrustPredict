@@ -56,7 +56,11 @@ library Utils {
     }
 
     function GetMinimumTokenAmountPerEvent() external pure returns (uint _minimumTokenAmountPerEvent) {
-        _minimumTokenAmountPerEvent = compare(network, "kovan") ? 10000000000000000000 : 10000000000000000000;
+        _minimumTokenAmountPerEvent = compare(network, "kovan") ? 10000000000000000000   : 10000000000000000000;
+    }
+
+    function GetMinimumOPUSDAmountPerEvent() external pure returns (uint _minimumOPUSDAmountPerEvent) {
+        _minimumOPUSDAmountPerEvent = compare(network, "kovan") ? 1000000000000000000000 : 1000000000000000000000;
     }
     //************ variables that differ between networks (development, kovan) **********************************
 
