@@ -39,7 +39,7 @@ export class AppComponent {
     this.platform.ready().then( async () => {
 
       window.ethereum.on('accountsChanged', async (accounts) => {
-        if(accounts) {
+        if (accounts) {
           this.initialize();
         }
       });
