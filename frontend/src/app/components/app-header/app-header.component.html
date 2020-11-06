@@ -8,9 +8,14 @@
       <ion-button size="large"  color="primary" (click)="openEvents()">
         My Events
       </ion-button>            
-      <ion-button size="large"  color="primary" (click)="options()">
+      <ion-button size="large"  color="primary" (click)="information()">
         <ion-icon class="btn-info" src="/assets/img/information-circle-sharp.svg" name="information-circle-sharp"></ion-icon>
       </ion-button>        
+      <button class="btn btn-header btn-unlock" *ngIf="loggedIn$ | async" (click)="options()">
+        <div class="btnInner">
+          <crypto-address-display [address]="address"></crypto-address-display>
+        </div>
+     </button>
     </ion-buttons>      
   </ion-toolbar>
 </ion-header>

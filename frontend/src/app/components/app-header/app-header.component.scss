@@ -12,3 +12,14 @@
     font-size: 40px;
     line-height: 1;    
 }
+
+.btn-header {
+    width: auto;
+    padding: 9px 15px;
+
+    .btnInner {
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+    }
+}
