@@ -12,6 +12,7 @@ contract OPEventFactory {
     // ********** Start State variables **********    
     // constants
     uint constant maxEventPeriod = 315360000; // max time any one event can last for (10y in seconds)
+    uint constant maxPredictionPercentage = 10;
 
     // addresses
     address _oracle;
@@ -49,8 +50,20 @@ contract OPEventFactory {
     }
     
     function _hasGrantedAllowance(uint numTokens) internal {
-        require(Utils.allowance(msg.sender, address(this), Utils.GetOPUSDAddress()) ==  numTokens, 
+        require(Utils.allowance(msg.sender, address(this), Utils.GetOPUSDAddress()) >=  numTokens,
                 "OPEventFactory: OPUSD balance not granted");
+    }
+
+    function _correctPredictionAmount(address _eventId, uint numTokensToMint, bool deployment) internal {
+
+        // The maximum prediction is either the total token amount / 10 OR minimum amount / 10, whichever is higher.
+        uint totalMinted = deployment ? 0 : Utils.getTotalSupply(_eventId, _token);
+        uint maximumPrediction = (totalMinted > Utils.GetMinimumTokenAmountPerEvent()) ?
+                                 (totalMinted                          ) / maxPredictionPercentage :
+                                 (Utils.GetMinimumTokenAmountPerEvent()) / maxPredictionPercentage;
+
+        require(numTokensToMint <= maximumPrediction,
+               "OPEventFactory: requested token amount exceeds current valid prediction amount.");
     }
      
     function _correctWeight(address _eventId, uint numTokensToMint, Utils.Token selection) internal {
@@ -110,6 +123,7 @@ contract OPEventFactory {
     {
         _validEventPeriod(_eventPeriod);
         _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
+        _correctPredictionAmount(address(0), numTokensToMint, true);
 
         // set event addresses
         _oracle = Utils.GetOracleAddress();
@@ -151,6 +165,7 @@ contract OPEventFactory {
         _minimumTimeReached(_eventId, false);
         _correctWeight(_eventId, numTokensToMint, selection);
         _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
+        _correctPredictionAmount(_eventId, numTokensToMint, false);
 
         Utils.transferFrom(msg.sender, address(this), Utils.convertToOPUSDAmount(numTokensToMint), Utils.GetOPUSDAddress());
         Utils.mint(_eventId, msg.sender, numTokensToMint, selection, _token);
