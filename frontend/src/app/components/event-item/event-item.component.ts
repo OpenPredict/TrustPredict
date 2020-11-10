@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { IEvent, Side } from '@app/data-model';
 import { OpEventService } from '@services/op-event-service/op-event.service';
+import makeBlockie from 'ethereum-blockies-base64';
 
 @Component({
   selector: 'app-event-item',
@@ -29,6 +30,12 @@ export class EventItemComponent implements OnInit {
 
   getTotalValue(value: any): string {
     return this.eventService.getTotalValue(value);
+  }
+
+  createEventIdImage(event: any){
+    const img = new Image() ;
+    img.src = makeBlockie(event.id);
+    // img.src needs to be inserted into the page
   }
 
 }

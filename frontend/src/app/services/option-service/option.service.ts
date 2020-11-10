@@ -15,7 +15,7 @@ const Oracle            = require('@truffle/build/contracts/Oracle.json');
 const TrustPredictToken = require('@truffle/build/contracts/TrustPredictToken.json');
 const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json');
 
-const kovan = true;
+const kovan = false;
 
 @Injectable({
   providedIn: 'root'
