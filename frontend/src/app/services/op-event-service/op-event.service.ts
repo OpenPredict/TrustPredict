@@ -6,7 +6,7 @@ import { AuthQuery } from '@services/auth-service/auth.service.query';
 import { ethers } from 'ethers';
 const BigNumber = ethers.BigNumber;
 
-import { map, mapTo, tap } from 'rxjs/operators';
+import { map, mapTo } from 'rxjs/operators';
 import { ID, cacheable } from '@datorama/akita';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { timer } from 'rxjs/internal/observable/timer';
@@ -15,20 +15,14 @@ import { timer } from 'rxjs/internal/observable/timer';
 import { WEB3 } from '@app/web3';
 import Web3 from 'web3';
 import { EventsStore } from './op-event.service.store';
-import { IEvent, IBalance, Status, Position, Side, Token } from '@app/data-model';
+import { IEvent, Status, Position, Side, Token } from '@app/data-model';
 import { OpBalanceService } from '../op-balance-service/op-balance.service';
+import { StakingBalanceService } from '../staking-balance-service/staking-balance.service';
 
-const ContractProxy     = require('@truffle/build/contracts/ContractProxy.json');
 const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
 const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
-const Utils             = require('@truffle/build/contracts/Utils.json');
-const Oracle            = require('@truffle/build/contracts/Oracle.json');
 const TrustPredictToken = require('@truffle/build/contracts/TrustPredictToken.json');
 const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json');
-
-const contracts = [];
-const contractAddresses = [];
-const kovan = false;
 
 @Injectable({
   providedIn: 'root'
@@ -42,10 +36,8 @@ export class OpEventService {
   minimumTokenAmountPerEvent = BigNumber.from(ethers.utils.parseUnits('10'));
   constructor(
     private crypto: CryptoService,
-    private authQuery: AuthQuery,
-    private optService: OptionService,
+    private optionService: OptionService,
     private eventsStore: EventsStore,
-    private balanceService: OpBalanceService,
     @Inject(WEB3) private web3: Web3) {}
 
     updateStatusFollowingDepositPeriod(depositPeriodEnd, eventId) {
@@ -117,11 +109,11 @@ export class OpEventService {
 
     async parseEventData(eventId, eventData, tokenValuesRaw){
       console.log('priceAggregator: ' + eventData['priceAggregator']);
-      const pairing = this.optService.availablePairs[eventData['priceAggregator']];
+      const pairing = this.optionService.availablePairs[eventData['priceAggregator']];
       console.log('pairing: ' + pairing);
 
       const ticker = pairing.pair.replace('/USD', '');
-      const asset = this.optService.availableAssets[ticker];
+      const asset = this.optionService.availableAssets[ticker];
 
       const tokenValues = [parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenValuesRaw[Token.IO]))),
                            parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenValuesRaw[Token.O])))];
@@ -176,64 +168,17 @@ export class OpEventService {
       console.log('events length after push: ' + Object.keys(this.events).length);
     }
 
-    async setupContractAddresses(signer, address) {
-      if (kovan) {
-        contractAddresses['ContractProxy'] = '0x328eC87d3AE746169DF56089ED96DEa8e34453B1';
-        contracts['ContractProxy']          = new ethers.Contract(contractAddresses['ContractProxy'], ContractProxy.abi, signer);
-        // contractAddresses['OPUSD']          = await contracts['ContractProxy'].getOPUSDAddress();
-        // contractAddresses['ChainLink']      = await contracts['ContractProxy'].getChainLinkAddress();
-        // contractAddresses['Utils']          = await contracts['ContractProxy'].getUtilsAddress();
-        // contractAddresses['Oracle']         = await contracts['ContractProxy'].getOracleAddress();
-        // contractAddresses['TrustPredict']   = await contracts['ContractProxy'].getTrustPredictAddress();
-        // contractAddresses['OPEventFactory'] = await contracts['ContractProxy'].getOPEventFactoryAddress();
-        contractAddresses['OPUSD']          = '0xb876a52abd933a02426c31d8231e9b9352864214';
-        contractAddresses['ChainLink']      = '0xa36085f69e2889c224210f603d836748e7dc0088';
-        contractAddresses['Utils']          = '0x90B66e6b61abfFD8429d3d0a44082D3fD712EA11';
-        contractAddresses['Oracle']         = '0x892Ef27cC1B1A46646CB064f8d12EE66F74BEFc7';
-        contractAddresses['TrustPredict']   = '0xb1D9A08BA7d5184829Fa7f84A839Ec98607415dE';
-        contractAddresses['OPEventFactory'] = '0x6668a16b854651653F62038DE61b309dBC1c6543';
-
-        Object.keys(contractAddresses).forEach((key) => {
-          console.log(key + ' address: ' + contractAddresses[key]);
-      });
-      } else {
-        let nonce = 0;
-        contractAddresses['ContractProxy']  = this.crypto.getNextContractAddress(address, nonce++);
-        contractAddresses['OPUSD']          = this.crypto.getNextContractAddress(address, nonce++);
-        contractAddresses['ChainLink']      = this.crypto.getNextContractAddress(address, nonce++);
-        contractAddresses['Utils']          = this.crypto.getNextContractAddress(address, nonce++);
-        contractAddresses['Oracle']         = this.crypto.getNextContractAddress(address, nonce++);
-        contractAddresses['TrustPredict']   = this.crypto.getNextContractAddress(address, nonce++);
-        contractAddresses['OPEventFactory'] = this.crypto.getNextContractAddress(address, nonce++);
-      }
-    }
-
-    async setupEventSubscriber(){
-      // OPEventFactory initial data gathering
-      const _USER: any  = this.authQuery.getValue();
-      const signer: any = _USER.signer;
-
-      this.address = await signer.getAddress();
-      console.log('signer address: ' + this.address);
-
-      await this.setupContractAddresses(signer, this.address);
-
-      contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, signer);
-      contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, signer);
-
-      this.crypto.provider().resetEventsBlock(0);
-      this.balanceService.setupBalanceSubscriber(contracts['TrustPredict'], this.address);
-
+    async setupSubscriber(){
       // OPEventFactory subscriber
       this.crypto.provider().on( {
-          address: contracts['OPEventFactory'].address,
+          address: this.optionService.contracts['OPEventFactory'].address,
           topics: [ethers.utils.id('EventUpdate(address)')], // OPEventFactory
         }, async (eventIdRaw) => {
           const eventID = '0x' + eventIdRaw.data.substring(26);
           console.log('eventID subscriber: ' + eventID);
           console.log('events length: ' + Object.keys(this.events).length);
-          const eventData = await contracts['OPEventFactory'].getEventData(eventID);
-          const balances = await contracts['TrustPredict'].getTokenBalances(eventID);
+          const eventData = await this.optionService.contracts['OPEventFactory'].getEventData(eventID);
+          const balances = await this.optionService.contracts['TrustPredict'].getTokenBalances(eventID);
           await this.parseEventData(eventID, eventData, balances);
         });
     }
@@ -254,37 +199,25 @@ export class OpEventService {
         );
       }
 
-      // constants
-      const contracts = [];
-      const OPUSDOptionRatio = 100;
-      const priceFeedDecimals = 8;
-
-      const _USER: any       = this.authQuery.getValue();
-      const _wallet: any = _USER.wallet;
-      const _signer: any = _USER.signer;
-
-      if (!_wallet || !_signer) {
+      if (!this.optionService.address || !this.optionService.signer) {
         reject(
           new Error(`Please log in via Metamask!`)
         );
       }
 
       console.log(Math.ceil(rawBetPrice * 100).toString());
-      const betPrice        = ethers.utils.parseUnits(Math.ceil(rawBetPrice  *              100).toString(), priceFeedDecimals - 2);
-      const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / OPUSDOptionRatio).toString());
+      const betPrice        = ethers.utils.parseUnits(Math.ceil(rawBetPrice  * 100).toString(), this.optionService.priceFeedDecimals - 2);
+      const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / this.optionService.OPUSDOptionRatio).toString());
       console.log(numTokensToMint);
-      contracts['ChainLink'] = new ethers.Contract(contractAddresses['ChainLink'], ChainLink.abi, _signer);
-      contracts['OPUSD'] = new ethers.Contract(contractAddresses['OPUSD'], OPUSD.abi, _signer);
-      contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, _signer);
 
       try {
         const optionsCL = {};
         const optionsOP = {};
-        const approveCL = contracts['ChainLink'].approve(contractAddresses['Oracle'],
+        const approveCL = this.optionService.contracts['ChainLink'].approve(this.optionService.contractAddresses['Oracle'],
                                                         ethers.utils.parseUnits('1'),
                                                         optionsCL );
 
-        const approveOP = contracts['OPUSD'].approve(contractAddresses['OPEventFactory'],
+        const approveOP = this.optionService.contracts['OPUSD'].approve(this.optionService.contractAddresses['OPEventFactory'],
                                                   ethers.utils.parseUnits(numTokensStakedToMint.toString()),
                                                   optionsOP );
 
@@ -294,7 +227,7 @@ export class OpEventService {
           const approveOPWait = await res[1].wait();
           if (approveCLWait.status === 1 && approveOPWait.status === 1) {
             console.log(`Deploying event with =>> betPrice: ${betPrice} | betSide: ${Number(betSide)} | eventPeriod: ${eventPeriod} | numTokensToMint: ${numTokensToMint} || pairContract: ${pairContract} `);
-            const createOPEvent =  contracts['OPEventFactory'].createOPEvent(betPrice,
+            const createOPEvent = this.optionService.contracts['OPEventFactory'].createOPEvent(betPrice,
                                                             Number(betSide),
                                                             eventPeriod,
                                                             numTokensToMint,
@@ -311,7 +244,6 @@ export class OpEventService {
                 `Error during transaction creation: ${JSON.stringify(err)}`
               )
             );
-            
           }
         }).catch( err =>
           reject(
@@ -333,30 +265,17 @@ export class OpEventService {
 
           return new Promise( async (resolve, reject) => {
 
-            // constants
-            const contracts = [];
-
-            const OPUSDOptionRatio = 100;
-            const priceFeedDecimals = 8;
-
-            const _USER: any       = this.authQuery.getValue();
-            const _wallet: any = _USER.wallet;
-            const _signer: any = _USER.signer;
-
-            if (!_wallet || !_signer) {
+            if (!this.optionService.address || !this.optionService.signer) {
               reject(
                 new Error(`Please log in via Metamask!`)
               );
             }
 
-            const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / OPUSDOptionRatio).toString());
+            const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / this.optionService.OPUSDOptionRatio).toString());
             console.log(numTokensToMint);
-            contracts['OPUSD'] = new ethers.Contract(contractAddresses['OPUSD'], OPUSD.abi, _signer);
-            contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, _signer);
-
             try {
               const optionsOP = {};
-              const approveOP = contracts['OPUSD'].approve(contractAddresses['OPEventFactory'],
+              const approveOP = this.optionService.contracts['OPUSD'].approve(this.optionService.contractAddresses['OPEventFactory'],
                                                         ethers.utils.parseUnits(numTokensStakedToMint.toString()),
                                                         optionsOP );
 
@@ -365,7 +284,7 @@ export class OpEventService {
                 const approveOPWait = await res[0].wait();
                 if (approveOPWait.status === 1) {
                   console.log(`Placing stake with | eventId: ${eventId}| numTokensToMint: ${numTokensToMint} || selection: ${selection}`);
-                  const stakeOP = contracts['OPEventFactory'].stake(eventId, numTokensToMint, selection);
+                  const stakeOP = this.optionService.contracts['OPEventFactory'].stake(eventId, numTokensToMint, selection);
                   const waitForStake = Promise.all([stakeOP]);
                   waitForStake.then( async (res) => {
                     const stakeOPWait = await res[0].wait();
@@ -395,24 +314,16 @@ export class OpEventService {
 
   async revoke(eventId: string){
     return new Promise( async (resolve, reject) => {
-      // constants
-      const contracts = [];
 
-      const _USER: any       = this.authQuery.getValue();
-      const _signer: any = _USER.signer;
-
-      if (!_signer) {
+      if (!this.optionService.signer) {
         reject(
           new Error(`Please log in via Metamask!`)
         );
       }
 
-      contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, _signer);
-      contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, _signer);
-
       try {
         const optionsTP = {};
-        const approveTP = contracts['TrustPredict'].setApprovalForAll(contractAddresses['OPEventFactory'],
+        const approveTP = this.optionService.contracts['TrustPredict'].setApprovalForAll(this.optionService.contractAddresses['OPEventFactory'],
                                                     true,
                                                     optionsTP );
 
@@ -421,7 +332,7 @@ export class OpEventService {
           const approveTPWait = await res[0].wait();
           if (approveTPWait.status === 1) {
 
-            const revokeOP = contracts['OPEventFactory'].revoke(eventId);
+            const revokeOP = this.optionService.contracts['OPEventFactory'].revoke(eventId);
             const waitForRevoke = Promise.all([revokeOP]);
             waitForRevoke.then( async (res) => {
               const revokeOPWait = await res[0].wait();
@@ -451,22 +362,16 @@ export class OpEventService {
 
   async claim(eventId: string){
     return new Promise( async (resolve, reject) => {
-      // constants
-      const contracts = [];
 
-      const _USER: any       = this.authQuery.getValue();
-      const _signer: any = _USER.signer;
-
-      if (!_signer) {
+      if (!this.optionService.signer) {
         reject(
           new Error(`Please log in via Metamask!`)
         );
       }
-      contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, _signer);
-      contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, _signer);
+
       try {
         const optionsTP = {};
-        const approveTP = contracts['TrustPredict'].setApprovalForAll(contractAddresses['OPEventFactory'],
+        const approveTP = this.optionService.contracts['TrustPredict'].setApprovalForAll(this.optionService.contractAddresses['OPEventFactory'],
                                                     true,
                                                     optionsTP );
 
@@ -475,7 +380,7 @@ export class OpEventService {
           const approveTPWait = await res[0].wait();
           if (approveTPWait.status === 1) {
 
-            const claimOP = contracts['OPEventFactory'].claim(eventId);
+            const claimOP = this.optionService.contracts['OPEventFactory'].claim(eventId);
             const waitForClaim = Promise.all([claimOP]);
             waitForClaim.then( async (res) => {
               const claimOPWait = await res[0].wait();
@@ -509,14 +414,9 @@ export class OpEventService {
                      amount: number,
                      selection: Token){
     return new Promise( async (resolve, reject) => {
-      // constants
-      const contracts = [];
-
-      const _USER: any       = this.authQuery.getValue();
-      const _signer: any = _USER.signer;
 
       // parse values for contract call
-      const from = _signer.getAddress();
+      const from = this.optionService.address;
       const amountEncoded = ethers.utils.parseUnits(amount.toString());
 
       // log
@@ -526,16 +426,17 @@ export class OpEventService {
       console.log('amountEncoded: ' + amountEncoded.toString());
       console.log('selection: ' + selection);
 
-      if (!_signer) {
+      if (!this.optionService.signer) {
         reject(
           new Error(`Please log in via Metamask!`)
         );
       }
 
-      contracts['TrustPredict'] = new ethers.Contract(contractAddresses['TrustPredict'], TrustPredictToken.abi, _signer);
       try {
         const optionsTP = {};
-        const transferTP = contracts['TrustPredict'].transferFrom(eventId, from, to, amountEncoded, selection, optionsTP);
+        const transferTP = this.optionService.contracts['TrustPredict'].transferFrom(
+          eventId, from, to, amountEncoded, selection, optionsTP
+        );
         const waitForInteractions = Promise.all([transferTP]);
         waitForInteractions.then( async (res) => {
           const transferTPWait = await res[0].wait();

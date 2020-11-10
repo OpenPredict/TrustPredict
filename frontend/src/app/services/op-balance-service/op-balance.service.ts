@@ -14,15 +14,15 @@ import { timer } from 'rxjs/internal/observable/timer';
 
 import { WEB3 } from '@app/web3';
 import Web3 from 'web3';
-import { BalancesStore } from './op-balance.service.store';
-import { IBalance, Status, Position, Side, Token } from '@app/data-model';
+import { OpBalancesStore } from './op-balance.service.store';
+import { ITokenBalance, Status, Position, Side, Token } from '@app/data-model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OpBalanceService {
 
-  balances = {} as IBalance;
+  balances = {} as ITokenBalance;
 
   updates = {};
 
@@ -31,21 +31,21 @@ export class OpBalanceService {
   constructor(
     private crypto: CryptoService,
     private authQuery: AuthQuery,
-    private optService: OptionService,
-    private balancesStore: BalancesStore,
+    private optionService: OptionService,
+    private balancesStore: OpBalancesStore,
     @Inject(WEB3) private web3: Web3) {}
 
-    async setupBalanceSubscriber(trustPredict, walletAddress){
+    async setupSubscriber(){
 
       const abi = new ethers.utils.Interface([
         'event BalanceChange(address,address,address,uint256,uint8)'
       ]);
-      console.log('trustPredict address: ' + trustPredict.address);
-      console.log('wallet address: ' + walletAddress);
+      // console.log('trustPredict address: ' + trustPredict.address);
+      // console.log('wallet address: ' + walletAddress);
 
       this.crypto.provider().resetEventsBlock(0);
       this.crypto.provider().on( {
-          address: trustPredict.address,
+          address: this.optionService.contracts['TrustPredict'].address,
           topics: [
               ethers.utils.id('BalanceChange(address,address,address,uint256,uint8)'),
             ],
@@ -57,8 +57,8 @@ export class OpBalanceService {
           const   to = events['args'][2];
           console.log('from: ' + from);
           console.log('to: ' + to);
-          console.log('walletAddress: ' + walletAddress);
-          if (from === walletAddress || to === walletAddress) {
+          console.log('walletAddress: ' + this.optionService.address);
+          if (from === this.optionService.address || to === this.optionService.address) {
             // eventId is used as ID type in IEvent, which stores in lower case.
             const eventId = events['args'][0].toLowerCase();
             const amount = ethers.BigNumber.from(events['args'][3]);
@@ -68,7 +68,7 @@ export class OpBalanceService {
             console.log('amount: ' + amount);
             console.log('selection: ' + selection);
             // If this is the first call just get balances from the chain. otherwise update from log.
-            let balanceEntry: IBalance = {};
+            let balanceEntry: ITokenBalance = {};
             if (!(eventId in this.balances)) {
               // get initial balances
               balanceEntry.id = eventId;
@@ -88,12 +88,12 @@ export class OpBalanceService {
               let OTokenValue  = this.balances[eventId].OToken;
               let IOTokenValue = this.balances[eventId].IOToken;
 
-              if (to === walletAddress) {
+              if (to === this.optionService.address) {
                 console.log('Balance add - to wallet address from: ' + to + ' selection: ' + selection.valueOf().toString());
                 (selection === 0) ? IOTokenValue = IOTokenValue.add(amount)
                                   :  OTokenValue = OTokenValue.add(amount);
               }
-              if (from === walletAddress) {
+              if (from === this.optionService.address) {
                 console.log('Balance sub - from wallet address to: ' + to + ' selection: ' + selection.valueOf().toString());
                 (selection === 0) ? IOTokenValue = IOTokenValue.sub(amount)
                                   :  OTokenValue = OTokenValue.sub(amount);

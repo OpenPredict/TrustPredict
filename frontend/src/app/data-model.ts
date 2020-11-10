@@ -38,7 +38,6 @@ export interface LedgerWallet {
     address: string;
 }
 
-
 export interface IEvent {
   id?: ID;
   asset_name?: string;
@@ -61,7 +60,12 @@ export interface IEvent {
 }
 
 
-export interface IBalance {
+export interface IStakingBalance {
+  id?: ID;
+  balance?: BigNumber;
+}
+
+export interface ITokenBalance {
   id?: ID;
   OToken?: BigNumber;
   IOToken?: BigNumber;

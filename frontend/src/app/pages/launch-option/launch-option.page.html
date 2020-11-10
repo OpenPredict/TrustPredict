@@ -34,7 +34,9 @@
                   <div class="form__item buffer"> 
                     <div class="form__label"> 
                       Select amount 
-                      <!-- <div class="form__label-info">Balance: 5000.245</div> -->
+                      <div class="form__label-info" *ngIf="(stakingData$ | async) as stakingData">
+                        Balance: {{getBalance(stakingData)}} OPUSD
+                      </div>
                     </div>
                     <input              
                     class="form__input"

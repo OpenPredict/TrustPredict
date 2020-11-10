@@ -4,14 +4,40 @@ import { map, mapTo, tap } from 'rxjs/operators';
 import { ID, cacheable } from '@datorama/akita';
 import { Observable } from 'rxjs';
 import { timer } from 'rxjs/internal/observable/timer';
-import { IOptionsPriceWager } from '@app/data-model';
 
 export const options: any[] = [];
+
+const ContractProxy     = require('@truffle/build/contracts/ContractProxy.json');
+const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
+const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
+const Utils             = require('@truffle/build/contracts/Utils.json');
+const Oracle            = require('@truffle/build/contracts/Oracle.json');
+const TrustPredictToken = require('@truffle/build/contracts/TrustPredictToken.json');
+const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json');
+
+const kovan = true;
 
 @Injectable({
   providedIn: 'root'
 })
 export class OptionService {
+
+  address: any;
+  signer: any;
+  contracts: any = {};
+  OPUSDOptionRatio = 100;
+  priceFeedDecimals = 8;
+
+  contractAddresses: any = {
+    'ContractProxy'  : (kovan) ? '0x328eC87d3AE746169DF56089ED96DEa8e34453B1' : '0xBf610614CaA08d9fe7a4F61082cc32951e547a91',
+    'OPUSD'          : (kovan) ? '0xb876a52abd933a02426c31d8231e9b9352864214' : '0x4C6f9E62b4EDB743608757D9D5F16B0B67B41285',
+    'ChainLink'      : (kovan) ? '0xa36085f69e2889c224210f603d836748e7dc0088' : '0x6c6387F01EddCd8fEcb674332D22d665c5313a90',
+    'Utils'          : (kovan) ? '0x90B66e6b61abfFD8429d3d0a44082D3fD712EA11' : '0xc6ACe392cE166D3f2013302d751Bfc26C166048e',
+    'Oracle'         : (kovan) ? '0x892Ef27cC1B1A46646CB064f8d12EE66F74BEFc7' : '0x30690193C75199fdcBb7F588eF3F966402249315',
+    'TrustPredict'   : (kovan) ? '0xb1D9A08BA7d5184829Fa7f84A839Ec98607415dE' : '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C',
+    'OPEventFactory' : (kovan) ? '0x6668a16b854651653F62038DE61b309dBC1c6543' : '0x4eb24Db3F49F82A475281d49D3d327f623B6e3dA',
+  };
+
   availableAssets: any = {
     'AUD':   { name: 'Australian Dollar',     icon: '/assets/img/aud.svg',   ticker: 'AUD',   selected: false },
     'BAT':   { name: 'Basic Attention Token', icon: '/assets/img/bat.svg',   ticker: 'BAT',   selected: false },
