@@ -10,6 +10,9 @@ import { LedgerWallet } from '@app/data-model';
 import { AuthService } from '@app/services/auth-service/auth.service';
 import { OpEventService } from '@app/services/op-event-service/op-event.service';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
+import { OptionService } from '@app/services/option-service/option.service';
+import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
+import { StakingBalanceService } from '@app/services/staking-balance-service/staking-balance.service';
 
 @Component({
   selector: 'app-connect-wallet',
@@ -21,10 +24,13 @@ export class ConnectWalletPage implements OnInit {
   constructor(
     // @Inject(WEB3) private web3: Web3,
     private fb: FormBuilder,
-    public opEvent: OpEventService,
+    public opEventService: OpEventService,
+    public opBalanceService: OpBalanceService,
+    public stakingBalanceService: StakingBalanceService,
+    public optionService: OptionService,
     public _auth: AuthService,
     public _authQ: AuthQuery,
-    private crypto: CryptoService,
+    private cryptoService: CryptoService,
     public navCtrl: NavController ) {
     }
 
@@ -37,7 +43,7 @@ export class ConnectWalletPage implements OnInit {
    */
   // async openMetamask() {
   //   try {
-  //     const signer: string[] = await this.crypto.metamaskDefaultSigner()
+  //     const signer: string[] = await this.cryptoService.metamaskDefaultSigner()
   //     if(signer && signer.length) {
   //       console.log(signer)
   //       this._auth.login(signer[0])
@@ -52,12 +58,15 @@ export class ConnectWalletPage implements OnInit {
 
   async openMetamask() {
     try {
-      const signer: any = await this.crypto.getSigner();
-      const wallet: any = await this.crypto.signerAddress();
+      const signer: any = await this.cryptoService.getSigner();
+      const wallet: any = await this.cryptoService.signerAddress();
 
       if (wallet && signer) {
         this._auth.login(wallet, signer);
-        this.opEvent.setupEventSubscriber();
+        this.cryptoService.initContracts(wallet, signer);
+        this.opEventService.setupSubscriber();
+        this.opBalanceService.setupSubscriber();
+        this.stakingBalanceService.setupSubscriber();
         this.navCtrl.navigateForward('/landing');
       }
     } catch (error) {
@@ -70,7 +79,7 @@ export class ConnectWalletPage implements OnInit {
    */
   // async openLedger() {
   //   try {
-  //     const signer: LedgerWallet  = await this.crypto.ledgerDefaultSigner()
+  //     const signer: LedgerWallet  = await this.cryptoService.ledgerDefaultSigner()
   //     if(signer && signer.address) {
   //       console.log(signer)
   //     }

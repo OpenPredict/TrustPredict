@@ -8,6 +8,8 @@ import { CryptoService } from './services/crypto-service/crypto.service';
 import { OpEventService } from './services/op-event-service/op-event.service';
 import { AuthService } from './services/auth-service/auth.service';
 import { OpEventQuery } from './services/op-event-service/op-event.service.query';
+import { OpBalanceService } from './services/op-balance-service/op-balance.service';
+import { StakingBalanceService } from './services/staking-balance-service/staking-balance.service';
 
 @Component({
   selector: 'app-root',
@@ -21,9 +23,11 @@ export class AppComponent {
     private config: Config,
     private statusBar: StatusBar,
     public optionsSrv: OptionService,
-    public crypto: CryptoService,
+    public cryptoService: CryptoService,
     public navCtrl: NavController,
     public opEventService: OpEventService,
+    public opBalanceService: OpBalanceService,
+    public stakingBalanceService: StakingBalanceService,
     public opEventQuery: OpEventQuery,
     public _auth: AuthService,
   ) {
@@ -34,7 +38,7 @@ export class AppComponent {
     this.optionsSrv.get().subscribe();
 
 
-    this.crypto.netChange();
+    this.cryptoService.netChange();
 
     this.platform.ready().then( async () => {
 
@@ -60,7 +64,10 @@ export class AppComponent {
   async initialize() {
     const wallet: any = await this.activeSigner();
     this._auth.login(wallet.wallet, wallet.signer);
-    this.opEventService.setupEventSubscriber();
+    this.cryptoService.initContracts(wallet.wallet, wallet.signer);
+    this.opEventService.setupSubscriber();
+    this.opBalanceService.setupSubscriber();
+    this.stakingBalanceService.setupSubscriber();
     this.navCtrl.navigateForward('/landing');
   }
 
@@ -68,8 +75,8 @@ export class AppComponent {
     return new Promise( async (resolve, reject) => {
       try {
         this.opEventQuery.clearState();
-        const signer: any = await this.crypto.getSigner();
-        const wallet: any = await this.crypto.signerAddress();
+        const signer: any = await this.cryptoService.getSigner();
+        const wallet: any = await this.cryptoService.signerAddress();
         if (wallet && signer) {
          return resolve({ wallet, signer});
         }

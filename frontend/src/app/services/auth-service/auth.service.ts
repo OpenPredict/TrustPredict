@@ -9,7 +9,7 @@ export class AuthService {
   constructor(private authStore: AuthStore ) {}
 
   login(wallet: string, signer: any) {
-    this.authStore.update({ wallet,  signer })
+    this.authStore.update({ wallet,  signer });
   }
 
   logout() {

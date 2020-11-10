@@ -31,6 +31,6 @@ export class WagerSelectedTokenComponent implements OnInit {
   }
 
   conditionTxt( wagerCondition: boolean  ): string {
-    return ( wagerCondition === true ) ? 'more than' : 'less than';
+    return ( wagerCondition === true ) ? 'higher than' : 'lower than';
   }
 }

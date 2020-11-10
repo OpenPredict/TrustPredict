@@ -11,6 +11,8 @@ import { BaseForm } from '@app/helpers/BaseForm';
 import { FormBuilder, Validators } from '@angular/forms';
 import createNumberMask from 'text-mask-addons/dist/createNumberMask';
 import { CustomValidators } from '@app/helpers/CustomValidators';
+import { StakingBalanceQuery } from '@app/services/staking-balance-service/staking-balance.service.query';
+import { ethers } from 'ethers';
 
 @Component({
   selector: 'app-launch-option',
@@ -20,6 +22,7 @@ import { CustomValidators } from '@app/helpers/CustomValidators';
 export class LaunchOptionPage extends BaseForm implements OnInit {
 
   loading$: Observable<boolean>;
+  stakingData$ = this.stakingBalanceQuery.select();
 
   availableOptions: any[];
 
@@ -32,17 +35,18 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private optService: OptionService,
+    private optionService: OptionService,
     private optQry: OptionQuery,
     public opEvent: OpEventService,
     private optStr: OptionsStore,
     public toastCtrl: ToastController,
     public ui: UiService,
     private crypto: CryptoService,
-    public navCtrl: NavController ) {
+    public navCtrl: NavController,
+    public stakingBalanceQuery: StakingBalanceQuery) {
       super();
 
-      this.availableOptions = this.optService.availableOptions;
+      this.availableOptions = this.optionService.availableOptions;
 
       this.form = this.fb.group({
         option_asset: [this.availableOptions[0], Validators.compose([Validators.required])],
@@ -50,6 +54,8 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
       });
 
       this.form.get('option_stake').setValidators([CustomValidators.minimumNumber(100)]);
+
+      this.stakingData$.subscribe( res => console.log('stakingData updated:' + JSON.stringify(res)) );
     }
 
   ngOnInit() {}
@@ -104,6 +110,17 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
       await toast.dismiss();
       this.navCtrl.navigateForward('/my-events');
     }, 2500);
+  }
+
+
+  getBalance(stakingData){
+    return stakingData.entities[this.optionService.address] !== undefined
+      ? this.parseAmount(stakingData.entities[this.optionService.address].balance)
+      : 0.0;
+  }
+
+  parseAmount(amount) {
+    return (isNaN(amount)) ? 0 : parseFloat(ethers.utils.formatUnits(amount.toString())).toFixed(2);
   }
 
 }

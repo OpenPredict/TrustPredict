@@ -48,7 +48,7 @@ export class SelectTokenPage extends BaseForm implements OnInit {
     try {
       this.navCtrl.navigateForward([`/event-condition`])
     } catch (error) {
-      console.log(`Error: ${error}`)
+      console.log(`Error: ${error}`);
      }
   }
 

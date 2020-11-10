@@ -7,8 +7,15 @@ import AppEth from '@ledgerhq/hw-app-eth';
 
 import 'rxjs/add/operator/share';
 import 'rxjs/add/operator/map';
-import { AuthService } from '../auth-service/auth.service';
 import { OpEventService } from '../op-event-service/op-event.service';
+import { OpBalanceService } from '../op-balance-service/op-balance.service';
+import { StakingBalanceService } from '../staking-balance-service/staking-balance.service';
+import { OptionService } from '../option-service/option.service';
+
+const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
+const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
+const TrustPredictToken = require('@truffle/build/contracts/TrustPredictToken.json');
+const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json');
 
 const rlp = require('rlp');
 const keccak = require('keccak');
@@ -25,8 +32,7 @@ export class CryptoService {
 
   constructor(
     public router: Router,
-    // public _auth: AuthService,
-    // public opEvent: OpEventService
+    public optionService: OptionService,
     ) {}
 
   netChange() {
@@ -127,6 +133,33 @@ export class CryptoService {
         );
       }
     });
+  }
+
+  initContracts(address, signer){
+    this.optionService.address = address;
+    this.optionService.signer = signer;
+
+    this.optionService.contracts['OPEventFactory'] = new ethers.Contract(
+      this.optionService.contractAddresses['OPEventFactory'],
+      OPEventFactory.abi,
+      signer);
+
+    this.optionService.contracts['TrustPredict'] = new ethers.Contract(
+      this.optionService.contractAddresses['TrustPredict'],
+      TrustPredictToken.abi,
+      signer);
+
+    this.optionService.contracts['OPUSD'] = new ethers.Contract(
+      this.optionService.contractAddresses['OPUSD'],
+      OPUSD.abi,
+      signer);
+
+    this.optionService.contracts['ChainLink'] = new ethers.Contract(
+        this.optionService.contractAddresses['ChainLink'],
+        ChainLink.abi,
+        signer);
+
+    this.provider().resetEventsBlock(0);
   }
 
 /** Utils  */
