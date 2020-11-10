@@ -6,6 +6,8 @@ import { OptionQuery } from '@services/option-service/option.service.query';
 import { BaseForm } from '@app/helpers/BaseForm';
 import { FormBuilder, Validators } from '@angular/forms';
 import { OptionsStore } from '@app/services/option-service/option.service.store';
+import makeBlockie from 'ethereum-blockies-base64';
+
 
 @Component({
   selector: 'app-landing',
