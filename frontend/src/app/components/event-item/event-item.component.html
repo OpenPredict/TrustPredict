@@ -1,6 +1,9 @@
 
-  <div class="asset_itemWrap status-orange">                        
-    <div class="asset_icon" [ngClass]="'token-'+event.asset_ticker.toLowerCase()"></div>
+  <div class="asset_itemWrap status-orange">    
+    <div class="eventIdentifiers">
+      <div class="asset_icon" [ngClass]="'token-'+event.asset_ticker.toLowerCase()"></div>
+      <div class="eventID">ID:<img [src]="event.id | blockie" alt=""> </div>     
+    </div>                   
     <div class="asset_data">
       <div class="asset_title">
         {{ event.asset_name  }} ({{ event.asset_ticker }})           
