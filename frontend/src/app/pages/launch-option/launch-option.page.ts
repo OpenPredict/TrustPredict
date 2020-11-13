@@ -22,7 +22,7 @@ import { ethers } from 'ethers';
 export class LaunchOptionPage extends BaseForm implements OnInit {
 
   loading$: Observable<boolean>;
-  stakingData$ = this.stakingBalanceQuery.select();
+  stakingBalance$ = this.stakingBalanceQuery.select();
 
   availableOptions: any[];
 
@@ -53,9 +53,12 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
         option_stake: [null, Validators.compose([Validators.required])],
       });
 
-      this.form.get('option_stake').setValidators([CustomValidators.minimumNumber(100)]);
-
-      this.stakingData$.subscribe( res => console.log('stakingData updated:' + JSON.stringify(res)) );
+      this.stakingBalance$.subscribe( stakingBalance => {
+        console.log('stakingBalance updated:' + JSON.stringify(stakingBalance));
+        this.form.get('option_stake').setValidators(
+            [CustomValidators.numberRange(100, parseFloat( this.getBalance(stakingBalance) ))]
+          );
+      });
     }
 
   ngOnInit() {}
@@ -113,14 +116,14 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
   }
 
 
-  getBalance(stakingData){
-    return stakingData.entities[this.optionService.address] !== undefined
-      ? this.parseAmount(stakingData.entities[this.optionService.address].balance)
-      : 0.0;
+  getBalance(stakingBalance): string{
+    return stakingBalance.entities[this.optionService.address] !== undefined
+      ? this.parseAmount(stakingBalance.entities[this.optionService.address].balance)
+      : '0.0';
   }
 
-  parseAmount(amount) {
-    return (isNaN(amount)) ? 0 : parseFloat(ethers.utils.formatUnits(amount.toString())).toFixed(2);
+  parseAmount(amount): string {
+    return (isNaN(amount)) ? '0.0' : parseFloat(ethers.utils.formatUnits(amount.toString())).toFixed(2);
   }
 
 }

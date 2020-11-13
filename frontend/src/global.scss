@@ -115,6 +115,8 @@ ion-header {
       text-align: center;
       // margin-bottom: 35px;
       .assetOptions__option {
+        box-shadow: none;
+        background-color: transparent!important;
         flex: 1;
         color: white;
         width: 33.333%;
@@ -122,7 +124,7 @@ ion-header {
         font-style: normal;
         font-weight: bold;
         font-size: 14px;
-        line-height: 17px;    
+        line-height: 17px;
         cursor: pointer;  
         transform: scale(1.07);
         transition: 580ms transform ease;
@@ -134,6 +136,15 @@ ion-header {
           color: var(--ion-color-primary);
           transform: scale(1.08);        
         }
+      }
+      .assetOptions__option:disabled {
+        color: grey;
+        transform: none;
+        transition: none;
+        &:hover {
+            transform: none;
+            transition: none;
+        } 
       }
     }
   }

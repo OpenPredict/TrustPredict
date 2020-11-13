@@ -64,7 +64,15 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
           [Validators.required, Validators.minLength(42), Validators.maxLength(42), CustomValidators.isAddress])
         ],
       });
-      this.form.get('transfer_amount').setValidators([CustomValidators.minimumNumber(0.00000001)]);
+
+      this.balance$.subscribe( balance => {
+        console.log('token balances updated:' + JSON.stringify(balance));
+        this.form.get('option_stake').setValidators(
+            [CustomValidators.numberRange(100, this.getTokenBalance(balance) )]
+          );
+      });
+
+      this.form.get('transfer_amount').setValidators([CustomValidators.numberRange(0.00000001, Number.MAX_VALUE)]);
     }
 
   ngOnInit() {
@@ -119,6 +127,10 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
 
   getDate(timestamp: number){
     return this.eventsService.timestampToDate(timestamp);
+  }
+
+  currencyFormat(price: any): string {
+    return this.eventsService.currencyFormat(price);
   }
 
   getTokenBalance(balances: any){

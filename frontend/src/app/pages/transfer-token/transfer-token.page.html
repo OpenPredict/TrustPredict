@@ -29,7 +29,7 @@
                       <span [ngClass]="getClass()">
                           {{ getConditionText() }}
                       </span>
-                      ${{ event.condition_price }}&nbsp;USD
+                      ${{ currencyFormat(event.condition_price) }}&nbsp;USD
                     </div>                     
                   </li>  
                   <li>

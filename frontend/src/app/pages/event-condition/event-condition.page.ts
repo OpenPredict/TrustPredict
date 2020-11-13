@@ -32,7 +32,7 @@ export class EventConditionPage extends BaseForm implements OnInit {
         wager: ['null', Validators.compose([Validators.required, Validators.minLength(1)])],
         condition: ['1', Validators.compose([Validators.required])],
       });
-      this.form.get('wager').setValidators([CustomValidators.minimumNumber(0.01)]);
+      this.form.get('wager').setValidators([CustomValidators.numberRange(0.01, Number.MAX_VALUE)]);
     }
 
     ngOnInit() {}
