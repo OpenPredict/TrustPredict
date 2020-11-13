@@ -16,7 +16,6 @@ export class AppHeaderComponent implements OnInit {
   address: string;
   @Input() modal_header: string;
   @Input() modal_txt: string;
-  
 
   constructor(
     private navCtrl: NavController,
@@ -46,9 +45,6 @@ export class AppHeaderComponent implements OnInit {
     this.navCtrl.navigateForward('event-completed');
   }
   
-  // "reportedFrom": "TimelinePost",
-  // "reportedData": "post"  
-  
   async information() {
     try {
       const modalOpts = {
@@ -71,8 +67,6 @@ export class AppHeaderComponent implements OnInit {
     }
   }  
   
-  
-
   async options() {
     try {
       const modalOpts = {
