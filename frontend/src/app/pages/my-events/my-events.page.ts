@@ -23,6 +23,9 @@ import { OpBalanceService } from '@app/services/op-balance-service/op-balance.se
 })
 export class MyEventsPage extends BaseForm implements OnInit {
 
+  modalHeader = "Header will be in the H1 tag of the modal"
+  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
+  
   pendingEvents$: Observable<IEvent[]>;
   activeEvents$: Observable<IEvent[]>;
   myEvents$: Observable<IEvent[]>;

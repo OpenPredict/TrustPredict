@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 
 @Component({
@@ -8,10 +8,13 @@ import { ModalController } from '@ionic/angular';
 })
 export class InformationModalComponent implements OnInit {
 
-  constructor( public modalCtrl: ModalController,) { }
+  @Input() modal_header: any;
+  @Input() modal_txt: any    
 
-  ngOnInit() {
-  }
+  constructor( 
+    public modalCtrl: ModalController,) {}
+
+  ngOnInit() {}
 
   async cancel() {
     await this.modalCtrl.dismiss();

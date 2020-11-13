@@ -28,6 +28,10 @@ export class EventOverviewPage implements OnInit, OnDestroy {
   event$ = this.eventsQuery.selectEntity(this.eventId);
   balance$ = this.balancesQuery.selectEntity(this.eventId);
 
+  modalHeader = "Header will be in the H1 tag of the modal"
+  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
+    
+  
   constructor(
     private navCtrl: NavController,
     private activatedRoute: ActivatedRoute,
