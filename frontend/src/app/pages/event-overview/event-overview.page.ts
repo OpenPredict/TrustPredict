@@ -83,6 +83,10 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     return this.eventsService.timestampToDate(timestamp);
   }
 
+  currencyFormat(price: any): string {
+    return this.eventsService.currencyFormat(price);
+  }
+
   getTokenBalance(balances: any, position: Position, betSide: Side): any{
     // console.log('balances: ' + JSON.stringify(balances));
     // console.log('token selection: ' + this.eventsService.getToken(position, betSide));

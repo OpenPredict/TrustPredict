@@ -29,7 +29,7 @@ export class EventExpiredPage implements OnInit {
   constructor(
     private navCtrl: NavController,
     private activatedRoute: ActivatedRoute,
-    private eventsService: OpEventService,
+    private eventService: OpEventService,
     private balancesService: OpBalanceService,
     private eventsQuery: OpEventQuery,
     private authQuery: AuthQuery,
@@ -44,7 +44,7 @@ export class EventExpiredPage implements OnInit {
         map( params => params.get('eventId') ),
         filter(id => !this.eventsQuery.hasEntity(id)),
         untilDestroyed(this),
-        switchMap(id => this.eventsService.getEvent(id))
+        switchMap(id => this.eventService.getEvent(id))
       ).subscribe();
   }
 
@@ -55,7 +55,7 @@ export class EventExpiredPage implements OnInit {
 
     try {
      const interaction = await this.ui
-                             .loading(  this.eventsService.revoke(eventId),
+                             .loading(  this.eventService.revoke(eventId),
                              'You will be prompted for 2 contract interactions, please approve both to successfully take part and please be patient as it may take a few moments to broadcast to the network.' )
                              .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) );
 
@@ -80,11 +80,15 @@ export class EventExpiredPage implements OnInit {
   }
 
   getToken(position: Position, betSide: Side): string {
-    return this.eventsService.getToken(position, betSide);
+    return this.eventService.getToken(position, betSide);
   }
 
   getDate(timestamp: number){
-    return this.eventsService.timestampToDate(timestamp);
+    return this.eventService.timestampToDate(timestamp);
+  }
+
+  currencyFormat(price: any): string {
+    return this.eventService.currencyFormat(price);
   }
 
   async showRevokeSuccess() {
@@ -105,4 +109,6 @@ export class EventExpiredPage implements OnInit {
     const balancesFormatted = this.balancesService.getById(this.eventId);
     return balancesFormatted.IOToken > 0 || balancesFormatted.OToken > 0;
   }
+
+
 }

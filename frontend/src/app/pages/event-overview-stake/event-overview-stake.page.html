@@ -29,7 +29,7 @@
                       <span [ngClass]="getClass()">
                           {{ getConditionText() }}
                       </span>
-                      ${{ event.condition_price }}&nbsp;USD
+                      ${{ currencyFormat(event.condition_price) }}&nbsp;USD
                     </div>                     
                   </li>  
                   <li>
@@ -71,23 +71,18 @@
                     <div class="form__item buffer"> 
                       <div class="form__label"> 
                         Select amount 
+                        <div class="form__label-info" *ngIf="(stakingBalance$ | async) as stakingBalance">
+                          Balance: {{getBalance(stakingBalance)}} OPUSD
+                        </div>
                       </div>
-                      <!-- <ion-input class="form__input" type="number" formControlName="option_stake" placeholder="0.00"></ion-input> -->
-
-                      <input class="form__input" type="text" min="0" formControlName="option_stake" placeholder="0.00" [textMask]="{mask: dollarMask }" />
-
-                      <!-- <div class="form__label form__label--sub"> 
-                        Minimum amount: $100.00
-                      </div>                    
-                      <div *ngIf="hasError('option_stake', 'required')" class="standardInputErr">
-                        Amount is required
-                      </div>           
-                      <div *ngIf="hasError('option_stake', 'min')" class="standardInputErr">
-                        Amount must be greater than 100
-                      </div>                        
-                      <div *ngIf="hasError('option_stake', 'pattern')" class="standardInputErr">
-                        Amount must be a multiple of 100
-                      </div>                         -->
+                      <input 
+                        class="form__input" 
+                        type="text" 
+                        min="0" 
+                        formControlName="option_stake" 
+                        placeholder="0.00" 
+                        [textMask]="{mask: dollarMask }" 
+                      />
                     </div>                  
                     
                     <div class="winRatioEstimator"  [ngClass]="{'red': position === Position.Right, 'green': position === Position.Left}">
@@ -95,8 +90,8 @@
                         <div class="eventInfoTxt--small"> 
                           “{{ token }}” Token win ratio:
                         </div>                
-                        <div class="eventInfoTxt bolder" *ngIf="(balance$ | async) as balance"> 
-                          {{getRatio(balance)}}%
+                        <div class="eventInfoTxt bolder" *ngIf="(opBalance$ | async) as opBalance"> 
+                          {{getRatio(opBalance)}}%
                         </div>                         
                       </div>                       
                     </div>

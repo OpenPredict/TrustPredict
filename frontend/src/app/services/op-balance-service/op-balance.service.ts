@@ -50,14 +50,14 @@ export class OpBalanceService {
               ethers.utils.id('BalanceChange(address,address,address,uint256,uint8)'),
             ],
         }, async (log) => {
-          console.log('log: ' + JSON.stringify(log));
+          //console.log('log: ' + JSON.stringify(log));
           const events = abi.parseLog(log);
           console.log(events);
           const from = events['args'][1];
           const   to = events['args'][2];
-          console.log('from: ' + from);
-          console.log('to: ' + to);
-          console.log('walletAddress: ' + this.optionService.address);
+          // console.log('from: ' + from);
+          // console.log('to: ' + to);
+          // console.log('walletAddress: ' + this.optionService.address);
           if (from === this.optionService.address || to === this.optionService.address) {
             // eventId is used as ID type in IEvent, which stores in lower case.
             const eventId = events['args'][0].toLowerCase();
@@ -133,11 +133,8 @@ export class OpBalanceService {
   }
 
   format(balances) {
-      // console.log('balances: ' + balances);
       const balanceO  = Number(ethers.utils.formatUnits(balances.OToken.toString()).toString());
       const balanceIO = Number(ethers.utils.formatUnits(balances.IOToken.toString()).toString());
-      // console.log('balanceO encoded: ' + balanceO);
-      // console.log('balanceIO encoded: ' + balanceIO);
 
       return {
         IOToken: balanceIO,

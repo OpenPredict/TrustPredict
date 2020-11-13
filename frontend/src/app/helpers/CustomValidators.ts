@@ -96,13 +96,12 @@ export class CustomValidators {
     }
 
 
-    static minimumNumber(minimum: number): ValidatorFn {
+    static numberRange(minimum: number, maximum: number): ValidatorFn {
       return (control: AbstractControl): ValidationErrors | null => {
 
         const error: ValidationErrors = { number: true };
-        console.log('control.value: ' + control.value);
         const parsed = BaseForm.transformAmount(control.value);
-        const result = (parsed < minimum || isNaN(parsed)) ? error : null;
+        const result = (parsed < minimum || parsed > maximum || isNaN(parsed)) ? error : null;
 
         control.setErrors(result);
         return result;

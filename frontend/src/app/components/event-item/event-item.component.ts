@@ -24,6 +24,10 @@ export class EventItemComponent implements OnInit {
     return (betSide === Side.Higher) ? 'higher than' : 'lower than';
   }
 
+  currencyFormat(price: any): string {
+    return this.eventService.currencyFormat(price);
+  }
+
   getStatusText(event: any): string {
     return this.eventService.getStatusText(event);
   }

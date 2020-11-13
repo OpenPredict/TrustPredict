@@ -38,28 +38,18 @@ export class StakingBalanceService {
     @Inject(WEB3) private web3: Web3) {}
 
     async setupSubscriber(){
-      // First get OPUSD wallet balance, then subscribe to changes to balance on-chain.
-      const balanceRaw = await this.optionService.contracts['OPUSD'].balanceOf(this.optionService.address);
-
-      console.log('balanceRaw: ' + balanceRaw.toString());
 
       this.balance[this.optionService.address] = {
         id: this.optionService.address,
-        balance: ethers.BigNumber.from(balanceRaw),
+        balance: ethers.BigNumber.from(0),
       };
       this.balanceStore.upsert(this.optionService.address, this.balance[this.optionService.address]);
 
-      const abi = new ethers.utils.Interface([
-        'event Transfer(address,address,uint256)'
-      ]);
-
       this.crypto.provider().on( {
           address: this.optionService.contracts['OPUSD'].address,
-          topics: [
-              ethers.utils.id('Transfer(address,address,uint256)'),
-            ],
+          topics: [ethers.utils.id('Transfer(address,address,uint256)')],
         }, async (log) => {
-          console.log(log);
+          console.log('staking-balance log:' + log);
           const from = ethers.utils.getAddress('0x' + log['topics'][1].substring(26));
           const to   = ethers.utils.getAddress('0x' + log['topics'][2].substring(26));
 

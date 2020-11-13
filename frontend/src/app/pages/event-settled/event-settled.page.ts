@@ -106,6 +106,10 @@ export class EventSettledPage implements OnInit {
     return this.eventsService.timestampToDate(timestamp);
   }
 
+  currencyFormat(price: any): string {
+    return this.eventsService.currencyFormat(price);
+  }
+
   async hasBalanceInWinningToken() {
     const balancesFormatted = this.balancesService.getById(this.eventId);
     console.log('balancesFormatted: ' + balancesFormatted);

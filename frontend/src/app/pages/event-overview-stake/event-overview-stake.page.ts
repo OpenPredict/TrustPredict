@@ -14,6 +14,8 @@ import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 import { CustomValidators } from '@app/helpers/CustomValidators';
 import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
 import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
+import { StakingBalanceQuery } from '@app/services/staking-balance-service/staking-balance.service.query';
+import { ethers } from 'ethers';
 
 @Component({
   selector: 'app-event-overview-stake',
@@ -40,7 +42,8 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
 
   termsAndConditions = 'https://openpredict.io';
   event$ = this.eventsQuery.selectEntity(this.eventId);
-  balance$ = this.balancesQuery.selectEntity(this.eventId);
+  opBalance$ = this.opBalancesQuery.selectEntity(this.eventId);
+  stakingBalance$ = this.stakingBalanceQuery.select();
   availableOptions: any[];
 
   constructor(
@@ -51,9 +54,10 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     private ui: UiService,
     private eventsService: OpEventService,
     private balancesService: OpBalanceService,
+    private optionService: OptionService,
     private eventsQuery: OpEventQuery,
-    private balancesQuery: OpBalanceQuery,
-    private authQuery: AuthQuery,
+    private opBalancesQuery: OpBalanceQuery,
+    private stakingBalanceQuery: StakingBalanceQuery,
     private toastCtrl: ToastController) {
       super();
       this.availableOptions = this.optService.availableOptions;
@@ -64,7 +68,14 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
         agreedTerms: [false, Validators.requiredTrue ],
       });
 
-      this.form.get('option_stake').setValidators([CustomValidators.minimumNumber(0.01)]);
+      this.stakingBalance$.subscribe( stakingBalance => {
+        console.log('stakingBalance updated:' + JSON.stringify(stakingBalance));
+        console.log(this.getBalance(stakingBalance));
+
+        this.form.get('option_stake').setValidators(
+            [CustomValidators.numberRange(0.01, parseFloat( this.getBalance(stakingBalance) ))]
+          );
+      });
     }
 
   ngOnInit() {
@@ -77,7 +88,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
 
     this.activatedRoute.paramMap.pipe(
         map( params => params.get('eventId') ),
-        filter(id => !this.balancesQuery.hasEntity(id)),
+        filter(id => !this.opBalancesQuery.hasEntity(id)),
         untilDestroyed(this),
         switchMap(id => this.balancesService.getBalance(id))
       ).subscribe();
@@ -121,6 +132,10 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     return this.eventsService.timestampToDate(timestamp);
   }
 
+  currencyFormat(price: any): string {
+    return this.eventsService.currencyFormat(price);
+  }
+
   getRatio(balances: any){
     console.log('balances: ' + JSON.stringify(balances));
     const balancesFormatted = this.balancesService.format(balances);
@@ -150,6 +165,16 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
       await toast.dismiss();
       this.navCtrl.navigateForward('/my-events');
     }, 2500);
+  }
+
+  getBalance(stakingBalance): string{
+    return stakingBalance.entities[this.optionService.address] !== undefined
+      ? this.parseAmount(stakingBalance.entities[this.optionService.address].balance)
+      : '0.0';
+  }
+
+  parseAmount(amount): string {
+    return (isNaN(amount)) ? '0.0' : parseFloat(ethers.utils.formatUnits(amount.toString())).toFixed(2);
   }
 
 

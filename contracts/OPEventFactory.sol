@@ -67,17 +67,23 @@ contract OPEventFactory {
     }
      
     function _correctWeight(address _eventId, uint numTokensToMint, Utils.Token selection) internal {
-        // ensure that minting this number of tokens will result in less than 90% holdings on one side.
-        // We also enforce that the weight be >= 10% to ensure that the proper ratio is held following the first deposit.
-        
-        // (((selection + new) * 100) / (total + new)) >= 10 && <= 90.
-        uint newWeightSelection = SafeMath.div(
-            SafeMath.mul(SafeMath.add(Utils.getTokenBalance(_eventId, selection, _token), numTokensToMint), 100),
-            SafeMath.add(Utils.getTotalSupply(_eventId, _token), numTokensToMint)
+        // ensure that minting this number of tokens will result in less than 90% holdings on one side.        
+        // (((selection + new) * 100) / (total + new)) <= 90.
+        uint totalMinted = Utils.getTotalSupply(_eventId, _token);
+        uint nextTotal = SafeMath.add(totalMinted, numTokensToMint);
+        uint amount = (nextTotal > Utils.GetMinimumTokenAmountPerEvent()) ? 
+                       nextTotal : 
+                       Utils.GetMinimumTokenAmountPerEvent();
+
+        uint weightSelection = SafeMath.div(
+            SafeMath.mul(
+                SafeMath.add(Utils.getTokenBalance(_eventId, selection, _token), 
+                numTokensToMint), 
+            100), 
+            amount
         );
 
-        require(newWeightSelection >= 10 && newWeightSelection <= 90, 
-               "OPEventFactory: requested tokens would result in invalid weight on one side of the draw.");
+        require(weightSelection <= 90, "OPEventFactory: requested tokens would result in invalid weight on one side of the draw.");
      }
 
     function _minimumTimeReached(address _eventId, bool reached) view internal {
@@ -166,7 +172,7 @@ contract OPEventFactory {
         _correctWeight(_eventId, numTokensToMint, selection);
         _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
         _correctPredictionAmount(_eventId, numTokensToMint, false);
-
+        
         Utils.transferFrom(msg.sender, address(this), Utils.convertToOPUSDAmount(numTokensToMint), Utils.GetOPUSDAddress());
         Utils.mint(_eventId, msg.sender, numTokensToMint, selection, _token);
 

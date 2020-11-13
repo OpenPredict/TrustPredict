@@ -500,6 +500,13 @@ export class OpEventService {
     return ethers.utils.formatUnits(amount).toString();
   }
 
+  // following float conversion we need to add the leading zero to the string.
+  currencyFormat(amount: string) {
+    return (amount.indexOf('.') >= 0 && amount.length - 1 === amount.indexOf('.') + 1) ?
+            (amount + '0') :
+            amount;
+  }
+
   getTotalValue(value) {
     return value[0] + value[1];
   }

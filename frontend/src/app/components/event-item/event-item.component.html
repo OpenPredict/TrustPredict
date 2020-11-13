@@ -13,7 +13,7 @@
           <li *ngIf="event.condition_price">
             condition: 
             <span [ngClass]="getClass(event.side)">
-              {{ getConditionText(event.side) }} ${{ event.condition_price}}              
+              {{ getConditionText(event.side) }} ${{ currencyFormat(event.condition_price)}}              
             </span>
           </li>
           <li *ngIf="event.expiration">
