@@ -1,35 +1,15 @@
-<h2 class="modalHeader">
-  Information
-</h2>
+  <h2 class="modalHeader">
+    Information
+  </h2>
              
   <ul class="list-reset">
-
-    <li class="btnWrap">     
-      <button class="btn btn-unlock">
-       <div class="btnInner">
-          <span>Some button</span>                    
-       </div>                  
-       </button>        
-     </li>  
-    
-    <li class="btnWrap">     
-      <button class="btn btn-unlock">
-       <div class="btnInner">
-          <span>Some other button</span>                    
-       </div>                  
-       </button>        
-     </li>     
-     
+       
      <li class="btnWrap">   
-       <h1 class="align-center">
-         Some heading
+       <h1 class="align-center " *ngIf="modal_header">
+         {{ modal_header }}
        </h1>  
-        <p>
-          This is not centered text - Lorem ipsum dolor sit amet, consectetur adipisicing elit. Deleniti ratione, tempora accusamus excepturi optio ipsam numquam earum distinctio laboriosam saepe?
-        </p>
-        <p class="align-center">
-          This is centered text, see css class - Lorem ipsum dolor sit amet, consectetur adipisicing elit. Deleniti ratione, tempora accusamus excepturi optio ipsam numquam earum distinctio laboriosam saepe?
-        </p>        
+       <div class="align-center" [innerHTML]="modal_txt">
+       </div>      
      </li>        
     
     <li class="btnWrap">

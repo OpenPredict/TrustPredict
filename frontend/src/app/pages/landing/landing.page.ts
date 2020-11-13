@@ -6,8 +6,6 @@ import { OptionQuery } from '@services/option-service/option.service.query';
 import { BaseForm } from '@app/helpers/BaseForm';
 import { FormBuilder, Validators } from '@angular/forms';
 import { OptionsStore } from '@app/services/option-service/option.service.store';
-import makeBlockie from 'ethereum-blockies-base64';
-
 
 @Component({
   selector: 'app-landing',
@@ -18,6 +16,10 @@ export class LandingPage extends BaseForm implements OnInit {
 
   loading$: Observable<boolean>;
   availablePairs: {};
+  
+  modalHeader = "Header will be in the H1 tag of the modal"
+  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
+  
 
   constructor(
     private fb: FormBuilder,

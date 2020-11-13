@@ -22,7 +22,10 @@ export class EventExpiredPage implements OnInit {
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
   }
-
+  
+  modalHeader = "Header will be in the H1 tag of the modal"
+  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
+    
   event$ = this.eventsQuery.selectEntity(this.eventId);
   hasBalanceInAnyToken$ = this.hasBalanceInAnyToken();
 

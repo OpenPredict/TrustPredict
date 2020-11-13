@@ -21,6 +21,10 @@ import { StakingBalanceService } from '@app/services/staking-balance-service/sta
 })
 export class ConnectWalletPage implements OnInit {
 
+  modalHeader = "Header will be in the H1 tag of the modal"
+  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
+    
+  
   constructor(
     // @Inject(WEB3) private web3: Web3,
     private fb: FormBuilder,
