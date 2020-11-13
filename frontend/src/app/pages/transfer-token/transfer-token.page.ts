@@ -23,6 +23,9 @@ import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.serv
 })
 export class TransferTokenPage  extends BaseForm implements OnInit {
 
+  modalHeader = "Header will be in the H1 tag of the modal"
+  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"    
+  
   public Position = Position;
   tokenMask = BaseForm.tokenMask;
 

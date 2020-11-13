@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, OnInit, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, NgZone, OnInit, SimpleChanges } from '@angular/core';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 import { ModalController, NavController } from '@ionic/angular';
 import { Observable } from 'rxjs';
@@ -14,6 +14,9 @@ export class AppHeaderComponent implements OnInit {
 
   loggedIn$: Observable<boolean> = this.authQuery.select( user => !!user.wallet );
   address: string;
+  @Input() modal_header: string;
+  @Input() modal_txt: string;
+  
 
   constructor(
     private navCtrl: NavController,
@@ -43,11 +46,16 @@ export class AppHeaderComponent implements OnInit {
     this.navCtrl.navigateForward('event-completed');
   }
   
+  // "reportedFrom": "TimelinePost",
+  // "reportedData": "post"  
+  
   async information() {
     try {
       const modalOpts = {
         component: InformationModalComponent,
         componentProps: {
+          "modal_header": this.modal_header,
+          "modal_txt": this.modal_txt,          
         },
         cssClass: 'opt-modal',
       };
