@@ -37,6 +37,9 @@
                   <div class="form__item buffer"> 
                     <div class="form__label"> 
                       Select amount 
+                      <div class="form__label-info">
+                        Max stake: {{ maxStake }} OPUSD
+                      </div>
                       <div class="form__label-info" *ngIf="(stakingBalance$ | async) as stakingBalance">
                         Balance: {{getBalance(stakingBalance)}} OPUSD
                       </div>

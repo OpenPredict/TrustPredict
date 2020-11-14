@@ -495,7 +495,7 @@ contract("TrustPredict", async (accounts) => {
 
     // test case E
     // deploy event with more than maximum prediction amount, verify failure
-    it.only("Should pass for test case E", async () => {
+    it("Should pass for test case E", async () => {
 
         // - valid contract deployment
         args = [...defaultArgs]

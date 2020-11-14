@@ -525,4 +525,5 @@ export class OpEventService {
             (event.status === Status.Expired) ? 'Expired'             :
             'Active (Staking Complete)';
   }
+
 }

@@ -72,12 +72,20 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
         agreedTerms: [false, Validators.requiredTrue ],
       });
 
-      this.stakingBalance$.subscribe( stakingBalance => {
-        console.log('stakingBalance updated:' + JSON.stringify(stakingBalance));
-        console.log(this.getBalance(stakingBalance));
+      // TODO add this back in when I figure out multi-subscribers
+      // this.stakingBalance$.subscribe( stakingBalance => {
+      //   console.log('stakingBalance updated:' + JSON.stringify(stakingBalance));
+      //   console.log(this.getBalance(stakingBalance));
 
+      //   this.form.get('option_stake').setValidators(
+      //       [CustomValidators.numberRange(0.01, parseFloat( this.getBalance(stakingBalance) ))]
+      //     );
+      // }); 
+
+      this.opBalance$.subscribe( opBalance => {
+        console.log('opBalance updated:' + JSON.stringify(opBalance));
         this.form.get('option_stake').setValidators(
-            [CustomValidators.numberRange(0.01, parseFloat( this.getBalance(stakingBalance) ))]
+            [CustomValidators.numberRange(0.01, parseFloat(this.getMaxStake(opBalance)) )]
           );
       });
     }
@@ -139,6 +147,34 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
   currencyFormat(price: any): string {
     return this.eventsService.currencyFormat(price);
   }
+
+  getMaxStake(balances: any): string {
+
+    const balancesFormatted = this.balancesService.format(balances);
+    const minTokens = 10;
+    const factor = 2;
+    const total = (balancesFormatted.OToken + balancesFormatted.IOToken);
+    const minTokensMaxStake = minTokens / factor;
+    const     totalMaxStake =     total / factor;
+
+    const selection = (this.token === 'O') ? balancesFormatted.OToken : balancesFormatted.IOToken;
+    const     other = (this.token === 'O') ? balancesFormatted.IOToken : balancesFormatted.OToken;
+
+    let result = 0;
+    if (total < minTokens) {
+      let maxDifference = minTokens - selection - (minTokens / 10);
+      if (maxDifference < 0) { maxDifference = 0; }
+      result = (minTokensMaxStake < maxDifference) ? minTokensMaxStake : maxDifference;
+    } else {
+      let maxStake = (9 * other) - selection;
+      if (maxStake < 0)  { maxStake = 0; }
+      result =  (maxStake > totalMaxStake) ? totalMaxStake : maxStake;
+    }
+
+    return this.parseAmount(result * 100); // 100 OPUSD == 1 token
+  }
+
+
 
   getRatio(balances: any){
     console.log('balances: ' + JSON.stringify(balances));

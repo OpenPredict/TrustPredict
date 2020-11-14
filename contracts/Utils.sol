@@ -52,15 +52,15 @@ library Utils {
     }
     
     function GetDepositPeriod() external pure returns (uint _depositPeriod) {
-        _depositPeriod = compare(network, "kovan") ? 86400 : 10;
+        _depositPeriod = compare(network, "kovan") ? 86400 : 1000;
     }
 
     function GetMinimumTokenAmountPerEvent() external pure returns (uint _minimumTokenAmountPerEvent) {
-        _minimumTokenAmountPerEvent = compare(network, "kovan") ? 10000000000000000000   : 10000000000000000000;
+        _minimumTokenAmountPerEvent = compare(network, "development") ? 10000000000000000000 : 10000000000000000000;
     }
 
-    function GetMinimumOPUSDAmountPerEvent() external pure returns (uint _minimumOPUSDAmountPerEvent) {
-        _minimumOPUSDAmountPerEvent = compare(network, "kovan") ? 1000000000000000000000 : 1000000000000000000000;
+    function GetMaxPredictionFactor() external pure returns (uint _maxPredictionFactor) {
+        _maxPredictionFactor = compare(network, "development") ? 2 : 2;
     }
     //************ variables that differ between networks (development, kovan) **********************************
 
