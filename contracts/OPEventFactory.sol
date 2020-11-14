@@ -12,7 +12,6 @@ contract OPEventFactory {
     // ********** Start State variables **********    
     // constants
     uint constant maxEventPeriod = 315360000; // max time any one event can last for (10y in seconds)
-    uint constant maxPredictionPercentage = 10;
 
     // addresses
     address _oracle;
@@ -56,11 +55,11 @@ contract OPEventFactory {
 
     function _correctPredictionAmount(address _eventId, uint numTokensToMint, bool deployment) internal {
 
-        // The maximum prediction is either the total token amount / 10 OR minimum amount / 10, whichever is higher.
+        // The maximum prediction is either the total token amount / maxPredictionFactor OR minimum amount / maxPredictionFactor, whichever is higher.
         uint totalMinted = deployment ? 0 : Utils.getTotalSupply(_eventId, _token);
         uint maximumPrediction = (totalMinted > Utils.GetMinimumTokenAmountPerEvent()) ?
-                                 (totalMinted                          ) / maxPredictionPercentage :
-                                 (Utils.GetMinimumTokenAmountPerEvent()) / maxPredictionPercentage;
+                                 (totalMinted                          ) / Utils.GetMaxPredictionFactor() :
+                                 (Utils.GetMinimumTokenAmountPerEvent()) / Utils.GetMaxPredictionFactor();
 
         require(numTokensToMint <= maximumPrediction,
                "OPEventFactory: requested token amount exceeds current valid prediction amount.");

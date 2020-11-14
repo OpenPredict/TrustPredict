@@ -159,4 +159,19 @@ export class OpBalanceService {
       map(() => this.balancesStore.add(this.balances[id]))
     );
   }
+
+  getMaxStake(balances, selectionID) {
+    const balancesFormatted = this.format(balances);
+    const total = balancesFormatted.OToken + balancesFormatted.IOToken;
+    const selection = (selectionID === 'O') ? balancesFormatted.OToken : balancesFormatted.IOToken;
+
+    // get 10% of pot
+    const maxStake = total / 10;
+    // - get max of selection
+    let maxSelection = (selection - (total * 0.9)) * -10;
+    if (maxSelection < 0) { maxSelection = 0; }
+
+    // - return whatever is lower (bounded by zero).
+    return (maxSelection < maxStake) ? maxSelection : maxStake;
+  }
 }

@@ -20,7 +20,7 @@
             expiration: {{ event.expiration}}
           </li>    
           <li>
-            value: ${{ this.getTotalValue(event.staked_values) }} USD
+            value: ${{ this.getTotalValue(event.staked_values) }} USD (<em>$1000 USD minimum needed to activate</em>)
           </li>                    
         </ul>
         <div class="lb"></div>
@@ -29,7 +29,7 @@
             {{ getStatusText(event) }}
           </li>
           <li>
-            value: ${{ this.getTotalValue(event.staked_values) }} USD
+            value: ${{ this.getTotalValue(event.staked_values) }} USD (<em>$1000 USD minimum needed to activate</em>)
           </li>
           <li *ngIf="event.ratio">
             win ratio: {{ event.ratio }}

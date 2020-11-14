@@ -27,6 +27,8 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
   modalHeader = "Header will be in the H1 tag of the modal"
   modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
     
+  maxStake = 500; // max stake is 50% of min amount to contract start.
+
   availableOptions: any[];
 
   dollarMask = createNumberMask({
@@ -58,8 +60,12 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
 
       this.stakingBalance$.subscribe( stakingBalance => {
         console.log('stakingBalance updated:' + JSON.stringify(stakingBalance));
+
+        const maxEntry = parseFloat(this.getBalance(stakingBalance)) < this.maxStake ?
+                       parseFloat(this.getBalance(stakingBalance)) : this.maxStake;
+
         this.form.get('option_stake').setValidators(
-            [CustomValidators.numberRange(100, parseFloat( this.getBalance(stakingBalance) ))]
+            [CustomValidators.numberRange(1, maxEntry)]
           );
       });
     }
