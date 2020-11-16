@@ -21,10 +21,14 @@ export class EventConditionPage extends BaseForm implements OnInit {
   formattedAmount: any;
   dollarMask = BaseForm.dollarMask;
 
-  modalHeader = "Header will be in the H1 tag of the modal"
-  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
-    
-  
+  modalHeader = 'Choosing Event Conditions'
+  modalTxt = `
+    <p>
+      Choose the price at which you think the currency pairing will settle at (in USD terms), and whether or
+      not you think the final settlement price will be higher than or lower than your chosen price.
+    </p>`;
+
+
   constructor(
     private fb: FormBuilder,
     private optService: OptionService,

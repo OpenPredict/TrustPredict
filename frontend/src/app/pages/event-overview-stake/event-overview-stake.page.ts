@@ -27,10 +27,19 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
   Position = Position;
   dollarMask = BaseForm.dollarMask;
 
-  modalHeader = "Header will be in the H1 tag of the modal"
-  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
-    
-  
+  modalHeader = 'Stake on an Event';
+  modalTxt = `
+    <p>
+      Having selected an outcome, this screen allows you to place a wager on it.
+    </p>
+    <p>
+      The <b>win ratio</b> tells you the winning amount you get per token staked; ie. if you place a $100
+      wager on an event with 150% win ratio, and your chosen outcome wins, you will win $50: $100 (your
+      original stake) plus winnings of $50.
+    <p>
+      The max amount you can stake and your staking balance is also shown. You must agree to the terms and conditions to continue.
+    </p>`;
+
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
   }
@@ -85,7 +94,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
       this.opBalance$.subscribe( opBalance => {
         console.log('opBalance updated:' + JSON.stringify(opBalance));
         this.form.get('option_stake').setValidators(
-            [CustomValidators.numberRange(0.01, parseFloat(this.getMaxStake(opBalance)) )]
+            [CustomValidators.numberRange(0.01, this.getMaxStake(opBalance) )]
           );
       });
     }
@@ -148,7 +157,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     return this.eventsService.currencyFormat(price);
   }
 
-  getMaxStake(balances: any): string {
+  getMaxStake(balances: any): number {
 
     const balancesFormatted = this.balancesService.format(balances);
     const minTokens = 10;
@@ -171,7 +180,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
       result =  (maxStake > totalMaxStake) ? totalMaxStake : maxStake;
     }
 
-    return this.parseAmount(result * 100); // 100 OPUSD == 1 token
+    return Number(parseFloat((result * 100).toString()).toFixed(2)); // 100 OPUSD == 1 token
   }
 
 

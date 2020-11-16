@@ -18,10 +18,14 @@ export class EventExpirationPage  extends BaseForm implements OnInit {
   loading$: Observable<boolean>;
 
   min: string;
-  
-  modalHeader = "Header will be in the H1 tag of the modal"
-  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
-    
+
+  modalHeader = 'Event Settlement';
+  modalTxt = `
+    <p>
+      Choose a date at which you would like the event to settle. It is at this time that your event will
+      'finalize': the event will receive the current price of the asset at the time you choose here.
+    </p>`;
+
 
   constructor(
     private fb: FormBuilder,

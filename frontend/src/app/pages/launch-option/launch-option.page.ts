@@ -24,9 +24,14 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
   loading$: Observable<boolean>;
   stakingBalance$ = this.stakingBalanceQuery.select();
 
-  modalHeader = "Header will be in the H1 tag of the modal"
-  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
-    
+  modalHeader = 'Launch Your Event';
+  modalTxt = `
+    <p>
+      Finally, we choose the staking asset to use for this event, and an amount to stake on the event. Note that
+      each event has to have a minimum amount of staking value before it becomes 'active', and each stake to the event
+      cannot exceed 50% of the outstanding pot, including the deployment stake. (see <a target="_blank" href="https://openpredict.io/litepaper">litepaper</a>).
+    </p>`;
+
   maxStake = 500; // max stake is 50% of min amount to contract start.
 
   availableOptions: any[];
@@ -59,7 +64,7 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
       });
 
       this.stakingBalance$.subscribe( stakingBalance => {
-        console.log('stakingBalance updated:' + JSON.stringify(stakingBalance));
+        //console.log('stakingBalance updated:' + JSON.stringify(stakingBalance));
 
         const maxEntry = parseFloat(this.getBalance(stakingBalance)) < this.maxStake ?
                        parseFloat(this.getBalance(stakingBalance)) : this.maxStake;

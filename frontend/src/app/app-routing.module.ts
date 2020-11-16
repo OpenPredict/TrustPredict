@@ -20,11 +20,6 @@ const routes: Routes = [
     loadChildren: () => import('./pages/landing/landing.module').then( m => m.LandingPageModule)
   },
   {
-    path: 'select-token',
-    canActivate : [AuthGuardGuard],
-    loadChildren: () => import('./pages/select-token/select-token.module').then( m => m.SelectTokenPageModule)
-  },
-  {
     path: 'event-condition',
     canActivate : [AuthGuardGuard],
     loadChildren: () => import('./pages/event-condition/event-condition.module').then( m => m.EventConditionPageModule)
@@ -41,32 +36,32 @@ const routes: Routes = [
   },
   {
     path: 'my-events',
-    canActivate : [WalletGuard],    
+    canActivate : [WalletGuard],
     loadChildren: () => import('./pages/my-events/my-events.module').then( m => m.MyEventsPageModule)
   },
   {
     path: 'event-overview/:eventId',
-    canActivate : [WalletGuard],    
+    canActivate : [WalletGuard],
     loadChildren: () => import('./pages/event-overview/event-overview.module').then( m => m.EventOverviewPageModule)
   },
   {
     path: 'event-overview-stake/:eventId/:token/:position',
-    canActivate : [WalletGuard],    
+    canActivate : [WalletGuard],
     loadChildren: () => import('./pages/event-overview-stake/event-overview-stake.module').then( m => m.EventOverviewStakePageModule)
   },
   {
     path: 'event-settled/:eventId',
-    canActivate : [WalletGuard],    
+    canActivate : [WalletGuard],
     loadChildren: () => import('./pages/event-settled/event-settled.module').then( m => m.EventSettledPageModule)
   },
   {
     path: 'event-expired/:eventId',
-    canActivate : [WalletGuard],    
+    canActivate : [WalletGuard],
     loadChildren: () => import('./pages/event-expired/event-expired.module').then( m => m.EventExpiredPageModule)
   },
   {
     path: 'transfer-token/:eventId/:token/:position',
-    canActivate : [WalletGuard],    
+    canActivate : [WalletGuard],
     loadChildren: () => import('./pages/transfer-token/transfer-token.module').then( m => m.TransferTokenPageModule)
   }
 ];
