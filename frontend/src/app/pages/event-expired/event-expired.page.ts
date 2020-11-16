@@ -22,10 +22,15 @@ export class EventExpiredPage implements OnInit {
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
   }
-  
-  modalHeader = "Header will be in the H1 tag of the modal"
-  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
-    
+
+  modalHeader = `Expired Event`;
+  modalTxt = `
+    <p>
+      Events here failed to go live due to having insufficient funding. If you made a stake on
+      this event, and you haven't withdrawn it yet, you will be shown a <b>Withdraw Deposit</b> button.
+      Click this and follow the instructions to withdraw the original stake you made on this event.
+    </p>`;
+
   event$ = this.eventsQuery.selectEntity(this.eventId);
   hasBalanceInAnyToken$ = this.hasBalanceInAnyToken();
 

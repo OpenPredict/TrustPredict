@@ -28,10 +28,16 @@ export class EventOverviewPage implements OnInit, OnDestroy {
   event$ = this.eventsQuery.selectEntity(this.eventId);
   balance$ = this.balancesQuery.selectEntity(this.eventId);
 
-  modalHeader = "Header will be in the H1 tag of the modal"
-  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
-    
-  
+  modalHeader = 'Event Overview';
+  modalTxt = `
+    <p>
+      On this screen we are shown general information about the event. If you have previously staked on any
+      of the outcomes, your balance is shown, and you may select <b>Transfer</b> for that outcome to go to the Transfer Token page.
+    </p>
+    <p>
+      If the event is pending, you will be able to stake on one of the outcomes from here.
+    </p>`;
+
   constructor(
     private navCtrl: NavController,
     private activatedRoute: ActivatedRoute,

@@ -49,31 +49,31 @@ export class StakingBalanceService {
           address: this.optionService.contracts['OPUSD'].address,
           topics: [ethers.utils.id('Transfer(address,address,uint256)')],
         }, async (log) => {
-          console.log('staking-balance log:' + log);
+          //console.log('staking-balance log:' + log);
           const from = ethers.utils.getAddress('0x' + log['topics'][1].substring(26));
           const to   = ethers.utils.getAddress('0x' + log['topics'][2].substring(26));
 
-          console.log('from: ' + from);
-          console.log('to: ' + to);
+          //console.log('from: ' + from);
+          //console.log('to: ' + to);
 
           // Check wallet balance change
           if (from === this.optionService.address || to === this.optionService.address) {
 
             const amount = ethers.BigNumber.from(log['data']);
-            console.log('amount: ' + amount);
+            //console.log('amount: ' + amount);
             // Unique identifier for log
             const id = log['transactionHash'].concat(log['logIndex']);
-            console.log('id: ' + id);
+            //console.log('id: ' + id);
             let currentBalance = this.balance[this.optionService.address].balance;
 
             if (!(id in this.balanceUpdates)){
               this.balanceUpdates[id] = true;
               if (to === this.optionService.address) {
-                console.log('Wallet Balance add - to wallet address from: ' + from);
+                //console.log('Wallet Balance add - to wallet address from: ' + from);
                 currentBalance = currentBalance.add(amount);
               }
               if (from === this.optionService.address) {
-                console.log('Wallet Balance sub - from wallet address to: ' + to);
+                //console.log('Wallet Balance sub - from wallet address to: ' + to);
                 currentBalance = currentBalance.sub(amount);
               }
               this.balance[this.optionService.address] = {
@@ -81,7 +81,7 @@ export class StakingBalanceService {
                 balance: currentBalance,
               };
               this.balanceStore.upsert(this.optionService.address, this.balance[this.optionService.address]);
-              console.log('wallet balance: ' + currentBalance.valueOf().toString());
+              //console.log('wallet balance: ' + currentBalance.valueOf().toString());
             }
           }
         });
@@ -96,7 +96,7 @@ export class StakingBalanceService {
                     ? Number(ethers.utils.formatUnits(this.balance[eventId].IOToken.toString()).toString())
                     : 0;
 
-    console.log('balanceO encoded: ' + balanceO);
+    //console.log('balanceO encoded: ' + balanceO);
     console.log('balanceIO encoded: ' + balanceIO);
 
     return {

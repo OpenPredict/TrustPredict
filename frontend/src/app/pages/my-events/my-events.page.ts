@@ -23,9 +23,30 @@ import { OpBalanceService } from '@app/services/op-balance-service/op-balance.se
 })
 export class MyEventsPage extends BaseForm implements OnInit {
 
-  modalHeader = "Header will be in the H1 tag of the modal"
-  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
-  
+  modalHeader = 'Event Listings';
+  modalTxt = `
+    <h2>Pending Events</h2>
+      <p>
+        When events are launched, there is a window of time (24 hours) in which there can be 'stakes' on the event. 
+        When events are in this state we say the event is 'Pending'.
+      </p>
+    <h2>Active Events</h2>
+      <p>
+        After the 24 hour window has passed, if the event has reached the minimum stake required, it moves into the 'Active'
+        state. In the active state it can no longer receive stakes; however, the tokens representing outcomes in the event may be traded.
+        The token valuation will change depending on the direction of the outcomes of the event.
+      </p>
+    <h2>My Events</h2>
+      <p>
+        This window contains all events your wallet has been involved in, that is;
+        <ul>
+          <li>events created</li>
+          <li>events holding O/IO tokens in</li>
+        </ul>
+        This also includes events that failed to go active (Expired Events) and events that have finalized (Settled Events) that involved the
+        currently connected wallet in some way.
+      </p>`;
+
   pendingEvents$: Observable<IEvent[]>;
   activeEvents$: Observable<IEvent[]>;
   myEvents$: Observable<IEvent[]>;
@@ -89,7 +110,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
         filterBy: state => state.status === Status.Active
       });
 
-      this.eventQuery.selectAll().subscribe( res => console.log(`events with status Active ${JSON.stringify(res)}`) );
+      //this.eventQuery.selectAll().subscribe( res => console.log(`events with status Active ${JSON.stringify(res)}`) );
 
 
       this.myEvents$ = this.eventQuery.selectAll({

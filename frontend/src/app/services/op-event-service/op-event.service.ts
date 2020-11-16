@@ -43,21 +43,21 @@ export class OpEventService {
     updateStatusFollowingDepositPeriod(depositPeriodEnd, eventId) {
       // set a timer to update the status following depositPeriodEnd.
       setTimeout(() => {
-          console.log('ending timeout for eventId ' + eventId);
+          //console.log('ending timeout for eventId ' + eventId);
           const eventEntry = this.events[eventId];
           // call status update function, upsert result
           const totalTokenValue = eventEntry.token_values_raw[0].add(eventEntry.token_values_raw[1]);
 
-          console.log('ending timeout for eventId ' + eventId);
-          console.log('totalTokenValue ' + totalTokenValue);
-          console.log('this.minimumTokenAmountPerEvent ' + this.minimumTokenAmountPerEvent);
+          //console.log('ending timeout for eventId ' + eventId);
+          //console.log('totalTokenValue ' + totalTokenValue);
+          //console.log('this.minimumTokenAmountPerEvent ' + this.minimumTokenAmountPerEvent);
           const isDepositPeriod = (new Date() < new Date(this.timestampToDate(eventEntry.deposit_period_end)));
           const status =   isDepositPeriod                                                           ? Status.Staking :
                            eventEntry.Status === Status.Settled                                      ? Status.Settled :
                            !isDepositPeriod && (totalTokenValue.lt(this.minimumTokenAmountPerEvent)) ? Status.Expired :
                                                                                                        Status.Active;
 
-          console.log('new status: ' + status);
+          //console.log('new status: ' + status);
 
           const eventEntryNew = {
             id: this.events[eventId].id,
@@ -108,9 +108,9 @@ export class OpEventService {
     }
 
     async parseEventData(eventId, eventData, tokenValuesRaw){
-      console.log('priceAggregator: ' + eventData['priceAggregator']);
+      //console.log('priceAggregator: ' + eventData['priceAggregator']);
       const pairing = this.optionService.availablePairs[eventData['priceAggregator']];
-      console.log('pairing: ' + pairing);
+      //console.log('pairing: ' + pairing);
 
       const ticker = pairing.pair.replace('/USD', '');
       const asset = this.optionService.availableAssets[ticker];
@@ -122,10 +122,10 @@ export class OpEventService {
       const stakedValues = [parseFloat(ethers.utils.formatUnits(BigNumber.from(stakedValuesRaw[Token.IO]))),
                            parseFloat(ethers.utils.formatUnits(BigNumber.from(stakedValuesRaw[Token.O])))];
 
-      console.log('tokenValuesRaw: ' + tokenValuesRaw);
-      console.log('tokenValues: ' + tokenValues);
-      console.log('stakedValuesRaw: ' + stakedValuesRaw);
-      console.log('stakedValues: ' + stakedValues);
+      // console.log('tokenValuesRaw: ' + tokenValuesRaw);
+      // console.log('tokenValues: ' + tokenValues);
+      // console.log('stakedValuesRaw: ' + stakedValuesRaw);
+      // console.log('stakedValues: ' + stakedValues);
 
       const eventEntry = {
         id: eventId,
@@ -151,21 +151,21 @@ export class OpEventService {
       if (eventId in this.events) {
         this.eventsStore.upsert(eventId, eventEntry);
       }else {
-        console.log('adding new eventId ' + eventId);
+        //console.log('adding new eventId ' + eventId);
         this.eventsStore.add(eventEntry, { prepend: true })
         // set timeout for deposit_period_end if it hasn't happened yet
         if (eventEntry.status === Status.Staking) {
-          console.log('adding timeout for eventId ' + eventId);
-          console.log('Date.now(): ' + Date.now());
-          console.log('StartTime: ' + (Number(eventData['startTime'])) * 1000);
+          //console.log('adding timeout for eventId ' + eventId);
+          //console.log('Date.now(): ' + Date.now());
+          //console.log('StartTime: ' + (Number(eventData['startTime'])) * 1000);
           const timeUntilDepositEnd = ((Number(eventData['startTime']) * 1000) -  Date.now());
-          console.log('timeUntilDepositEnd: ' + timeUntilDepositEnd);
+          //console.log('timeUntilDepositEnd: ' + timeUntilDepositEnd);
           this.updateStatusFollowingDepositPeriod(timeUntilDepositEnd, eventId);
         }
       }
 
       this.events[eventId] = eventEntry;
-      console.log('events length after push: ' + Object.keys(this.events).length);
+      //console.log('events length after push: ' + Object.keys(this.events).length);
     }
 
     async setupSubscriber(){
@@ -175,8 +175,8 @@ export class OpEventService {
           topics: [ethers.utils.id('EventUpdate(address)')], // OPEventFactory
         }, async (eventIdRaw) => {
           const eventID = '0x' + eventIdRaw.data.substring(26);
-          console.log('eventID subscriber: ' + eventID);
-          console.log('events length: ' + Object.keys(this.events).length);
+          //console.log('eventID subscriber: ' + eventID);
+          //console.log('events length: ' + Object.keys(this.events).length);
           const eventData = await this.optionService.contracts['OPEventFactory'].getEventData(eventID);
           const balances = await this.optionService.contracts['TrustPredict'].getTokenBalances(eventID);
           await this.parseEventData(eventID, eventData, balances);

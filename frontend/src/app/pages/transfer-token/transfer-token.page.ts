@@ -23,9 +23,13 @@ import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.serv
 })
 export class TransferTokenPage  extends BaseForm implements OnInit {
 
-  modalHeader = "Header will be in the H1 tag of the modal"
-  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"    
-  
+  modalHeader = 'Transfer Event Tokens';
+  modalTxt = `
+    <p>
+      Transfer event tokens for the chosen outcome to another address. Your balance for this event 
+      token is shown above the input box.
+    </p>`;
+
   public Position = Position;
   tokenMask = BaseForm.tokenMask;
 
@@ -68,14 +72,14 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
         ],
       });
 
+      this.form.get('transfer_amount').setValidators(
+        [CustomValidators.numberRange(0.00000001, Number.MAX_VALUE)]
+      );
       this.balance$.subscribe( balance => {
-        console.log('token balances updated:' + JSON.stringify(balance));
-        this.form.get('option_stake').setValidators(
-            [CustomValidators.numberRange(100, this.getTokenBalance(balance) )]
+        this.form.get('transfer_amount').setValidators(
+            [CustomValidators.numberRange(0.00000001, this.getTokenBalance(balance) )]
           );
       });
-
-      this.form.get('transfer_amount').setValidators([CustomValidators.numberRange(0.00000001, Number.MAX_VALUE)]);
     }
 
   ngOnInit() {

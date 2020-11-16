@@ -52,7 +52,7 @@ export class OpBalanceService {
         }, async (log) => {
           //console.log('log: ' + JSON.stringify(log));
           const events = abi.parseLog(log);
-          console.log(events);
+          //console.log(events);
           const from = events['args'][1];
           const   to = events['args'][2];
           // console.log('from: ' + from);
@@ -64,9 +64,9 @@ export class OpBalanceService {
             const amount = ethers.BigNumber.from(events['args'][3]);
             const selection = events['args'][4];
 
-            console.log('eventId: ' + eventId);
-            console.log('amount: ' + amount);
-            console.log('selection: ' + selection);
+            //console.log('eventId: ' + eventId);
+            //console.log('amount: ' + amount);
+            //console.log('selection: ' + selection);
             // If this is the first call just get balances from the chain. otherwise update from log.
             let balanceEntry: ITokenBalance = {};
             if (!(eventId in this.balances)) {
@@ -89,12 +89,12 @@ export class OpBalanceService {
               let IOTokenValue = this.balances[eventId].IOToken;
 
               if (to === this.optionService.address) {
-                console.log('Balance add - to wallet address from: ' + to + ' selection: ' + selection.valueOf().toString());
+                //console.log('Balance add - to wallet address from: ' + to + ' selection: ' + selection.valueOf().toString());
                 (selection === 0) ? IOTokenValue = IOTokenValue.add(amount)
                                   :  OTokenValue = OTokenValue.add(amount);
               }
               if (from === this.optionService.address) {
-                console.log('Balance sub - from wallet address to: ' + to + ' selection: ' + selection.valueOf().toString());
+                //console.log('Balance sub - from wallet address to: ' + to + ' selection: ' + selection.valueOf().toString());
                 (selection === 0) ? IOTokenValue = IOTokenValue.sub(amount)
                                   :  OTokenValue = OTokenValue.sub(amount);
               }
@@ -108,7 +108,7 @@ export class OpBalanceService {
               this.balances[eventId] = balanceEntry;
               this._currentBalance.next(this.balances);
               this.balancesStore.upsert(eventId, balanceEntry);
-              console.log('balances: ' + JSON.stringify(this.balances[eventId]));
+              //console.log('balances: ' + JSON.stringify(this.balances[eventId]));
             }
           }
         });

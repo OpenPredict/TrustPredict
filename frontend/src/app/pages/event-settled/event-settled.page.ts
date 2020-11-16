@@ -18,9 +18,14 @@ import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.serv
 })
 export class EventSettledPage implements OnInit {
 
-  modalHeader = "Header will be in the H1 tag of the modal"
-  modalTxt = "<p>RAW HTML tags</p><br><p>Dont forget the p tags</p>"  
-  
+  modalHeader = 'Settled Event';
+  modalTxt = `
+    <p>
+      Events here are complete and have settled on an outcome. If you staked on the winning outcome
+      for this event, and you haven't withdrawn it yet, you will be shown a <b>Withdraw Rewards</b> button.
+      Click this and follow the instructions to withdraw your original stake, plus any reward due for this event.
+    </p>`;
+
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
   }
