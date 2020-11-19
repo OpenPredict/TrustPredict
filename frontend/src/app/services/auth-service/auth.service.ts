@@ -1,18 +1,22 @@
 
 import { Injectable } from '@angular/core';
-// import { HttpClient } from '@angular/common/http';
-import { AuthState, AuthStore } from './auth.service.store';
-import { tap } from 'rxjs/operators';
+import { AuthStore } from './auth.service.store';
+import { Router } from '@angular/router';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  constructor(private authStore: AuthStore ) {}
+  constructor(
+    private router: Router,
+    private authStore: AuthStore ) {}
 
-  login(wallet: string, signer: any) {
-    this.authStore.update({ wallet,  signer });
+  async login(authenticationData: any) {
+    const { wallet, signer, chainId, chainName, provider } = authenticationData  
+    this.authStore.update({ wallet, signer, chainId, chainName, provider })
   }
 
   logout() {
     this.authStore.reset();
-  }
+    this.router.navigateByUrl("/")
+  }  
+
 }

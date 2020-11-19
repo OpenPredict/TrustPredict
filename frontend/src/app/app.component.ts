@@ -37,56 +37,13 @@ export class AppComponent {
   initializeApp() {
     this.optionsSrv.get().subscribe();
 
-
-    this.cryptoService.netChange();
-
     this.platform.ready().then( async () => {
-
-      window.ethereum.on('accountsChanged', async (accounts) => {
-        if (accounts) {
-          this.initialize();
-        }
-      });
-      window.ethereum.on('networkChanged', async (networkId) => {
-        window.location.reload();
-      });
-
-      this.initialize();
-
+      await this.cryptoService.onNetworkChange()
       this.config.set('navAnimation', null);
       this.config.set('animated', false);
-
       this.statusBar.styleDefault();
       this.splashScreen.hide();
     });
   }
-
-  async initialize() {
-    const wallet: any = await this.activeSigner();
-    this._auth.login(wallet.wallet, wallet.signer);
-    this.cryptoService.initContracts(wallet.wallet, wallet.signer);
-    this.opEventService.setupSubscriber();
-    this.opBalanceService.setupSubscriber();
-    this.stakingBalanceService.setupSubscriber();
-    this.navCtrl.navigateForward('/landing');
-  }
-
-  async activeSigner() {
-    return new Promise( async (resolve, reject) => {
-      try {
-        this.opEventQuery.clearState();
-        const signer: any = await this.cryptoService.getSigner();
-        const wallet: any = await this.cryptoService.signerAddress();
-        if (wallet && signer) {
-         return resolve({ wallet, signer});
-        }
-      } catch (error) {
-       return reject(false);
-      }
-    });
-
-  }
-
-
 
 }

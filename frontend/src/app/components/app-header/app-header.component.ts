@@ -16,7 +16,8 @@ export class AppHeaderComponent implements OnInit {
   address: string;
   @Input() modal_header: string;
   @Input() modal_txt: string;
-
+  chainName: any;  
+  
   constructor(
     private navCtrl: NavController,
     private cd: ChangeDetectorRef,
@@ -25,12 +26,16 @@ export class AppHeaderComponent implements OnInit {
     public authQuery: AuthQuery  ) { }
 
     ngOnInit() {
-      this.authQuery.select( user => user.wallet ).subscribe( res => {
-        this.zone.run(() => {
-          this.address = res;
-          this.cd.detectChanges();
-        });
-      });
+      this.authQuery.select( user => user ).subscribe( res => {
+        this.zone.run( async () => {
+          if(res && res.wallet) {
+            console.log( res.chainName )
+            this.address = res.wallet
+            this.chainName = res.chainName
+            this.cd.detectChanges();               
+          }
+        });          
+    });
     }
 
   openOptions() {

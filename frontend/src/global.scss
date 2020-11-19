@@ -46,11 +46,16 @@ body, ion-content {
 
 
 .darkBox {
-    background-color: #182640;
-    padding: 20px;
-    border-radius: 14px;
+    // background-color: #182640;
+    // padding: 20px;
+    // border-radius: 14px;
+    // max-width: 600px;
+    // margin: 45px auto;
     max-width: 600px;
-    margin: 45px auto;
+    border: 1px solid #89F4ED;
+    border-radius: 20px;
+    padding: 20px;
+    margin: 30px auto;    
 }
 
 ion-header {

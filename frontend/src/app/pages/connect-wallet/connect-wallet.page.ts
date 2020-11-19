@@ -31,7 +31,9 @@ export class ConnectWalletPage implements OnInit {
       </ul>,
       then select the <b>Connect Wallet</b> button to continue.
   </p>`;
-
+  wallets: any
+  
+  
   constructor(
     // @Inject(WEB3) private web3: Web3,
     private fb: FormBuilder,
@@ -42,47 +44,35 @@ export class ConnectWalletPage implements OnInit {
     public _auth: AuthService,
     public _authQ: AuthQuery,
     private cryptoService: CryptoService,
-    public navCtrl: NavController ) {
+    public navCtrl: NavController,
+    public crypto: CryptoService,
+    ) {
     }
 
     ngOnInit() {
 
     }
-
-  /**
-   * Get signer address from metamask
-   */
-  // async openMetamask() {
-  //   try {
-  //     const signer: string[] = await this.cryptoService.metamaskDefaultSigner()
-  //     if(signer && signer.length) {
-  //       console.log(signer)
-  //       this._auth.login(signer[0])
-  //       this.navCtrl.navigateForward('/landing')
-  //       return signer
-  //     }
-  //   } catch (error) {
-  //     alert(error)
-  //   }
-  // }
-
-
+ 
   async openMetamask() {
     try {
-      const signer: any = await this.cryptoService.getSigner();
-      const wallet: any = await this.cryptoService.signerAddress();
-
-      if (wallet && signer) {
-        console.log('starting..');
-        this._auth.login(wallet, signer);
-        this.cryptoService.initContracts(wallet, signer);
-        this.opEventService.setupSubscriber();
-        this.opBalanceService.setupSubscriber();
-        this.stakingBalanceService.setupSubscriber();
-        this.navCtrl.navigateForward('/landing');
+      
+      
+      this.wallets = await this.crypto.setProvider()
+      console.log("WALLETS "+JSON.stringify(this.wallets))
+      
+      if ( this.wallets && 
+           this.wallets.hasOwnProperty('wallet') &&
+           this.wallets.hasOwnProperty('signer') ) {
+            console.log('starting..');
+            // this._auth.login(wallet, signer);
+            this.cryptoService.initContracts(this.wallets.wallet, this.wallets.signer);
+            this.opEventService.setupSubscriber();
+            this.opBalanceService.setupSubscriber();
+            this.stakingBalanceService.setupSubscriber();
+            this.navCtrl.navigateForward('/landing');
       }
     } catch (error) {
-      alert(error);
+      alert("Please make sure you are logged into metamask and connected to the right network");
     }
   }
 
