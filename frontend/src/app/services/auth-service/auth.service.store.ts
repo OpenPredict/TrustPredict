@@ -1,16 +1,21 @@
   
 import { Injectable } from '@angular/core';
 import { Store, StoreConfig } from '@datorama/akita';
-
 export interface AuthState {
   wallet: string;
   signer: any;
+  chainId: any;
+  chainName: any;  
+  provider: any;
 }
 
 export function createInitialState(): AuthState {
   return {
     wallet: null,
-    signer: null
+    signer: null,
+    chainId: null,
+    chainName: null, 
+    provider: null,
   };
 }
 

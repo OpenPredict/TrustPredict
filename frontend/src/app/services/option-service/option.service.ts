@@ -16,8 +16,6 @@ const Oracle            = require('@truffle/build/contracts/Oracle.json');
 const TrustPredictToken = require('@truffle/build/contracts/TrustPredictToken.json');
 const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json');
 
-const kovan = false;
-
 @Injectable({
   providedIn: 'root'
 })
@@ -31,18 +29,6 @@ export class OptionService {
   contracts: any = {};
   OPUSDOptionRatio = 100;
   priceFeedDecimals = 8;
-
-  account = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'; // ganache-cli -d account 0
-
-  contractAddresses: any = {
-    'ContractProxy'  : (kovan) ? '0x328eC87d3AE746169DF56089ED96DEa8e34453B1' : CryptoService.getNextContractAddress(this.account, 0),
-    'OPUSD'          : (kovan) ? '0xb876a52abd933a02426c31d8231e9b9352864214' : CryptoService.getNextContractAddress(this.account, 1),
-    'ChainLink'      : (kovan) ? '0xa36085f69e2889c224210f603d836748e7dc0088' : CryptoService.getNextContractAddress(this.account, 2),
-    'Utils'          : (kovan) ? '0xec08ead8f3ea1be6b6ea17ccf80df0a4cf379033' : CryptoService.getNextContractAddress(this.account, 3),
-    'Oracle'         : (kovan) ? '0x892Ef27cC1B1A46646CB064f8d12EE66F74BEFc7' : CryptoService.getNextContractAddress(this.account, 4),
-    'TrustPredict'   : (kovan) ? '0xb1D9A08BA7d5184829Fa7f84A839Ec98607415dE' : CryptoService.getNextContractAddress(this.account, 5),
-    'OPEventFactory' : (kovan) ? '0x0d1a8Cd518f5DEE399584461d00292f964C3B31d' : CryptoService.getNextContractAddress(this.account, 6),
-  };
 
   availableAssets: any = {
     'AUD':   { name: 'Australian Dollar',     icon: '/assets/img/aud.svg',   ticker: 'AUD',   selected: false },

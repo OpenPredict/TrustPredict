@@ -213,11 +213,11 @@ export class OpEventService {
       try {
         const optionsCL = {};
         const optionsOP = {};
-        const approveCL = this.optionService.contracts['ChainLink'].approve(this.optionService.contractAddresses['Oracle'],
+        const approveCL = this.optionService.contracts['ChainLink'].approve(this.crypto.contractAddresses['Oracle'],
                                                         ethers.utils.parseUnits('1'),
                                                         optionsCL );
 
-        const approveOP = this.optionService.contracts['OPUSD'].approve(this.optionService.contractAddresses['OPEventFactory'],
+        const approveOP = this.optionService.contracts['OPUSD'].approve(this.crypto.contractAddresses['OPEventFactory'],
                                                   ethers.utils.parseUnits(numTokensStakedToMint.toString()),
                                                   optionsOP );
 
@@ -275,7 +275,7 @@ export class OpEventService {
             console.log(numTokensToMint);
             try {
               const optionsOP = {};
-              const approveOP = this.optionService.contracts['OPUSD'].approve(this.optionService.contractAddresses['OPEventFactory'],
+              const approveOP = this.optionService.contracts['OPUSD'].approve(this.crypto.contractAddresses['OPEventFactory'],
                                                         ethers.utils.parseUnits(numTokensStakedToMint.toString()),
                                                         optionsOP );
 
@@ -323,7 +323,7 @@ export class OpEventService {
 
       try {
         const optionsTP = {};
-        const approveTP = this.optionService.contracts['TrustPredict'].setApprovalForAll(this.optionService.contractAddresses['OPEventFactory'],
+        const approveTP = this.optionService.contracts['TrustPredict'].setApprovalForAll(this.crypto.contractAddresses['OPEventFactory'],
                                                     true,
                                                     optionsTP );
 
@@ -371,7 +371,7 @@ export class OpEventService {
 
       try {
         const optionsTP = {};
-        const approveTP = this.optionService.contracts['TrustPredict'].setApprovalForAll(this.optionService.contractAddresses['OPEventFactory'],
+        const approveTP = this.optionService.contracts['TrustPredict'].setApprovalForAll(this.crypto.contractAddresses['OPEventFactory'],
                                                     true,
                                                     optionsTP );
 
