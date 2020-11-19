@@ -5,9 +5,7 @@
 
 `truffle compile`
 
-`chmod +x dotenv` to give permissions to bash `dotenv` script
-
-`ganache-cli --mnemonic "$(./dotenv get MNEMONIC)"`
+`ganache-cli --mnemonic -d`
 
 ## Development
 
@@ -28,7 +26,7 @@ In the browser:
 
 -- `Import Account`
 
--- paste the following private key (has all the necessary tokens): `0x75f0a9433419ab2c5369dac3f4ad67a54f343ce8aa29864976b88a884cd020a6`
+-- paste the following private key (has all the necessary tokens): `0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d`
 
 -- Connect to `Localhost 8545`
 

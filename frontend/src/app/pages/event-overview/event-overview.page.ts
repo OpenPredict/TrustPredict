@@ -9,6 +9,7 @@ import { Position, Side, Status, Token } from '@app/data-model';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
 import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
+import { OptionService } from '@app/services/option-service/option.service';
 
 @Component({
   selector: 'app-event-overview',
@@ -26,7 +27,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
   }
 
   event$ = this.eventsQuery.selectEntity(this.eventId);
-  balance$ = this.balancesQuery.selectEntity(this.eventId);
+  balance$ = this.balancesQuery.selectEntity(this.balancesService.getID(this.eventId));
 
   modalHeader = 'Event Overview';
   modalTxt = `
@@ -42,12 +43,19 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     private navCtrl: NavController,
     private activatedRoute: ActivatedRoute,
     private eventsService: OpEventService,
+    private optionService: OptionService,
     private eventsQuery: OpEventQuery,
     private balancesService: OpBalanceService,
     private balancesQuery: OpBalanceQuery,
     private authQuery: AuthQuery) {
       console.log('setting subscriber..');
-      this.balance$.subscribe( res => console.log('balance updated:' + JSON.stringify(res)) );
+      this.balance$.subscribe( res => {
+        console.log('balance updated:' + JSON.stringify(res));
+        if (res == undefined) {
+          this.balancesService.setBalance(this.balancesService.getID(this.eventId));
+          console.log('set empty balances');
+        }
+      });
       this.event$.subscribe( res => console.log('event updated:' + JSON.stringify(res)) );
     }
 
@@ -59,12 +67,12 @@ export class EventOverviewPage implements OnInit, OnDestroy {
         switchMap(id => this.eventsService.getEvent(id))
       ).subscribe();
 
-    this.activatedRoute.paramMap.pipe(
-        map( params => params.get('eventId') ),
-        filter(id => !this.balancesQuery.hasEntity(id)),
-        untilDestroyed(this),
-        switchMap(id => this.balancesService.getBalance(id))
-      ).subscribe();
+    // this.activatedRoute.paramMap.pipe(
+    //     map( params => params.get('eventId') ),
+    //     filter(id => !this.balancesQuery.hasEntity(id)),
+    //     untilDestroyed(this),
+    //     switchMap(id => this.balancesService.getBalance(id))
+    //   ).subscribe();
   }
 
   ngOnDestroy(){}
@@ -106,12 +114,13 @@ export class EventOverviewPage implements OnInit, OnDestroy {
   }
 
   getRatio(balances: any, position: Position, betSide: Side){
+
     // console.log('balances: ' + JSON.stringify(balances));
     // console.log('token selection: ' + this.eventsService.getToken(position, betSide));
-    const balancesFormatted = this.balancesService.format(balances);
 
-    const selection = (this.eventsService.getToken(position, betSide)) === 'IO' ? balancesFormatted.IOToken : balancesFormatted.OToken;
-    const other = (this.eventsService.getToken(position, betSide)) === 'IO' ? balancesFormatted.OToken : balancesFormatted.IOToken;
+    const index = (this.eventsService.getToken(position, betSide)) === 'IO' ? 0 : 1;
+    const selection = balances[index];
+    const other = balances[1 - index];
 
     // (loser / winner) * 100
     return (selection === 0) ? '0.00' :

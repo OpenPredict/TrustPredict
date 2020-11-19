@@ -46,7 +46,7 @@ module.exports = {
       host: "127.0.0.1",     // Localhost (default: none)
       port: 8545,            // Standard Ethereum port (default: none)
       network_id: "*",
-      secret : process.env.MNEMONIC
+      secret : 'myth like bonus scare over problem client lizard pioneer submit female collect' // ganache-cli -d
     },
 
     kovan: {

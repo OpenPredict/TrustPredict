@@ -47,7 +47,7 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
 
   // termsAndConditions = 'https://openpredict.io';
   event$ = this.eventsQuery.selectEntity(this.eventId);
-  balance$ = this.balancesQuery.selectEntity(this.eventId);
+  balance$ = this.balancesQuery.selectEntity(this.balancesService.getID(this.eventId));
   availableOptions: any[];
 
   constructor(

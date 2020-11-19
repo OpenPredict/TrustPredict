@@ -15,7 +15,7 @@ import { timer } from 'rxjs/internal/observable/timer';
 import { WEB3 } from '@app/web3';
 import Web3 from 'web3';
 import { OpBalancesStore } from './op-balance.service.store';
-import { ITokenBalance, Status, Position, Side, Token } from '@app/data-model';
+import { ITokenBalance } from '@app/data-model';
 
 @Injectable({
   providedIn: 'root'
@@ -61,6 +61,7 @@ export class OpBalanceService {
           if (from === this.optionService.address || to === this.optionService.address) {
             // eventId is used as ID type in IEvent, which stores in lower case.
             const eventId = events['args'][0].toLowerCase();
+            const _id = this.getID(eventId);
             const amount = ethers.BigNumber.from(events['args'][3]);
             const selection = events['args'][4];
 
@@ -69,14 +70,14 @@ export class OpBalanceService {
             //console.log('selection: ' + selection);
             // If this is the first call just get balances from the chain. otherwise update from log.
             let balanceEntry: ITokenBalance = {};
-            if (!(eventId in this.balances)) {
+            if (!(_id in this.balances)) {
               // get initial balances
-              balanceEntry.id = eventId;
+              balanceEntry.id = _id;
               balanceEntry.IOToken = BigNumber.from(0);
               balanceEntry.OToken = BigNumber.from(0);
-              this.balances[eventId] = balanceEntry;
+              this.balances[_id] = balanceEntry;
             } else {
-              balanceEntry = this.balances[eventId];
+              balanceEntry = this.balances[_id];
             }
 
             // Gives us a unique log identifier.
@@ -85,8 +86,8 @@ export class OpBalanceService {
               this.updates[id] = true;
               // We can't assign to values in the state directly (ie. this.balances), so pull out the values and reassign a
               // new object after.
-              let OTokenValue  = this.balances[eventId].OToken;
-              let IOTokenValue = this.balances[eventId].IOToken;
+              let OTokenValue  = this.balances[_id].OToken;
+              let IOTokenValue = this.balances[_id].IOToken;
 
               if (to === this.optionService.address) {
                 //console.log('Balance add - to wallet address from: ' + to + ' selection: ' + selection.valueOf().toString());
@@ -100,27 +101,27 @@ export class OpBalanceService {
               }
 
               balanceEntry = {
-                id: this.balances[eventId].id,
+                id: this.balances[_id].id,
                 OToken: OTokenValue,
                 IOToken: IOTokenValue,
               };
 
-              this.balances[eventId] = balanceEntry;
+              this.balances[_id] = balanceEntry;
               this._currentBalance.next(this.balances);
-              this.balancesStore.upsert(eventId, balanceEntry);
-              //console.log('balances: ' + JSON.stringify(this.balances[eventId]));
+              this.balancesStore.upsert(_id, balanceEntry);
+              //console.log('balances: ' + JSON.stringify(this.balances[_id]));
             }
           }
         });
     }
 
-  getById(eventId) {
-    const balanceO  = (this.balances[eventId] !== undefined)
-                    ? Number(ethers.utils.formatUnits(this.balances[eventId].OToken.toString()).toString())
+  getById(_id: ID) {
+    const balanceO  = (this.balances[_id] !== undefined)
+                    ? Number(ethers.utils.formatUnits(this.balances[_id].OToken.toString()).toString())
                     : 0;
 
-    const balanceIO = (this.balances[eventId] !== undefined)
-                    ? Number(ethers.utils.formatUnits(this.balances[eventId].IOToken.toString()).toString())
+    const balanceIO = (this.balances[_id] !== undefined)
+                    ? Number(ethers.utils.formatUnits(this.balances[_id].IOToken.toString()).toString())
                     : 0;
 
     console.log('balanceO encoded: ' + balanceO);
@@ -151,6 +152,18 @@ export class OpBalanceService {
     return cacheable(this.balancesStore, request);
   }
 
+  setBalance(_id: ID) {
+    const balanceEntry = {
+      id: _id,
+      OToken: ethers.BigNumber.from('0'),
+      IOToken: ethers.BigNumber.from('0'),
+    };
+
+    this.balances[_id] = balanceEntry;
+    this._currentBalance.next(this.balances);
+    this.balancesStore.upsert(_id, balanceEntry);
+  }
+
 
 
   getBalance(id: ID) {
@@ -158,6 +171,11 @@ export class OpBalanceService {
       mapTo(Object.values(this.balances)),
       map(() => this.balancesStore.add(this.balances[id]))
     );
+  }
+
+  getID(eventId: string) {
+    //return ethers.utils.keccak256('0x' + '0'.repeat(16) + eventId.substring(2) + this.optionService.address.substring(2));
+    return ethers.utils.keccak256(eventId + this.optionService.address.substring(2));
   }
 
   getMaxStake(balances, selectionID) {

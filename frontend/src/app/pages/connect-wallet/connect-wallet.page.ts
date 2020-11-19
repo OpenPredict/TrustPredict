@@ -73,6 +73,7 @@ export class ConnectWalletPage implements OnInit {
       const wallet: any = await this.cryptoService.signerAddress();
 
       if (wallet && signer) {
+        console.log('starting..');
         this._auth.login(wallet, signer);
         this.cryptoService.initContracts(wallet, signer);
         this.opEventService.setupSubscriber();

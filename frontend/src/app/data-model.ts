@@ -39,7 +39,7 @@ export interface LedgerWallet {
 }
 
 export interface IEvent {
-  id?: ID;
+  id?: ID; // eventId
   asset_name?: string;
   asset_ticker?: string;
   asset_icon?: string;
@@ -61,12 +61,12 @@ export interface IEvent {
 
 
 export interface IStakingBalance {
-  id?: ID;
+  id?: ID; // wallet
   balance?: BigNumber;
 }
 
 export interface ITokenBalance {
-  id?: ID;
+  id?: ID; // sha256(eventId + wallet)
   OToken?: BigNumber;
   IOToken?: BigNumber;
 }

@@ -87,24 +87,6 @@ export class StakingBalanceService {
         });
     }
 
-  getById(eventId) {
-    const balanceO  = (this.balance[eventId] !== undefined)
-                    ? Number(ethers.utils.formatUnits(this.balance[eventId].OToken.toString()).toString())
-                    : 0;
-
-    const balanceIO = (this.balance[eventId] !== undefined)
-                    ? Number(ethers.utils.formatUnits(this.balance[eventId].IOToken.toString()).toString())
-                    : 0;
-
-    //console.log('balanceO encoded: ' + balanceO);
-    console.log('balanceIO encoded: ' + balanceIO);
-
-    return {
-      IOToken: balanceIO,
-      OToken: balanceO
-    };
-  }
-
   format(balances) {
       // console.log('balances: ' + balances);
       const balanceO  = Number(ethers.utils.formatUnits(balances.OToken.toString()).toString());

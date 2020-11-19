@@ -55,9 +55,13 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
 
   termsAndConditions = 'https://openpredict.io';
   event$ = this.eventsQuery.selectEntity(this.eventId);
-  opBalance$ = this.opBalancesQuery.selectEntity(this.eventId);
+  opBalance$ = this.opBalancesQuery.selectEntity(this.balancesService.getID(this.eventId));
+
   stakingBalance$ = this.stakingBalanceQuery.select();
   availableOptions: any[];
+
+  lastStakingBalance = -1;
+  lastOpBalance = -1;
 
   constructor(
     private fb: FormBuilder,
@@ -82,19 +86,34 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
       });
 
       // TODO add this back in when I figure out multi-subscribers
-      // this.stakingBalance$.subscribe( stakingBalance => {
-      //   console.log('stakingBalance updated:' + JSON.stringify(stakingBalance));
-      //   console.log(this.getBalance(stakingBalance));
+      this.stakingBalance$.subscribe( stakingBalance => {
+        console.log('stakingBalance updated:' + JSON.stringify(stakingBalance));
+        console.log(this.getBalance(stakingBalance));
+        const nextStakingBalance = parseFloat( this.getBalance(stakingBalance));
+        this.lastStakingBalance = nextStakingBalance;
+        // return the lower of the two, assuming OpBalance has been set.
+        const maximum = (nextStakingBalance > this.lastOpBalance && this.lastOpBalance >= 0) ? this.lastOpBalance : nextStakingBalance;
 
-      //   this.form.get('option_stake').setValidators(
-      //       [CustomValidators.numberRange(0.01, parseFloat( this.getBalance(stakingBalance) ))]
-      //     );
-      // }); 
+        this.form.get('option_stake').setValidators(
+            [CustomValidators.numberRange(0.01, maximum )]
+          );
+      });
 
       this.opBalance$.subscribe( opBalance => {
         console.log('opBalance updated:' + JSON.stringify(opBalance));
+        if (opBalance == undefined) {
+          this.balancesService.setBalance(this.balancesService.getID(this.eventId));
+          console.log('set empty opBalance');
+          return;
+        }
+
+        const nextOpBalance = this.getMaxStake(opBalance);
+        this.lastOpBalance = nextOpBalance;
+        // return the lower of the two, assuming StakingBalance has been set.
+        const maximum = (nextOpBalance > this.lastStakingBalance && this.lastStakingBalance >= 0) ? nextOpBalance : nextOpBalance;
+
         this.form.get('option_stake').setValidators(
-            [CustomValidators.numberRange(0.01, this.getMaxStake(opBalance) )]
+            [CustomValidators.numberRange(0.01, maximum )]
           );
       });
     }
@@ -186,7 +205,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
 
 
   getRatio(balances: any){
-    console.log('balances: ' + JSON.stringify(balances));
+    //console.log('balances: ' + JSON.stringify(balances));
     const balancesFormatted = this.balancesService.format(balances);
 
     const selection = (this.token === 'IO') ? balancesFormatted.IOToken : balancesFormatted.OToken;

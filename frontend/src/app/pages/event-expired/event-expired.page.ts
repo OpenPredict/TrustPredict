@@ -9,7 +9,6 @@ import { UiService } from '@app/services/ui-service/ui.service';
 import { Position, Side } from '@app/data-model';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
-import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
 
 @Component({
   selector: 'app-event-expired',
@@ -114,7 +113,7 @@ export class EventExpiredPage implements OnInit {
   }
 
   async hasBalanceInAnyToken() {
-    const balancesFormatted = this.balancesService.getById(this.eventId);
+    const balancesFormatted = this.balancesService.getById(this.balancesService.getID(this.eventId));
     return balancesFormatted.IOToken > 0 || balancesFormatted.OToken > 0;
   }
 
