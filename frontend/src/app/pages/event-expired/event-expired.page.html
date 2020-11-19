@@ -15,7 +15,7 @@
               <div class="eventOverviewData"> 
                 <ul class="list-reset">
                   <li>
-                    <div class="eventInfoTxt bolder eventTokenInfo"> 
+                    <div class="eventInfoTxt bolder eventTokenInfo white"> 
                       <div class="asset_icon" [ngClass]="'token-'+event.asset_ticker.toLowerCase()"></div>
                       {{ event.asset_name }}
                       ({{ event.asset_ticker }})
@@ -28,7 +28,7 @@
                     <div class="eventInfoTxt--small"> 
                       Event success condition:
                     </div>                
-                    <div class="eventInfoTxt bolder"> 
+                    <div class="eventInfoTxt bolder white"> 
                       {{ event.asset_ticker }}
                       <span [ngClass]="getClass(event.side)">
                           {{ getConditionText(event.side) }}
