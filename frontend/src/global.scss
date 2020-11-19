@@ -480,6 +480,10 @@ ion-header {
     }
 }
 
+.white {
+    color: #ffffff;
+}
+
 .eventTokenInfo {
     display: inline-flex;
     align-items: center;
@@ -764,15 +768,26 @@ ion-alert.select-alert {
 
   
   
+  
+  
 
 button {
-    width: 200px;
-    box-shadow: -10px -10px 15px -5px #2A3958, 10px 10px 15px -5px rgba(0, 0, 0, 0.25);
-    border-radius: 20px;  
-    padding: 9px;
-    transition: transform 300ms ease-in-out;
-    transform: scale(1.01);
-    outline: none!important;
+    
+    &.picker-opt {
+        color: white;
+    }
+    
+    &.btn {
+        color: #1D2C49;   
+        width: 200px;
+        box-shadow: -10px -10px 15px -5px #2A3958, 10px 10px 15px -5px rgba(0, 0, 0, 0.25);
+        border-radius: 20px;  
+        padding: 9px;
+        transition: transform 300ms ease-in-out;
+        transform: scale(1.01);
+        outline: none!important;        
+    }
+
     
     &:disabled {
         background: #A6AEBE!important;  
@@ -790,7 +805,7 @@ button {
             margin-right: 10px;
         }
     }
-    color: #1D2C49;   
+
     
     span {
         font-style: normal;
