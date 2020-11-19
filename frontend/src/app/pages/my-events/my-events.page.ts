@@ -97,7 +97,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
       await Promise.all(Object.keys(this.opEventService.events).map(async (_eventKey) => {
         const _event = this.opEventService.events[_eventKey];
         console.log('_event.id: ' + _event.id);
-        const balance = this.opBalanceService.getById(_event.id);
+        const balance = this.opBalanceService.getById(this.opBalanceService.getID(_event.id));
         balances[_event.id] = balance.IOToken + balance.OToken;
         console.log('balances[_event.id]: ' + balances[_event.id].toString());
         console.log('address:' + address);

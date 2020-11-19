@@ -136,6 +136,7 @@ export class CryptoService {
   }
 
   initContracts(address, signer){
+    console.log('setting address..');
     this.optionService.address = address;
     this.optionService.signer = signer;
 
@@ -163,7 +164,7 @@ export class CryptoService {
   }
 
 /** Utils  */
-getNextContractAddress(address: any, nonce: any){
+static getNextContractAddress(address: any, nonce: any) {
   const inputArr = [ address, nonce ];
   const rlpEncoded = rlp.encode(inputArr);
   const contractAddressLong = keccak('keccak256').update(rlpEncoded).digest('hex');

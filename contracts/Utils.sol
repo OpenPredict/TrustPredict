@@ -13,7 +13,7 @@ library Utils {
     //string constant network = "kovan";
 
     function GetContractProxy() private pure returns(address _contractProxy) {
-        _contractProxy = compare(network, "kovan") ? 0x328eC87d3AE746169DF56089ED96DEa8e34453B1 : 0xBf610614CaA08d9fe7a4F61082cc32951e547a91;
+        _contractProxy = compare(network, "kovan") ? 0x328eC87d3AE746169DF56089ED96DEa8e34453B1 : 0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab;
     }
 
     //************ variables that differ between networks (development, kovan) **********************************

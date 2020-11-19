@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { OptionsStore } from './option.service.store';
-import { map, mapTo, tap } from 'rxjs/operators';
-import { ID, cacheable } from '@datorama/akita';
+import { map, mapTo } from 'rxjs/operators';
+import { cacheable } from '@datorama/akita';
 import { Observable } from 'rxjs';
 import { timer } from 'rxjs/internal/observable/timer';
+import { CryptoService } from '../crypto-service/crypto.service';
 
 export const options: any[] = [];
 
@@ -21,6 +22,9 @@ const kovan = false;
   providedIn: 'root'
 })
 export class OptionService {
+  constructor(
+    private optionsStore: OptionsStore
+  ){}
 
   address: any;
   signer: any;
@@ -28,14 +32,16 @@ export class OptionService {
   OPUSDOptionRatio = 100;
   priceFeedDecimals = 8;
 
+  account = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'; // ganache-cli -d account 0
+
   contractAddresses: any = {
-    'ContractProxy'  : (kovan) ? '0x328eC87d3AE746169DF56089ED96DEa8e34453B1' : '0xBf610614CaA08d9fe7a4F61082cc32951e547a91',
-    'OPUSD'          : (kovan) ? '0xb876a52abd933a02426c31d8231e9b9352864214' : '0x4C6f9E62b4EDB743608757D9D5F16B0B67B41285',
-    'ChainLink'      : (kovan) ? '0xa36085f69e2889c224210f603d836748e7dc0088' : '0x6c6387F01EddCd8fEcb674332D22d665c5313a90',
-    'Utils'          : (kovan) ? '0x90B66e6b61abfFD8429d3d0a44082D3fD712EA11' : '0xc6ACe392cE166D3f2013302d751Bfc26C166048e',
-    'Oracle'         : (kovan) ? '0x892Ef27cC1B1A46646CB064f8d12EE66F74BEFc7' : '0x30690193C75199fdcBb7F588eF3F966402249315',
-    'TrustPredict'   : (kovan) ? '0xb1D9A08BA7d5184829Fa7f84A839Ec98607415dE' : '0x7B03b5F3D2E69Bdbd5ACc5cd0fffaB6c2A64557C',
-    'OPEventFactory' : (kovan) ? '0x6668a16b854651653F62038DE61b309dBC1c6543' : '0x4eb24Db3F49F82A475281d49D3d327f623B6e3dA',
+    'ContractProxy'  : (kovan) ? '0x328eC87d3AE746169DF56089ED96DEa8e34453B1' : CryptoService.getNextContractAddress(this.account, 0),
+    'OPUSD'          : (kovan) ? '0xb876a52abd933a02426c31d8231e9b9352864214' : CryptoService.getNextContractAddress(this.account, 1),
+    'ChainLink'      : (kovan) ? '0xa36085f69e2889c224210f603d836748e7dc0088' : CryptoService.getNextContractAddress(this.account, 2),
+    'Utils'          : (kovan) ? '0xec08ead8f3ea1be6b6ea17ccf80df0a4cf379033' : CryptoService.getNextContractAddress(this.account, 3),
+    'Oracle'         : (kovan) ? '0x892Ef27cC1B1A46646CB064f8d12EE66F74BEFc7' : CryptoService.getNextContractAddress(this.account, 4),
+    'TrustPredict'   : (kovan) ? '0xb1D9A08BA7d5184829Fa7f84A839Ec98607415dE' : CryptoService.getNextContractAddress(this.account, 5),
+    'OPEventFactory' : (kovan) ? '0x0d1a8Cd518f5DEE399584461d00292f964C3B31d' : CryptoService.getNextContractAddress(this.account, 6),
   };
 
   availableAssets: any = {
@@ -90,8 +96,6 @@ export class OptionService {
     availableOptions: any[] = [
       { ticker: 'OPUSD', name: 'OpenPredict USD', pair_contract: '0x0bF499444525a23E7Bb61997539725cA2e928138' },
     ];
-
-  constructor( private optionsStore: OptionsStore ) { }
 
 
   get(): Observable<void> {

@@ -70,7 +70,7 @@
                         Current win ratio:
                       </div>          
                       <div class="eventInfoTxt bolder">
-                        {{getRatio(balance,Position.Left,event.side)}}%
+                        {{getRatio(event.token_values,Position.Left,event.side)}}%
                       </div>         
                       
                       <div class="eventInfoTxt--small divideBal">
@@ -104,7 +104,7 @@
                         Current win ratio:
                       </div>          
                       <div class="eventInfoTxt bolder">
-                        {{getRatio(balance,Position.Right,event.side)}}%
+                        {{getRatio(event.token_values,Position.Right,event.side)}}%
                       </div>   
                       
                       <div class="eventInfoTxt--small divideBal">

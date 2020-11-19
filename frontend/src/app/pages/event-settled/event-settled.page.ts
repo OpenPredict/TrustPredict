@@ -31,7 +31,9 @@ export class EventSettledPage implements OnInit {
   }
 
   event$ = this.eventsQuery.selectEntity(this.eventId);
-  balance$ = this.balancesQuery.selectEntity(this.eventId);
+  balance$ = this.balancesQuery.selectEntity(this.balancesService.getID(this.eventId));
+
+
   hasBalanceInWinningToken$ = this.hasBalanceInWinningToken();
 
   constructor(
@@ -45,6 +47,13 @@ export class EventSettledPage implements OnInit {
     public toastCtrl: ToastController,
     private ui: UiService) {
       console.log('created');
+      this.balance$.subscribe( balance => {
+        console.log('balance updated:' + JSON.stringify(balance));
+        if (balance == undefined) {
+          this.balancesService.setBalance(this.balancesService.getID(this.eventId));
+          console.log('set empty balances');
+        }
+      });
     }
 
   ngOnInit() {
@@ -118,7 +127,7 @@ export class EventSettledPage implements OnInit {
   }
 
   async hasBalanceInWinningToken() {
-    const balancesFormatted = this.balancesService.getById(this.eventId);
+    const balancesFormatted = this.balancesService.getById(this.balancesService.getID(this.eventId));
     console.log('balancesFormatted: ' + balancesFormatted);
     const winner = (this.eventsService.events[this.eventId].winner === 0) ? balancesFormatted.IOToken : balancesFormatted.OToken;
     return winner > 0;
