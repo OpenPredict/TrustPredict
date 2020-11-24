@@ -124,8 +124,8 @@ export class OpBalanceService {
                     ? Number(ethers.utils.formatUnits(this.balances[_id].IOToken.toString()).toString())
                     : 0;
 
-    console.log('balanceO encoded: ' + balanceO);
-    console.log('balanceIO encoded: ' + balanceIO);
+    // console.log('balanceO encoded: ' + balanceO);
+    // console.log('balanceIO encoded: ' + balanceIO);
 
     return {
       IOToken: balanceIO,

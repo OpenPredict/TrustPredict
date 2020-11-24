@@ -135,7 +135,7 @@ export class OpEventService {
         side: Number(eventData['betSide']),
         creator: eventData['creator'],
         condition_price: ethers.utils.formatUnits(eventData['betPrice'].valueOf().toString(), 8).toString(),
-        settled_price: ethers.utils.formatUnits(eventData['settledPrice'].valueOf().toString(), 8).toString(),
+        settled_price: parseFloat(ethers.utils.formatUnits(eventData['settledPrice'].valueOf().toString(), 8).toString()).toFixed(2),
         winner: Number(eventData['winner']),
         creation:  Number(eventData['startTime']) - this.depositPeriod,
         deposit_period_end:  (Number(eventData['startTime'])),
