@@ -1,10 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { OptionService } from '@services/option-service/option.service';
 import { NavController } from '@ionic/angular';
-import { OptionQuery } from '@services/option-service/option.service.query';
-import { OptionsStore } from '@app/services/option-service/option.service.store';
 import { OpEventService } from '@app/services/op-event-service/op-event.service';
-import { CryptoService } from '@app/services/crypto-service/crypto.service';
 import { UiService } from '@services/ui-service/ui.service';
 import { Observable } from 'rxjs';
 import { BaseForm } from '@app/helpers/BaseForm';
@@ -12,7 +9,6 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { CustomValidators } from '@app/helpers/CustomValidators';
 import { IEvent, Status } from '@app/data-model';
 import { OpEventQuery } from '@services/op-event-service/op-event.service.query';
-import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
 
 
@@ -54,15 +50,11 @@ export class MyEventsPage extends BaseForm implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private optService: OptionService,
-    private optQry: OptionQuery,
+    private optionService: OptionService,
     public opEventService: OpEventService,
     public opBalanceService: OpBalanceService,
-    private authQ: AuthQuery,
     private eventQuery: OpEventQuery,
-    private optStr: OptionsStore,
     public ui: UiService,
-    private crypto: CryptoService,
     public navCtrl: NavController ) {
       super();
       this.form = this.fb.group({
@@ -76,47 +68,27 @@ export class MyEventsPage extends BaseForm implements OnInit {
     this.opEventService.get().subscribe();
     this.allEvents();
 
-    this.form.valueChanges.subscribe(
-      (res) => {
-        if (this.form.controls['event_id'].valid) {
-          this.activeEvents$ = this.eventQuery.getEvent( this.form.controls['event_id'].value );
-        } else {
-          this.allEvents();
-        }
-      }
-    );
+    this.form.valueChanges.subscribe(() => { this.allEvents(); });
   }
 
   allEvents() {
-    const _USER: any  = this.authQ.getValue();
-    const signer: any = _USER.signer;
+    console.log('optionService address:' + this.optionService.address);
 
-    const balances = [];
-
-    signer.getAddress().then(async (address) => {
-      await Promise.all(Object.keys(this.opEventService.events).map(async (_eventKey) => {
-        const _event = this.opEventService.events[_eventKey];
-        console.log('_event.id: ' + _event.id);
-        const balance = this.opBalanceService.getById(this.opBalanceService.getID(_event.id));
-        balances[_event.id] = balance.IOToken + balance.OToken;
-        console.log('balances[_event.id]: ' + balances[_event.id].toString());
-        console.log('address:' + address);
-      }));
-
-      this.pendingEvents$ = this.eventQuery.selectAll({
-        filterBy: state => state.status === Status.Staking
-      });
-      this.activeEvents$ = this.eventQuery.selectAll({
-        filterBy: state => state.status === Status.Active
-      });
-
-      //this.eventQuery.selectAll().subscribe( res => console.log(`events with status Active ${JSON.stringify(res)}`) );
-
-
-      this.myEvents$ = this.eventQuery.selectAll({
-        filterBy: state => ((state.creator === address) || (balances[state.id] > 0))
-      });
+    this.pendingEvents$ = this.eventQuery.selectAll({
+      filterBy: state => state.status === Status.Staking
     });
+
+    this.activeEvents$ = this.eventQuery.selectAll({
+      filterBy: state => state.status === Status.Active
+    });
+
+    this.myEvents$ = this.eventQuery.selectAll({
+      filterBy: state =>  {
+        const balance = this.opBalanceService.getById(this.opBalanceService.getID(String(state.id)));
+        return ((state.creator === this.optionService.address) || ((balance.IOToken + balance.OToken) > 0));
+      }
+    });
+
   }
 
   async continue() {
