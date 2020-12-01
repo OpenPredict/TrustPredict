@@ -5,7 +5,7 @@
 
 `truffle compile`
 
-`ganache-cli --mnemonic -d`
+`ganache-cli --mnemonic -d --gasLimit 0xBEBC20`
 
 ## Development
 

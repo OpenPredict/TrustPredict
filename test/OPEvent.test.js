@@ -520,7 +520,7 @@ contract("TrustPredict", async (accounts) => {
                 ethers.utils.parseUnits((Constants.initialMaxPrediction * 5).toString()),
                 Constants.OTokenSelection, 
                 {from: accounts[0] }),
-                "OPEventFactory: requested token amount exceeds current valid prediction amount."
+                "OPEventFactory: requested tokens would result in invalid weight on one side of the draw."
         );
 
         // try and mint invalid amount of tokens on one side of the draw
@@ -553,22 +553,23 @@ contract("TrustPredict", async (accounts) => {
 
         await OPUSD_approve(contracts, accounts, 0, 0, Constants.numTokens * 100 * Constants.OPUSDOptionRatio);
 
-        // mint total of 8.6: O side, 0.6: IO side
-        for(i=0;i<7;i++){
-            await contracts['OPEventFactory'].stake(OPEventID, 
-                ethers.utils.parseUnits((Constants.initialMaxPrediction).toString()),
-                Constants.OTokenSelection, 
-                {from: accounts[0] }
-            );
-        }
+        // mint total of 86%: O side, 6%: IO side
+        // max 50% per stake
         await contracts['OPEventFactory'].stake(OPEventID, 
-            ethers.utils.parseUnits((Constants.initialMaxPrediction * 0.6).toString()),
+            ethers.utils.parseUnits((Constants.initialMaxPrediction).toString()),
+            Constants.OTokenSelection, 
+            {from: accounts[0] }
+        );
+
+        // bring total up to 8.6
+        await contracts['OPEventFactory'].stake(OPEventID, 
+            ethers.utils.parseUnits((2.6).toString()),
             Constants.OTokenSelection, 
             {from: accounts[0] }
         );
 
         await contracts['OPEventFactory'].stake(OPEventID, 
-            ethers.utils.parseUnits((Constants.initialMaxPrediction * 0.6).toString()),
+            ethers.utils.parseUnits((0.6).toString()),
             Constants.IOTokenSelection, 
             {from: accounts[0] }
         );
@@ -576,7 +577,7 @@ contract("TrustPredict", async (accounts) => {
         // try mint 0.6 O side - valid for prediction amount, should fail at weight.
         await truffleAssert.reverts(
             contracts['OPEventFactory'].stake(OPEventID, 
-                ethers.utils.parseUnits((Constants.initialMaxPrediction * 0.6).toString()),
+                ethers.utils.parseUnits((0.6).toString()),
                 Constants.OTokenSelection, 
                 {from: accounts[0] }
             ), "OPEventFactory: requested tokens would result in invalid weight on one side of the draw."

@@ -60,7 +60,9 @@ module.exports = {
         // numTokensToMint
         numTokens : 1,
         OPUSDOptionRatio : 100,
-        initialMaxPrediction : 1,
+        initialMaxPrediction : 5,
+        minTokenAmount : 10,
+        maxPredictionFactor: 2,
         maxDecimals : 18,
         tokenDecimals : 18,
     },
