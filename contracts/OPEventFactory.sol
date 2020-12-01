@@ -37,6 +37,12 @@ contract OPEventFactory {
 
 
     // ************************************ start gatekeeping functions *************************************************
+    function _validBetPrice(int _betPrice) pure internal {
+        // require that betPrice is > 0.
+        require(_betPrice> 0,
+                "OPEventFactory: Chosen bet price is negative.");
+    }
+
     function _validEventPeriod(uint _eventPeriod) view internal {
         // require that event takes place within maxEventPeriod time
         uint _endTime = SafeMath.add(block.timestamp, _eventPeriod);
@@ -126,6 +132,7 @@ contract OPEventFactory {
             external
             returns(bool)
     {
+        _validBetPrice(_betPrice);
         _validEventPeriod(_eventPeriod);
         _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
         _correctPredictionAmount(address(0), numTokensToMint, true);
@@ -189,7 +196,7 @@ contract OPEventFactory {
         _isSettled(_eventId, false);
 
         EventData storage data = events[_eventId];
-        int settledPrice = Utils.compare("kovan", Utils.GetNetwork()) ? Utils.getLatestPrice(data.priceAggregator, _oracle) : _settledPrice;
+        int settledPrice = (Utils.GetTest() == false) ? Utils.getLatestPrice(data.priceAggregator, _oracle) : _settledPrice;
 
         if((settledPrice >= data.betPrice &&  data.betSide == Utils.Side.Higher) || 
            (settledPrice <  data.betPrice &&  data.betSide == Utils.Side.Lower)) {

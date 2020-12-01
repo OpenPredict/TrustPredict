@@ -43,7 +43,7 @@ contract Oracle is ChainlinkClient {
     // constructor
     constructor() public
     {
-        if(Utils.compare(Utils.GetNetwork(), "kovan")) 
+        if(Utils.GetTest() == false)
             setPublicChainlinkToken();
         setPriceAggregators();
     }
@@ -83,7 +83,7 @@ contract Oracle is ChainlinkClient {
         _hasGrantedAllowance();
         _onlyEvent();
 
-        if(Utils.compare(Utils.GetNetwork(), "kovan")) {
+        if(Utils.GetTest() == false) {
             Chainlink.Request memory req = buildChainlinkRequest(
                 _jobId,
                 address(this), 

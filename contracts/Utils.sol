@@ -8,12 +8,10 @@ library Utils {
     enum Token {IO, O}
     enum Side {Lower, Higher}
 
-    // Changed during deployment
-    string constant network = "development";
-    //string constant network = "kovan";
+    bool constant test = true;
 
     function GetContractProxy() private pure returns(address _contractProxy) {
-        _contractProxy = compare(network, "kovan") ? 0x328eC87d3AE746169DF56089ED96DEa8e34453B1 : 0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab;
+        _contractProxy = (test) ? 0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab : 0x328eC87d3AE746169DF56089ED96DEa8e34453B1;
     }
 
     //************ variables that differ between networks (development, kovan) **********************************
@@ -47,20 +45,20 @@ library Utils {
         return bytesToAddress(result);
     }
 
-    function GetNetwork() external pure returns(string memory){        
-        return network;
+    function GetTest() external pure returns(bool) {
+        return test;
     }
     
     function GetDepositPeriod() external pure returns (uint _depositPeriod) {
-        _depositPeriod = compare(network, "kovan") ? 86400 : 1000;
+        _depositPeriod = (test) ? 10 : 86400; // test: 10 seconds, otherwise: 1 day
     }
 
-    function GetMinimumTokenAmountPerEvent() external pure returns (uint _minimumTokenAmountPerEvent) {
-        _minimumTokenAmountPerEvent = compare(network, "development") ? 10000000000000000000 : 10000000000000000000;
+    function GetMinimumTokenAmountPerEvent() external pure returns (uint) {
+        return 10000000000000000000; // 10 tokens / 1000 USD
     }
 
-    function GetMaxPredictionFactor() external pure returns (uint _maxPredictionFactor) {
-        _maxPredictionFactor = compare(network, "development") ? 2 : 2;
+    function GetMaxPredictionFactor() external pure returns (uint) {
+        return 2; // ie. 50% of max pot per stake (1/2 == 50%)
     }
     //************ variables that differ between networks (development, kovan) **********************************
 
@@ -71,10 +69,6 @@ library Utils {
 
     function getOtherToken(Token selection) pure external returns (Token) {
         return (selection == Token.O) ? Token.IO : Token.O;
-    }
-
-    function compare(string memory a, string memory b) public pure returns (bool) {
-        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
     }
 
     function convertToOPUSDAmount(uint optionAmount) external pure returns(uint) {
