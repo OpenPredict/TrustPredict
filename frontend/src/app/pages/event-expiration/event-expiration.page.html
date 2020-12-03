@@ -1,62 +1,86 @@
-<app-app-header
-  [modal_header]="modalHeader"
-  [modal_txt]="modalTxt">
+<app-app-header [modal_header]="modalHeader" [modal_txt]="modalTxt">
 </app-app-header>
 
 <ion-content>
-  
   <ion-grid>
-
     <ion-row>
       <ion-col>
         <div class="darkBox">
-            
-            <form [formGroup]="form" (ngSubmit)="continue()">     
-                <div class="formWrapper">   
+          <form [formGroup]="form" (ngSubmit)="continue()">
+            <div class="formWrapper">
+              <app-wager-selected-token></app-wager-selected-token>
 
-                  <app-wager-selected-token></app-wager-selected-token>
-                                    
-                  <h2 class="eventHeader">
-                    Set event expiration date
-                  </h2>
-                  
-                  <div class="form__item buffer"> 
-                    <div class="form__label"> 
-                    </div>
-                    <ion-datetime 
-                      class="form__input"
-                      [min]="min"
-                      max="2028-12-31"
-                      formControlName="expiration_date"
-                      displayFormat="D MMM YYYY"
-                      placeholder="Select Date">
-                    </ion-datetime>
-                    <div *ngIf="hasError('expiration_date', 'required')" class="standardInputErr">
-                      Expiration is required
-                    </div>            
-                  </div>                   
-                  <div class="form__item"> 
-                    <ion-button [disabled]="form.invalid" class="o-btn" type="submit" (click)="continue()">Continue</ion-button>
-                  </div>  
+              <h2 class="eventHeader">Set event expiration date</h2>
 
-                  <app-wager-information-output></app-wager-information-output>
-                  
-                  </div>
-            </form>            
-          
-          </div>          
+              <div class="form__item buffer">
+                <div class="form__label"></div>
+                <!-- <ion-datetime
+                  class="form__input"
+                  [min]="min"
+                  max="2028-12-31"
+                  formControlName="expiration_date"
+                  displayFormat="D MMM YYYY"
+                  placeholder="Select Date"
+                >
+                </ion-datetime> -->
+                <mat-form-field class="date-field">
+                  <input
+                    class="date-label"
+                    matInput
+                    [ngxMatDatetimePicker]="picker"
+                    placeholder="Select Date"
+                    formControlName="expiration_date"
+                    [min]="min"
+                    [max]="maxDate"
+                    [disabled]="false"
+                  />
+                  <mat-datepicker-toggle
+                    matSuffix
+                    [for]="picker"
+                  ></mat-datepicker-toggle>
+                  <ngx-mat-datetime-picker
+                    #picker
+                    [showSpinners]="true"
+                    [showSeconds]="true"
+                    [stepHour]="1"
+                    [stepMinute]="1"
+                    [stepSecond]="1"
+                    [touchUi]="false"
+                    [color]="color"
+                    [enableMeridian]="true"
+                  >
+                  </ngx-mat-datetime-picker>
+                </mat-form-field>
+                <div
+                  *ngIf="hasError('expiration_date', 'required')"
+                  class="standardInputErr"
+                >
+                  Expiration is required
+                </div>
+              </div>
+              <div class="form__item">
+                <ion-button
+                  [disabled]="form.invalid"
+                  class="o-btn"
+                  type="submit"
+                  (click)="continue()"
+                  >Continue</ion-button
+                >
+              </div>
 
-      </ion-col>      
+              <app-wager-information-output></app-wager-information-output>
+            </div>
+          </form>
+        </div>
+      </ion-col>
     </ion-row>
-    <ion-row>   
-      <ion-col>     
+    <ion-row>
+      <ion-col>
         <div class="back__button" (click)="goBack()">
           <div class="back__button--icon"></div>
           <span>Go back</span>
         </div>
-      </ion-col>      
-    </ion-row>      
-    
+      </ion-col>
+    </ion-row>
   </ion-grid>
-
 </ion-content>
