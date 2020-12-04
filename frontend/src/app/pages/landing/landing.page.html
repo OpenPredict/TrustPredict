@@ -1,66 +1,83 @@
 <app-app-header
+  #header
   [modal_header]="modalHeader"
-  [modal_txt]="modalTxt">
+  [modal_txt]="modalTxt"
+  [showHelp]="false"
+>
 </app-app-header>
 
 <ion-content>
-  
   <ion-grid>
-
     <ion-row>
       <ion-col>
         <div class="header">
           Turn your live options into <span>Liquid Assets.</span>
         </div>
-      </ion-col>      
-    </ion-row>    
-    
+      </ion-col>
+    </ion-row>
+
     <ion-row>
       <ion-col>
         <div class="darkBox">
           <div class="assetOptions">
             <div class="assetOptions__nav">
-              <div class="assetOptions__option " style="opacity: 0;">
+              <div class="assetOptions__option" style="opacity: 0">
                 Liquid asset
-              </div>     
+              </div>
               <div class="assetOptions__option assetOptions__selected">
                 ERC20
-              </div>     
-              <div class="assetOptions__option" style="opacity: 0;">
+              </div>
+              <div class="assetOptions__option" style="opacity: 0">
                 Illiquid asset
-              </div>                                             
-            </div>      
-            
-            <app-wager-information-output></app-wager-information-output>
-            
-            <form [formGroup]="form" (ngSubmit)="continue()">     
-                <div class="formWrapper">               
-                  <div class="form__item buffer"> 
-                    <div class="form__label"> 
-                       Select Asset
-                    </div>
-                    <ion-select class="form__input form__select" formControlName="asset" >
-                      <ion-select-option *ngFor="let p of availablePairs | keyvalue" [value]="p.value" >
-                        {{p.value.pair}}
-                      </ion-select-option>
-                    </ion-select>                     
-                    <div *ngIf="hasError('asset', 'required')" class="standardInputErr">
-                      asset is required
-                    </div>            
-                  </div>  
-                  <div class="form__item"> 
-                    <ion-button class="o-btn" [disabled]="form.invalid" type="submit">Continue</ion-button>
-                  </div>                                      
-                  </div>
-            </form>            
-          
-            
-            
-            
-          </div>          
-        </div>
-      </ion-col>      
-    </ion-row>        
-  </ion-grid>
+              </div>
+            </div>
 
+            <app-wager-information-output></app-wager-information-output>
+
+            <form [formGroup]="form" (ngSubmit)="continue()">
+              <div class="formWrapper">
+                <div class="form__item buffer">
+                  <div class="form__label">Select Asset</div>
+                  <ion-select
+                    class="form__input form__select"
+                    formControlName="asset"
+                  >
+                    <ion-select-option
+                      *ngFor="let p of availablePairs | keyvalue"
+                      [value]="p.value"
+                    >
+                      {{ p.value.pair }}
+                    </ion-select-option>
+                  </ion-select>
+                  <div
+                    *ngIf="hasError('asset', 'required')"
+                    class="standardInputErr"
+                  >
+                    asset is required
+                  </div>
+                </div>
+                <div class="form__item">
+                  <ion-button
+                    class="o-btn"
+                    [disabled]="form.invalid"
+                    type="submit"
+                    >Continue</ion-button
+                  >
+                </div>
+                <div class="form__item centered">
+                  <ion-button
+                    class="help-btn"
+                    size="small"
+                    (click)="information()"
+                  >
+                    Help
+                  </ion-button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 </ion-content>
