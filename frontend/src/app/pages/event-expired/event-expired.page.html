@@ -12,10 +12,7 @@
               <ul class="list-reset">
                 <li>
                   <div class="eventInfoTxt bolder eventTokenInfo white">
-                    <div
-                      class="asset_icon"
-                      [ngClass]="'token-' + event.asset_ticker.toLowerCase()"
-                    ></div>
+                    <div class="asset_icon" [ngClass]="'token-' + event.asset_ticker.toLowerCase()"></div>
                     {{ event.asset_name }}
                     ({{ event.asset_ticker }})
                   </div>
@@ -53,11 +50,7 @@
                     </div>
                   </div>
 
-                  <div
-                    class="btnMint smokey bolder"
-                    *ngIf="hasBalanceInAnyToken$ | async"
-                    (click)="continue()"
-                  >
+                  <div class="btnMint smokey bolder" *ngIf="hasBalanceInAnyToken$ | async" (click)="continue()">
                     <span>Withdraw Deposit</span>
                   </div>
                 </li>
