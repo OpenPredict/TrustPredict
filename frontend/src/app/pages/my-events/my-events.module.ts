@@ -8,6 +8,7 @@ import { MyEventsPageRoutingModule } from './my-events-routing.module';
 
 import { MyEventsPage } from './my-events.page';
 import { SharedModule } from "@app/shared.module";
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   imports: [
@@ -15,8 +16,9 @@ import { SharedModule } from "@app/shared.module";
     FormsModule,
     IonicModule,
     MyEventsPageRoutingModule,
-    SharedModule
+    SharedModule,
+    MatProgressSpinnerModule
   ],
   declarations: [MyEventsPage]
 })
-export class MyEventsPageModule {}
+export class MyEventsPageModule { }
