@@ -12,10 +12,7 @@
               <ul class="list-reset">
                 <li>
                   <div class="eventInfoTxt bolder white eventTokenInfo">
-                    <div
-                      class="asset_icon"
-                      [ngClass]="'token-' + event.asset_ticker.toLowerCase()"
-                    ></div>
+                    <div class="asset_icon" [ngClass]="'token-' + event.asset_ticker.toLowerCase()"></div>
                     {{ event.asset_name }}
                     ({{ event.asset_ticker }})
                   </div>
@@ -49,10 +46,7 @@
                 </li>
               </ul>
             </div>
-            <div
-              class="eventOverviewData"
-              *ngIf="hasBalanceInWinningToken$ | async"
-            >
+            <div class="eventOverviewData" *ngIf="hasBalanceInWinningToken$ | async">
               <ul class="list-reset mintOptionList">
                 <li class="mintOption">
                   <div class="mintOptionWrap border--orange">
@@ -70,26 +64,17 @@
                     </div>
 
                     <div class="eventInfoTxt--small divideBal">My balance:</div>
-                    <div
-                      class="eventInfoTxt bolder"
-                      *ngIf="balance$ | async as balance"
-                    >
+                    <div class="eventInfoTxt bolder" *ngIf="balance$ | async as balance">
                       {{ getTokenBalance(balance) }} ”{{
                         getWinningTokenText(event.winner)
                       }}”
                     </div>
 
-                    <div
-                      class="eventInfoTxt--small eventInfoTransfer"
-                      (click)="goTransfer(event.winner, event.side)"
-                    >
+                    <div class="eventInfoTxt--small eventInfoTransfer" (click)="goTransfer(event.winner, event.side)">
                       Transfer >
                     </div>
                   </div>
-                  <div
-                    class="btnMint orange bolder border--orange"
-                    (click)="continue()"
-                  >
+                  <div class="btnMint orange bolder border--orange" (click)="continue()">
                     <span>Withdraw Rewards</span>
                   </div>
                 </li>

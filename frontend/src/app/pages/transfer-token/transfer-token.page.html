@@ -1,6 +1,4 @@
-<app-app-header
-  [modal_header]="modalHeader"
-  [modal_txt]="modalTxt">
+<app-app-header [modal_header]="modalHeader" [modal_txt]="modalTxt">
 </app-app-header>
 
 <ion-content>
@@ -9,122 +7,121 @@
       <ion-col>
         <div class="darkBox">
           <div class="eventOverview" *ngIf="(event$ | async) as event">
-              <h2 class="eventHeader bolder status-status">
-               TRANSFER “{{ token }}” TOKEN
-              </h2>
-              <div class="eventOverviewData"> 
-                <ul class="list-reset">
-                  <li>
-                    <div class="eventInfoTxt bolder white eventTokenInfo"> 
-                      <div class="asset_icon" [ngClass]="'token-'+event.asset_ticker.toLowerCase()"></div>
-                      {{ event.asset_name }}
-                      ({{ event.asset_ticker }})
-                    </div>     
-                    <div class="eventInfoTxt--small"> 
-                      Created: {{ getDate(event.creation) }}
-                    </div>                                    
-                  </li>
-                  <li>
-                    <div class="eventInfoTxt--small"> 
-                      “{{ token }}” Token success condition:
-                    </div>                
-                    <div class="eventInfoTxt white bolder"> 
-                      {{ event.asset_ticker }}
-                      <span [ngClass]="getClass()">
-                          {{ getConditionText() }}
-                      </span>
-                      ${{ currencyFormat(event.condition_price) }}&nbsp;USD
-                    </div>                     
-                  </li>  
-                  <li>
-                    <div class="eventInfoTxt--small"> 
-                      Event settlement date:
-                    </div>                
-                    <div class="eventInfoTxt bolder white"> 
-                      {{ getDate(event.completion) }}
-                    </div>                     
-                  </li>                                    
-                </ul>
-              </div>
-              
-              <div class="mintingFormWrap" *ngIf="(balance$ | async) as balance"> 
-                
-                <div class="separator"></div>
-                
-                <form [formGroup]="form">     
-                  <div class="formWrapper">   
-                    
-                    <div class="form__item buffer"> 
-                      <div class="form__label"> 
-                        Input amount
-                        <div class="form__label-info">Balance: {{getTokenBalance(balance)}}</div>
-                      </div>
-                      <div class="form__input--wrapped">
-                        <!-- <ion-input class="form__input" type="number" formControlName="transfer_amount" placeholder="0.00"></ion-input> -->
-                        <input class="form__input" type="text" min="0" formControlName="transfer_amount" placeholder="0.00" [textMask]="{mask: tokenMask }" />
-                        <div class="form__input--token">“{{ token }}” Token</div>
-                      </div>
-                     
-                      <div *ngIf="hasError('transfer_amount', 'required')" class="standardInputErr">
-                        Amount is required
-                      </div>           
-                      <div *ngIf="hasError('transfer_amount', 'min')" class="standardInputErr">
-                        Amount must be greater than 0
-                      </div>
-                    </div>                                      
-                    
-                    <h2 class="eventHeader">
-                      Transfer to:
-                    </h2>                    
-                    
-                    <div class="form__item buffer"> 
-                      <div class="form__label"> 
-                        Input Recipient address
-                      </div>
-                      <ion-input class="form__input" type="text" formControlName="transfer_to" placeholder="0x000000...0000"></ion-input>                     
-                      <div *ngIf="hasError('transfer_to', 'invalid_address')" class="standardInputErr">
-                        Transfer address is not valid.
-                      </div>  
-                      <div *ngIf="hasError('transfer_to', 'required')" class="standardInputErr">
-                        A valid transfer address is required.
-                      </div>
-                      <div *ngIf="hasError('transfer_to', 'maxlength')" class="standardInputErr">
-                        A valid transfer address must not be more than 42 chars, including 0x prefix.
-                      </div>  
-                      <div *ngIf="hasError('transfer_to', 'minlength')" class="standardInputErr">
-                        A valid transfer address must be at least 42 chars, including 0x prefix.
-                      </div>                                                                                        
-                    </div>                         
-                    </div>                      
-                    
-                    
-                    <div class="form__item">                 
-                      <ion-button 
-                       class="btnMint btnMint--lg bolder "
-                       [disabled]="form.invalid" 
-                       type="submit"
-                       (click)="continue()">
-                          <span>Transfer “{{ token }}”</span>
-                      </ion-button>
-                    </div>  
-                    
-                                      
-              
-              </form>            
-                    
-              </div>
-              
+            <h2 class="eventHeader bolder status-status">
+              TRANSFER “{{ token }}” TOKEN
+            </h2>
+            <div class="eventOverviewData">
+              <ul class="list-reset">
+                <li>
+                  <div class="eventInfoTxt bolder white eventTokenInfo">
+                    <div class="asset_icon" [ngClass]="'token-'+event.asset_ticker.toLowerCase()"></div>
+                    {{ event.asset_name }}
+                    ({{ event.asset_ticker }})
+                  </div>
+                  <div class="eventInfoTxt--small">
+                    Created: {{ getDate(event.creation) }}
+                  </div>
+                </li>
+                <li>
+                  <div class="eventInfoTxt--small">
+                    “{{ token }}” Token success condition:
+                  </div>
+                  <div class="eventInfoTxt white bolder">
+                    {{ event.asset_ticker }}
+                    <span [ngClass]="getClass()">
+                      {{ getConditionText() }}
+                    </span>
+                    ${{ currencyFormat(event.condition_price) }}&nbsp;USD
+                  </div>
+                </li>
+                <li>
+                  <div class="eventInfoTxt--small">
+                    Event settlement date:
+                  </div>
+                  <div class="eventInfoTxt bolder white">
+                    {{ getDate(event.completion) }}
+                  </div>
+                </li>
+              </ul>
             </div>
-          </div>          
-      </ion-col>      
+
+            <div class="mintingFormWrap" *ngIf="(balance$ | async) as balance">
+
+              <div class="separator"></div>
+
+              <form [formGroup]="form">
+                <div class="formWrapper">
+
+                  <div class="form__item buffer">
+                    <div class="form__label">
+                      Input amount
+                      <div class="form__label-info">Balance: {{getTokenBalance(balance)}}</div>
+                    </div>
+                    <div class="form__input--wrapped">
+                      <!-- <ion-input class="form__input" type="number" formControlName="transfer_amount" placeholder="0.00"></ion-input> -->
+                      <input class="form__input" type="text" min="0" formControlName="transfer_amount"
+                        placeholder="0.00" [textMask]="{mask: tokenMask }" />
+                      <div class="form__input--token">“{{ token }}” Token</div>
+                    </div>
+
+                    <div *ngIf="hasError('transfer_amount', 'required')" class="standardInputErr">
+                      Amount is required
+                    </div>
+                    <div *ngIf="hasError('transfer_amount', 'min')" class="standardInputErr">
+                      Amount must be greater than 0
+                    </div>
+                  </div>
+
+                  <h2 class="eventHeader">
+                    Transfer to:
+                  </h2>
+
+                  <div class="form__item buffer">
+                    <div class="form__label">
+                      Input Recipient address
+                    </div>
+                    <ion-input class="form__input" type="text" formControlName="transfer_to"
+                      placeholder="0x000000...0000"></ion-input>
+                    <div *ngIf="hasError('transfer_to', 'invalid_address')" class="standardInputErr">
+                      Transfer address is not valid.
+                    </div>
+                    <div *ngIf="hasError('transfer_to', 'required')" class="standardInputErr">
+                      A valid transfer address is required.
+                    </div>
+                    <div *ngIf="hasError('transfer_to', 'maxlength')" class="standardInputErr">
+                      A valid transfer address must not be more than 42 chars, including 0x prefix.
+                    </div>
+                    <div *ngIf="hasError('transfer_to', 'minlength')" class="standardInputErr">
+                      A valid transfer address must be at least 42 chars, including 0x prefix.
+                    </div>
+                  </div>
+                </div>
+
+
+                <div class="form__item">
+                  <ion-button class="btnMint btnMint--lg bolder " [disabled]="form.invalid" type="submit"
+                    (click)="continue()">
+                    <span>Transfer “{{ token }}”</span>
+                  </ion-button>
+                </div>
+
+
+
+              </form>
+
+            </div>
+
+          </div>
+        </div>
+      </ion-col>
     </ion-row>
-    <ion-row>   
-      <ion-col>     
+    <ion-row>
+      <ion-col>
         <div class="back__button" (click)="goBack()">
           <div class="back__button--icon"></div>
           <span>Go back</span>
         </div>
-      </ion-col>      
-    </ion-row>       
+      </ion-col>
+    </ion-row>
   </ion-grid>
 </ion-content>

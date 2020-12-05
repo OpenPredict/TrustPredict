@@ -1,6 +1,4 @@
-<app-app-header
-  [modal_header]="modalHeader"
-  [modal_txt]="modalTxt">
+<app-app-header [modal_header]="modalHeader" [modal_txt]="modalTxt">
 </app-app-header>
 
 <ion-content>
@@ -9,137 +7,142 @@
       <ion-col>
         <div class="darkBox">
           <div class="eventOverview" *ngIf="(event$ | async) as event">
-              <h2 class="eventHeader bolder status-status">
-                EVENT OVERVIEW
-              </h2>
-              <div class="eventOverviewData"> 
-                <ul class="list-reset">
-                  <li>
-                    <div class="eventInfoTxt bolder white eventTokenInfo"> 
-                      <div class="asset_icon" [ngClass]="'token-'+event.asset_ticker.toLowerCase()"></div>
-                      {{ event.asset_name }}
-                      ({{ event.asset_ticker }})
-                    </div>     
-                    <div class="eventInfoTxt--small"> 
-                      Created: {{ getDate(event.creation) }}
-                    </div>                                    
-                  </li>
-                  <li>
-                    <div class="eventInfoTxt--small"> 
-                      Event success condition:
-                    </div>                
-                    <div class="eventInfoTxt bolder white"> 
-                      {{ event.asset_ticker }}
-                      <span [ngClass]="getClass(event.side)">
-                          {{ getConditionText(event.side) }}
-                      </span>
-                      ${{ currencyFormat(event.condition_price) }}&nbsp;USD
-                    </div>                     
-                  </li>  
-                  <li>
-                    <div class="eventInfoTxt--small"> 
-                      Event settlement date:
-                    </div>                
-                    <div class="eventInfoTxt bolder white"> 
-                      {{ getDate(event.completion) }}
-                    </div>                     
-                  </li> 
-                  <li>
-                    <div class="eventInfoTxt--small"> 
-                      Event value:
-                    </div>
-                    <div class="eventInfoTxt bolder white"> 
-                      ${{ event.staked_values[Token.IO] + event.staked_values[Token.O] }} USD (${{event.staked_values[Token.O]}} USD O Token, ${{event.staked_values[Token.IO]}} USD IO Token)
-                    </div>                     
-                  </li>                                    
-                </ul>
-              </div>
-              
-              <div class="eventOverviewData" *ngIf="(balance$ | async) as balance">
-                <ul class="list-reset mintOptionList">
-                  
-                  <li class="mintOption">
-                    <div class="mintOptionWrap border--green">
-                      <div class="mintOption--token bolder status-status">
-                        “{{getToken(Position.Left,event.side)}}” Token
-                      </div>
-                      <div class="eventInfoTxt highLow bolder status-green">
-                        Higher
-                      </div>                      
-                      <div class="eventInfoTxt--small">
-                        Current win ratio:
-                      </div>          
-                      <div class="eventInfoTxt bolder">
-                        {{getRatio(event.token_values,Position.Left,event.side)}}%
-                      </div>         
-                      
-                      <div class="eventInfoTxt--small divideBal">
-                        My balance:
-                      </div>          
-                      <div class="eventInfoTxt bolder">
-                        {{getTokenBalance(balance, Position.Left,event.side)}} “{{getToken(Position.Left,event.side)}}”
-                      </div>     
-                      
-                      <div class="eventInfoTxt--small eventInfoTransfer" (click)="continue(balance, getToken(Position.Left, event.side), Position.Left, 'transfer')">
-                        <div [ngClass]="getTransferClass(balance, Position.Left, event.side)">
-                          Transfer >
-                        </div>
-                      </div>                           
-                      
-                    </div>
-                    <ion-button *ngIf="event.status === Status.Staking" class="btnMint green bolder border--green" (click)="continue(balance, getToken(Position.Left, event.side), Position.Left, 'stake')">
-                      <span>Stake “{{getToken(Position.Left,event.side)}}”</span>
-                    </ion-button>
-                  </li>
-                  
-                  <li class="mintOption">
-                    <div class="mintOptionWrap border--red">
-                      <div class="mintOption--token bolder status-status">
-                        “{{getToken(Position.Right,event.side)}}” Token
-                      </div>
-                      <div class="eventInfoTxt highLow bolder status-red">
-                        Lower
-                      </div>                      
-                      <div class="eventInfoTxt--small">
-                        Current win ratio:
-                      </div>          
-                      <div class="eventInfoTxt bolder">
-                        {{getRatio(event.token_values,Position.Right,event.side)}}%
-                      </div>   
-                      
-                      <div class="eventInfoTxt--small divideBal">
-                        My balance:
-                      </div>          
-                      <div class="eventInfoTxt bolder">
-                        {{getTokenBalance(balance, Position.Right,event.side)}} “{{getToken(Position.Right,event.side)}}”
-                      </div>                         
-                      
-                      <div class="eventInfoTxt--small eventInfoTransfer" (click)="continue(balance, getToken(Position.Right, event.side), Position.Right, 'transfer')">
-                        <div [ngClass]="getTransferClass(balance, Position.Right, event.side)">
-                          Transfer >
-                        </div>
-                      </div>                         
-                      
-                    </div>
-                    <ion-button *ngIf="event.status === Status.Staking" class="btnMint red bolder border--red" (click)="continue(balance, getToken(Position.Right, event.side), Position.Right, 'stake')">
-                      <span>Stake “{{getToken(Position.Right, event.side)}}”</span>
-                    </ion-button>
-                  </li>                  
-                  
-                </ul>              
-              </div>
-              
+            <h2 class="eventHeader bolder status-status">
+              EVENT OVERVIEW
+            </h2>
+            <div class="eventOverviewData">
+              <ul class="list-reset">
+                <li>
+                  <div class="eventInfoTxt bolder white eventTokenInfo">
+                    <div class="asset_icon" [ngClass]="'token-'+event.asset_ticker.toLowerCase()"></div>
+                    {{ event.asset_name }}
+                    ({{ event.asset_ticker }})
+                  </div>
+                  <div class="eventInfoTxt--small">
+                    Created: {{ getDate(event.creation) }}
+                  </div>
+                </li>
+                <li>
+                  <div class="eventInfoTxt--small">
+                    Event success condition:
+                  </div>
+                  <div class="eventInfoTxt bolder white">
+                    {{ event.asset_ticker }}
+                    <span [ngClass]="getClass(event.side)">
+                      {{ getConditionText(event.side) }}
+                    </span>
+                    ${{ currencyFormat(event.condition_price) }}&nbsp;USD
+                  </div>
+                </li>
+                <li>
+                  <div class="eventInfoTxt--small">
+                    Event settlement date:
+                  </div>
+                  <div class="eventInfoTxt bolder white">
+                    {{ getDate(event.completion) }}
+                  </div>
+                </li>
+                <li>
+                  <div class="eventInfoTxt--small">
+                    Event value:
+                  </div>
+                  <div class="eventInfoTxt bolder white">
+                    ${{ event.staked_values[Token.IO] + event.staked_values[Token.O] }} USD
+                    (${{event.staked_values[Token.O]}} USD O Token, ${{event.staked_values[Token.IO]}} USD IO Token)
+                  </div>
+                </li>
+              </ul>
             </div>
-          </div>          
-      </ion-col>      
+
+            <div class="eventOverviewData" *ngIf="(balance$ | async) as balance">
+              <ul class="list-reset mintOptionList">
+
+                <li class="mintOption">
+                  <div class="mintOptionWrap border--green">
+                    <div class="mintOption--token bolder status-status">
+                      “{{getToken(Position.Left,event.side)}}” Token
+                    </div>
+                    <div class="eventInfoTxt highLow bolder status-green">
+                      Higher
+                    </div>
+                    <div class="eventInfoTxt--small">
+                      Current win ratio:
+                    </div>
+                    <div class="eventInfoTxt bolder">
+                      {{getRatio(event.token_values,Position.Left,event.side)}}%
+                    </div>
+
+                    <div class="eventInfoTxt--small divideBal">
+                      My balance:
+                    </div>
+                    <div class="eventInfoTxt bolder">
+                      {{getTokenBalance(balance, Position.Left,event.side)}} “{{getToken(Position.Left,event.side)}}”
+                    </div>
+
+                    <div class="eventInfoTxt--small eventInfoTransfer"
+                      (click)="continue(balance, getToken(Position.Left, event.side), Position.Left, 'transfer')">
+                      <div [ngClass]="getTransferClass(balance, Position.Left, event.side)">
+                        Transfer >
+                      </div>
+                    </div>
+
+                  </div>
+                  <ion-button *ngIf="event.status === Status.Staking" class="btnMint green bolder border--green"
+                    (click)="continue(balance, getToken(Position.Left, event.side), Position.Left, 'stake')">
+                    <span>Stake “{{getToken(Position.Left,event.side)}}”</span>
+                  </ion-button>
+                </li>
+
+                <li class="mintOption">
+                  <div class="mintOptionWrap border--red">
+                    <div class="mintOption--token bolder status-status">
+                      “{{getToken(Position.Right,event.side)}}” Token
+                    </div>
+                    <div class="eventInfoTxt highLow bolder status-red">
+                      Lower
+                    </div>
+                    <div class="eventInfoTxt--small">
+                      Current win ratio:
+                    </div>
+                    <div class="eventInfoTxt bolder">
+                      {{getRatio(event.token_values,Position.Right,event.side)}}%
+                    </div>
+
+                    <div class="eventInfoTxt--small divideBal">
+                      My balance:
+                    </div>
+                    <div class="eventInfoTxt bolder">
+                      {{getTokenBalance(balance, Position.Right,event.side)}} “{{getToken(Position.Right,event.side)}}”
+                    </div>
+
+                    <div class="eventInfoTxt--small eventInfoTransfer"
+                      (click)="continue(balance, getToken(Position.Right, event.side), Position.Right, 'transfer')">
+                      <div [ngClass]="getTransferClass(balance, Position.Right, event.side)">
+                        Transfer >
+                      </div>
+                    </div>
+
+                  </div>
+                  <ion-button *ngIf="event.status === Status.Staking" class="btnMint red bolder border--red"
+                    (click)="continue(balance, getToken(Position.Right, event.side), Position.Right, 'stake')">
+                    <span>Stake “{{getToken(Position.Right, event.side)}}”</span>
+                  </ion-button>
+                </li>
+
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </ion-col>
     </ion-row>
-    <ion-row>   
-      <ion-col>     
+    <ion-row>
+      <ion-col>
         <div class="back__button" (click)="goBack()">
           <div class="back__button--icon"></div>
           <span>Go back</span>
         </div>
-      </ion-col>      
-    </ion-row>       
+      </ion-col>
+    </ion-row>
   </ion-grid>
 </ion-content>

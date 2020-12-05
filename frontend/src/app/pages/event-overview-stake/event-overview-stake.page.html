@@ -1,6 +1,4 @@
-<app-app-header
-  [modal_header]="modalHeader"
-  [modal_txt]="modalTxt">
+<app-app-header [modal_header]="modalHeader" [modal_txt]="modalTxt">
 </app-app-header>
 
 <ion-content>
@@ -9,145 +7,134 @@
       <ion-col>
         <div class="darkBox">
           <div class="eventOverview" *ngIf="(event$ | async) as event">
-              <h2 class="eventHeader bolder status-status">
-                EVENT OVERVIEW
-              </h2>
-              <div class="eventOverviewData"> 
-                <ul class="list-reset">
-                  <li>
-                    <div class="eventInfoTxt bolder white eventTokenInfo"> 
-                      <div class="asset_icon" [ngClass]="'token-'+event.asset_ticker.toLowerCase()"></div>
-                      {{ event.asset_name }}
-                      ({{ event.asset_ticker }})
-                    </div>     
-                    <div class="eventInfoTxt--small"> 
-                      Created: {{ getDate(event.creation) }}
-                    </div>                                    
-                  </li>
-                  <li>
-                    <div class="eventInfoTxt--small"> 
-                      “{{ token }}” Token success condition:
-                    </div>                
-                    <div class="eventInfoTxt white bolder"> 
-                      {{ event.asset_ticker }}
-                      <span [ngClass]="getClass()">
-                          {{ getConditionText() }}
-                      </span>
-                      ${{ currencyFormat(event.condition_price) }}&nbsp;USD
-                    </div>                     
-                  </li>  
-                  <li>
-                    <div class="eventInfoTxt--small"> 
-                      Event settlement date:
-                    </div>                
-                    <div class="eventInfoTxt bolder white"> 
-                      {{ getDate(event.completion) }}
-                    </div>                     
-                  </li>                                    
-                </ul>
-              </div>
-              
-              <div class="mintingFormWrap"> 
-                
-                <div class="separator"></div>
-                
-                <form [formGroup]="form">     
-                  <div class="formWrapper">   
+            <h2 class="eventHeader bolder status-status">
+              EVENT OVERVIEW
+            </h2>
+            <div class="eventOverviewData">
+              <ul class="list-reset">
+                <li>
+                  <div class="eventInfoTxt bolder white eventTokenInfo">
+                    <div class="asset_icon" [ngClass]="'token-'+event.asset_ticker.toLowerCase()"></div>
+                    {{ event.asset_name }}
+                    ({{ event.asset_ticker }})
+                  </div>
+                  <div class="eventInfoTxt--small">
+                    Created: {{ getDate(event.creation) }}
+                  </div>
+                </li>
+                <li>
+                  <div class="eventInfoTxt--small">
+                    “{{ token }}” Token success condition:
+                  </div>
+                  <div class="eventInfoTxt white bolder">
+                    {{ event.asset_ticker }}
+                    <span [ngClass]="getClass()">
+                      {{ getConditionText() }}
+                    </span>
+                    ${{ currencyFormat(event.condition_price) }}&nbsp;USD
+                  </div>
+                </li>
+                <li>
+                  <div class="eventInfoTxt--small">
+                    Event settlement date:
+                  </div>
+                  <div class="eventInfoTxt bolder white">
+                    {{ getDate(event.completion) }}
+                  </div>
+                </li>
+              </ul>
+            </div>
 
-                    <h2 class="eventHeader">
-                      Choose asset and amount being staked for the Option
-                    </h2>
-                    
-                    <div class="form__item buffer"> 
-                      <div class="form__label"> 
-                        Select Asset
-                      </div>
-                      <ion-select class="form__input form__select" formControlName="option_asset" >
-                        <ion-select-option *ngFor="let t of availableOptions" [value]="t" >
-                          {{ t.name  }} ( {{ t.ticker  }} )
-                        </ion-select-option>
-                      </ion-select>                     
-                      <div *ngIf="hasError('option_asset', 'required')" class="standardInputErr">
-                        option_asset is required
-                      </div>                                      
-                    </div> 
-                    
-                    <div class="form__item buffer"> 
-                      <div class="form__label">
-                        Select amount 
-                        <div class="form__label-info" *ngIf="(opBalance$ | async) as opBalance">
-                          Max stake: {{ getMaxStake(opBalance) }} OPUSD
-                        </div>
-                        <div class="form__label-info" *ngIf="(stakingBalance$ | async) as stakingBalance">
-                          Balance: {{ getBalance(stakingBalance)}} OPUSD
-                        </div>
-                      </div>
-                      <input 
-                        class="form__input" 
-                        type="text" 
-                        min="0" 
-                        formControlName="option_stake" 
-                        placeholder="0.00" 
-                        [textMask]="{mask: dollarMask }" 
-                      />
-                    </div>                  
-                    
-                    <div class="winRatioEstimator"  [ngClass]="{'red': position === Position.Right, 'green': position === Position.Left}">
-                      <div class="winRatioEstimatorInner">
-                        <div class="eventInfoTxt--small"> 
-                          “{{ token }}” Token win ratio:
-                        </div>                
-                        <div class="eventInfoTxt bolder" *ngIf="(opBalance$ | async) as opBalance"> 
-                          {{getRatio(opBalance)}}%
-                        </div>                         
-                      </div>                       
+            <div class="mintingFormWrap">
+
+              <div class="separator"></div>
+
+              <form [formGroup]="form">
+                <div class="formWrapper">
+
+                  <h2 class="eventHeader">
+                    Choose asset and amount being staked for the Option
+                  </h2>
+
+                  <div class="form__item buffer">
+                    <div class="form__label">
+                      Select Asset
                     </div>
+                    <ion-select class="form__input form__select" formControlName="option_asset">
+                      <ion-select-option *ngFor="let t of availableOptions" [value]="t">
+                        {{ t.name  }} ( {{ t.ticker  }} )
+                      </ion-select-option>
+                    </ion-select>
+                    <div *ngIf="hasError('option_asset', 'required')" class="standardInputErr">
+                      option_asset is required
+                    </div>
+                  </div>
 
-                    <div class="form__item"> 
-                      <div class="checkboxSegment">   
-                        <div class="checkboxSegmentInner">
-                          <ion-checkbox 
-                          formControlName="agreedTerms" 
-                          color="eulaCheckboxes"
-                          slot="start">
-                        </ion-checkbox>   
+                  <div class="form__item buffer">
+                    <div class="form__label">
+                      Select amount
+                      <div class="form__label-info" *ngIf="(opBalance$ | async) as opBalance">
+                        Max stake: {{ getMaxStake(opBalance) }} OPUSD
+                      </div>
+                      <div class="form__label-info" *ngIf="(stakingBalance$ | async) as stakingBalance">
+                        Balance: {{ getBalance(stakingBalance)}} OPUSD
+                      </div>
+                    </div>
+                    <input class="form__input" type="text" min="0" formControlName="option_stake" placeholder="0.00"
+                      [textMask]="{mask: dollarMask }" />
+                  </div>
+
+                  <div class="winRatioEstimator"
+                    [ngClass]="{'red': position === Position.Right, 'green': position === Position.Left}">
+                    <div class="winRatioEstimatorInner">
+                      <div class="eventInfoTxt--small">
+                        “{{ token }}” Token win ratio:
+                      </div>
+                      <div class="eventInfoTxt bolder" *ngIf="(opBalance$ | async) as opBalance">
+                        {{getRatio(opBalance)}}%
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form__item">
+                    <div class="checkboxSegment">
+                      <div class="checkboxSegmentInner">
+                        <ion-checkbox formControlName="agreedTerms" color="eulaCheckboxes" slot="start">
+                        </ion-checkbox>
                         <div class="termsLink" (click)="openTnC()">
                           I agree to the <span class="status-status">Terms & Conditions</span>
-                        </div>                          
-                        </div>         
-                      </div>                    
-                    </div>                      
-                    
-                 
-                    
-                    <div class="form__item">                 
-                      <ion-button 
-                       [ngClass]="{'red border--red': position === Position.Right, 'green border--green': position === Position.Left}"
-                       class="btnMint btnMint--lg bolder "
-                       [disabled]="form.invalid" 
-                       type="submit"
-                       (click)="continue()">
-                          <span>Stake “{{ token }}”</span>
-                      </ion-button>
-                    </div>  
-                    
-                                      
+                        </div>
+                      </div>
                     </div>
-              </form>            
-                    
-              </div>
-              
+                  </div>
+
+
+
+                  <div class="form__item">
+                    <ion-button
+                      [ngClass]="{'red border--red': position === Position.Right, 'green border--green': position === Position.Left}"
+                      class="btnMint btnMint--lg bolder " [disabled]="form.invalid" type="submit" (click)="continue()">
+                      <span>Stake “{{ token }}”</span>
+                    </ion-button>
+                  </div>
+
+
+                </div>
+              </form>
+
             </div>
-          </div>          
-      </ion-col>      
+
+          </div>
+        </div>
+      </ion-col>
     </ion-row>
-    <ion-row>   
-      <ion-col>     
+    <ion-row>
+      <ion-col>
         <div class="back__button" (click)="goBack()">
           <div class="back__button--icon"></div>
           <span>Go back</span>
         </div>
-      </ion-col>      
-    </ion-row>       
+      </ion-col>
+    </ion-row>
   </ion-grid>
 </ion-content>
