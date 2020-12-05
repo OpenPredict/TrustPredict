@@ -8,29 +8,14 @@
       <ion-button size="large" color="primary" (click)="openEvents()">
         Events
       </ion-button>
-      <ion-button
-        *ngIf="showHelp"
-        size="large"
-        color="primary"
-        (click)="information()"
-      >
-        <ion-icon
-          class="btn-info"
-          src="/assets/img/information-circle-sharp.svg"
-          name="information-circle-sharp"
-        ></ion-icon>
+      <ion-button *ngIf="showHelp" size="large" color="primary" (click)="information()">
+        <ion-icon class="btn-info" src="/assets/img/information-circle-sharp.svg" name="information-circle-sharp">
+        </ion-icon>
       </ion-button>
-      <div
-        class="btnInner activeNetwork"
-        *ngIf="chainName && loggedIn$ | async"
-      >
+      <div class="btnInner activeNetwork" *ngIf="chainName && loggedIn$ | async">
         {{ chainName }}
       </div>
-      <button
-        class="btn btn-header btn-unlock"
-        *ngIf="loggedIn$ | async"
-        (click)="options()"
-      >
+      <button class="btn btn-header btn-unlock" *ngIf="loggedIn$ | async" (click)="options()">
         <div class="btnInner">
           <crypto-address-display [address]="address"></crypto-address-display>
         </div>

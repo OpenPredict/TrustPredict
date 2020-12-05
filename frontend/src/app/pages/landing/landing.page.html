@@ -1,9 +1,4 @@
-<app-app-header
-  #header
-  [modal_header]="modalHeader"
-  [modal_txt]="modalTxt"
-  [showHelp]="false"
->
+<app-app-header #header [modal_header]="modalHeader" [modal_txt]="modalTxt" [showHelp]="false">
 </app-app-header>
 
 <ion-content>
@@ -38,38 +33,20 @@
               <div class="formWrapper">
                 <div class="form__item buffer">
                   <div class="form__label">Select Asset</div>
-                  <ion-select
-                    class="form__input form__select"
-                    formControlName="asset"
-                  >
-                    <ion-select-option
-                      *ngFor="let p of availablePairs | keyvalue"
-                      [value]="p.value"
-                    >
+                  <ion-select class="form__input form__select" formControlName="asset">
+                    <ion-select-option *ngFor="let p of availablePairs | keyvalue" [value]="p.value">
                       {{ p.value.pair }}
                     </ion-select-option>
                   </ion-select>
-                  <div
-                    *ngIf="hasError('asset', 'required')"
-                    class="standardInputErr"
-                  >
+                  <div *ngIf="hasError('asset', 'required')" class="standardInputErr">
                     asset is required
                   </div>
                 </div>
                 <div class="form__item">
-                  <ion-button
-                    class="o-btn"
-                    [disabled]="form.invalid"
-                    type="submit"
-                    >Continue</ion-button
-                  >
+                  <ion-button class="o-btn" [disabled]="form.invalid" type="submit">Continue</ion-button>
                 </div>
                 <div class="form__item centered">
-                  <ion-button
-                    class="help-btn"
-                    size="small"
-                    (click)="information()"
-                  >
+                  <ion-button class="help-btn" size="small" (click)="information()">
                     Help
                   </ion-button>
                 </div>
