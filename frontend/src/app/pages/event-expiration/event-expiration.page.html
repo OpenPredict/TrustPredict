@@ -24,7 +24,7 @@
                 >
                 </ion-datetime> -->
                 <mat-form-field class="date-field">
-                  <input class="date-label" matInput [ngxMatDatetimePicker]="picker" placeholder="Select Date"
+                  <input class="date-label" matInput readonly [ngxMatDatetimePicker]="picker" placeholder="Select Date"
                     formControlName="expiration_date" [min]="min" [max]="maxDate" [disabled]="false" />
                   <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                   <ngx-mat-datetime-picker #picker [showSpinners]="true" [showSeconds]="false" [stepHour]="1"
