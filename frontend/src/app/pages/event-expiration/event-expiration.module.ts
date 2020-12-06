@@ -30,4 +30,4 @@ import { MatInputModule } from "@angular/material/input";
   ],
   declarations: [EventExpirationPage]
 })
-export class EventExpirationPageModule {}
+export class EventExpirationPageModule { }

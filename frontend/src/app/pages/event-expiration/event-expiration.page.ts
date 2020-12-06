@@ -8,12 +8,32 @@ import { FormBuilder, Validators } from "@angular/forms";
 import { OptionsStore } from "@app/services/option-service/option.service.store";
 import * as moment from "moment";
 import { ThemePalette } from "@angular/material/core";
-import { FormControl } from "@angular/forms";
+import {
+  NGX_MAT_DATE_FORMATS,
+  NgxMatDateAdapter
+} from "@angular-material-components/datetime-picker";
+import { NgxMatMomentAdapter } from '@angular-material-components/moment-adapter';
+
+export const CUSTOM_MOMENT_FORMATS = {
+  parse: {
+    dateInput: "l, LT"
+  },
+  display: {
+    dateInput: "lll",
+    monthYearLabel: "MMM YYYY",
+    dateA11yLabel: "LL",
+    monthYearA11yLabel: "MMMM YYYY"
+  }
+};
 
 @Component({
   selector: "app-event-expiration",
   templateUrl: "./event-expiration.page.html",
-  styleUrls: ["./event-expiration.page.scss"]
+  styleUrls: ["./event-expiration.page.scss"],
+  providers: [
+    { provide: NGX_MAT_DATE_FORMATS, useValue: CUSTOM_MOMENT_FORMATS },
+    { provide: NgxMatDateAdapter, useClass: NgxMatMomentAdapter },
+  ]
 })
 export class EventExpirationPage extends BaseForm implements OnInit {
   loading$: Observable<boolean>;
@@ -41,7 +61,7 @@ export class EventExpirationPage extends BaseForm implements OnInit {
   ) {
     super();
     this.form = this.fb.group({
-      expiration_date: [this.min, Validators.compose([Validators.required])]
+      expiration_date: [this.date, Validators.compose([Validators.required])]
     });
   }
 
