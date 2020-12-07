@@ -48,19 +48,19 @@
                 </div>
               </form>
               <div class="form__item buffer@20 asset__listLine">
-                <div *ngIf="pendingEvents$ | async; else loading" class="asset__list asset__list--hidden"
+                <div *ngIf="pendingEvents$ | async" class="asset__list asset__list--hidden"
                   [ngClass]="{'asset__list--active': activeEventType == 0 }">
                   <div class="asset_item" *ngFor="let e of pendingEvents$ | async" (click)="openEvent(e)">
                     <app-event-item [event]="e"></app-event-item>
                   </div>
                 </div>
-                <div *ngIf="activeEvents$ | async; else loading" class="asset__list asset__list--hidden"
+                <div *ngIf="activeEvents$ | async" class="asset__list asset__list--hidden"
                   [ngClass]="{'asset__list--active': activeEventType == 1 }">
                   <div class="asset_item" *ngFor="let e of activeEvents$ | async" (click)="openEvent(e)">
                     <app-event-item [event]="e"></app-event-item>
                   </div>
                 </div>
-                <div *ngIf="myEvents$ | async; else loading" class="asset__list asset__list--hidden"
+                <div *ngIf="myEvents$ | async" class="asset__list asset__list--hidden"
                   [ngClass]="{'asset__list--active': activeEventType == 2 }">
                   <div class="asset_item" *ngFor="let e of myEvents$ | async" (click)="openEvent(e)">
                     <app-event-item [event]="e"></app-event-item>
@@ -74,6 +74,7 @@
     </ion-row>
   </ion-grid>
 </ion-content>
-<ng-template #loading>
-  <mat-spinner></mat-spinner>
-</ng-template>
+<mat-spinner *ngIf="((activeEventType == 2) && ((myEvents$ | async) && (myEvents$ | async).length == 0)) ||
+                      ((activeEventType == 1) && ((activeEvents$ | async) && (activeEvents$ | async).length == 0)) || 
+                      ((activeEventType == 0) && ((pendingEvents$ | async) && (pendingEvents$ | async).length == 0))">
+</mat-spinner>
