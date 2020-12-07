@@ -24,6 +24,7 @@
 @import "~@ionic/angular/css/text-alignment.css";
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
+@import "~@angular/material/prebuilt-themes/deeppurple-amber.css";
 
 html, body {
     font-family: Montserrat, 'sans-serif';
@@ -831,4 +832,14 @@ button {
         background: #89F4ED;            
     }
                 
+}
+.mat-progress-spinner {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+.mat-progress-spinner circle, .mat-spinner circle {
+    stroke: #89F4ED !important;
+    stroke-width: 3% !important;
 }
