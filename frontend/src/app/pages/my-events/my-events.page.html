@@ -1,6 +1,4 @@
-<app-app-header
-  [modal_header]="modalHeader"
-  [modal_txt]="modalTxt">
+<app-app-header [modal_header]="modalHeader" [modal_txt]="modalTxt">
 </app-app-header>
 
 <ion-content>
@@ -10,68 +8,72 @@
         <div class="darkBox">
           <div class="assetOptions">
             <div class="assetOptions__nav">
-              <button class="assetOptions__option" *ngIf="(pendingEvents$ | async) as pendingEvents" 
-                   [ngClass]="{'assetOptions__selected': activeEventType == 0 }"
-                   (click)="displayEventType(0)"
-                   [disabled]="pendingEvents.length==0">
+              <button class="assetOptions__option" *ngIf="(pendingEvents$ | async) as pendingEvents"
+                [ngClass]="{'assetOptions__selected': activeEventType == 0 }" (click)="displayEventType(0)"
+                [disabled]="pendingEvents.length==0">
                 Pending Events
-              </button>     
+              </button>
               <button class="assetOptions__option" *ngIf="(activeEvents$ | async) as activeEvents"
-                   [ngClass]="{'assetOptions__selected': activeEventType == 1 }"
-                   (click)="displayEventType(1)"
-                   [disabled]="activeEvents.length==0">
+                [ngClass]="{'assetOptions__selected': activeEventType == 1 }" (click)="displayEventType(1)"
+                [disabled]="activeEvents.length==0">
                 Active Events
-              </button>     
+              </button>
               <button class="assetOptions__option" *ngIf="(myEvents$ | async) as myEvents"
-                   [ngClass]="{'assetOptions__selected': activeEventType == 2 }"
-                   (click)="displayEventType(2)"
-                   [disabled]="myEvents.length==0">
+                [ngClass]="{'assetOptions__selected': activeEventType == 2 }" (click)="displayEventType(2)"
+                [disabled]="myEvents.length==0">
                 My Events
-              </button>                                             
-            </div>                
-                <div class="formWrapper"> 
-                    
-                  <form [formGroup]="form">     
-                    <div class="form__item buffer@20"> 
-                      <div class="form__label"> 
-                        Select Event or input contract
-                      </div>
-                      <ion-input class="form__input" type="text" formControlName="event_id" placeholder="0x000000...0000"></ion-input>                     
-                      <div *ngIf="hasError('event_id', 'invalid_address')" class="standardInputErr">
-                        This event ID is not valid.
-                      </div>  
-                      <div *ngIf="hasError('event_id', 'required')" class="standardInputErr">
-                        A valid event ID is required.
-                      </div>
-                      <div *ngIf="hasError('event_id', 'maxlength')" class="standardInputErr">
-                        A valid event ID must not be more than 42 chars, including 0x prefix.
-                      </div>  
-                      <div *ngIf="hasError('event_id', 'minlength')" class="standardInputErr">
-                        A valid event ID must be at least 42 chars, including 0x prefix.
-                      </div>                                                                                        
-                    </div>                     
-                  </form>
-                  <div class="form__item buffer@20 asset__listLine"> 
-                    <div class="asset__list asset__list--hidden" [ngClass]="{'asset__list--active': activeEventType == 0 }">
-                      <div class="asset_item" *ngFor="let e of pendingEvents$ | async" (click)="openEvent(e)">
-                        <app-event-item [event]="e"></app-event-item>
-                      </div>                      
-                    </div>                     
-                    <div class="asset__list asset__list--hidden" [ngClass]="{'asset__list--active': activeEventType == 1 }">
-                      <div class="asset_item" *ngFor="let e of activeEvents$ | async" (click)="openEvent(e)">
-                        <app-event-item [event]="e"></app-event-item>
-                      </div>                      
-                    </div>                     
-                    <div class="asset__list asset__list--hidden" [ngClass]="{'asset__list--active': activeEventType == 2 }">
-                      <div class="asset_item" *ngFor="let e of myEvents$ | async" (click)="openEvent(e)">
-                        <app-event-item [event]="e"></app-event-item>
-                      </div>                      
-                    </div>                     
-                  </div>                    
+              </button>
+            </div>
+            <div class="formWrapper">
+
+              <form [formGroup]="form">
+                <div class="form__item buffer@20">
+                  <div class="form__label">
+                    Select Event or input contract
                   </div>
-          </div>          
-        </div> 
-      </ion-col>      
+                  <ion-input class="form__input" type="text" formControlName="event_id" placeholder="0x000000...0000">
+                  </ion-input>
+                  <div *ngIf="hasError('event_id', 'invalid_address')" class="standardInputErr">
+                    This event ID is not valid.
+                  </div>
+                  <div *ngIf="hasError('event_id', 'required')" class="standardInputErr">
+                    A valid event ID is required.
+                  </div>
+                  <div *ngIf="hasError('event_id', 'maxlength')" class="standardInputErr">
+                    A valid event ID must not be more than 42 chars, including 0x prefix.
+                  </div>
+                  <div *ngIf="hasError('event_id', 'minlength')" class="standardInputErr">
+                    A valid event ID must be at least 42 chars, including 0x prefix.
+                  </div>
+                </div>
+              </form>
+              <div class="form__item buffer@20 asset__listLine">
+                <div *ngIf="pendingEvents$ | async; else loading" class="asset__list asset__list--hidden"
+                  [ngClass]="{'asset__list--active': activeEventType == 0 }">
+                  <div class="asset_item" *ngFor="let e of pendingEvents$ | async" (click)="openEvent(e)">
+                    <app-event-item [event]="e"></app-event-item>
+                  </div>
+                </div>
+                <div *ngIf="activeEvents$ | async; else loading" class="asset__list asset__list--hidden"
+                  [ngClass]="{'asset__list--active': activeEventType == 1 }">
+                  <div class="asset_item" *ngFor="let e of activeEvents$ | async" (click)="openEvent(e)">
+                    <app-event-item [event]="e"></app-event-item>
+                  </div>
+                </div>
+                <div *ngIf="myEvents$ | async; else loading" class="asset__list asset__list--hidden"
+                  [ngClass]="{'asset__list--active': activeEventType == 2 }">
+                  <div class="asset_item" *ngFor="let e of myEvents$ | async" (click)="openEvent(e)">
+                    <app-event-item [event]="e"></app-event-item>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ion-col>
     </ion-row>
   </ion-grid>
 </ion-content>
+<ng-template #loading>
+  <mat-spinner></mat-spinner>
+</ng-template>
