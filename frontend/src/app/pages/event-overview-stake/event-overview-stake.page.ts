@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { untilDestroyed } from 'ngx-take-until-destroy';
 import { ActivatedRoute } from '@angular/router';
@@ -16,6 +16,7 @@ import { OpBalanceService } from '@app/services/op-balance-service/op-balance.se
 import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
 import { StakingBalanceQuery } from '@app/services/staking-balance-service/staking-balance.service.query';
 import { ethers } from 'ethers';
+import { AppHeaderComponent } from "@components/app-header/app-header.component";
 
 @Component({
   selector: 'app-event-overview-stake',
@@ -24,6 +25,7 @@ import { ethers } from 'ethers';
 })
 export class EventOverviewStakePage extends BaseForm implements OnInit {
 
+  @ViewChild("header") header: AppHeaderComponent;
   Position = Position;
   dollarMask = BaseForm.dollarMask;
 
@@ -76,65 +78,65 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     private opBalancesQuery: OpBalanceQuery,
     private stakingBalanceQuery: StakingBalanceQuery,
     private toastCtrl: ToastController) {
-      super();
-      this.availableOptions = this.optService.availableOptions;
+    super();
+    this.availableOptions = this.optService.availableOptions;
 
-      this.form = this.fb.group({
-        option_asset: [this.availableOptions[0], Validators.compose([Validators.required])],
-        option_stake: [null, Validators.compose([Validators.required])],
-        agreedTerms: [false, Validators.requiredTrue ],
-      });
+    this.form = this.fb.group({
+      option_asset: [this.availableOptions[0], Validators.compose([Validators.required])],
+      option_stake: [null, Validators.compose([Validators.required])],
+      agreedTerms: [false, Validators.requiredTrue],
+    });
 
-      // TODO add this back in when I figure out multi-subscribers
-      this.stakingBalance$.subscribe( stakingBalance => {
-        console.log('stakingBalance updated:' + JSON.stringify(stakingBalance));
-        console.log(this.getBalance(stakingBalance));
-        const nextStakingBalance = parseFloat( this.getBalance(stakingBalance));
-        this.lastStakingBalance = nextStakingBalance;
-        // return the lower of the two, assuming OpBalance has been set.
-        const maximum = (nextStakingBalance > this.lastOpBalance && this.lastOpBalance >= 0) ? this.lastOpBalance : nextStakingBalance;
+    // TODO add this back in when I figure out multi-subscribers
+    this.stakingBalance$.subscribe(stakingBalance => {
+      console.log('stakingBalance updated:' + JSON.stringify(stakingBalance));
+      console.log(this.getBalance(stakingBalance));
+      const nextStakingBalance = parseFloat(this.getBalance(stakingBalance));
+      this.lastStakingBalance = nextStakingBalance;
+      // return the lower of the two, assuming OpBalance has been set.
+      const maximum = (nextStakingBalance > this.lastOpBalance && this.lastOpBalance >= 0) ? this.lastOpBalance : nextStakingBalance;
 
-        this.form.get('option_stake').setValidators(
-            [CustomValidators.numberRange(0.01, maximum )]
-          );
-      });
+      this.form.get('option_stake').setValidators(
+        [CustomValidators.numberRange(0.01, maximum)]
+      );
+    });
 
-      this.opBalance$.subscribe( opBalance => {
-        console.log('opBalance updated:' + JSON.stringify(opBalance));
-        if (opBalance == undefined) {
-          this.balancesService.setBalance(this.balancesService.getID(this.eventId));
-          console.log('set empty opBalance');
-          return;
-        }
+    this.opBalance$.subscribe(opBalance => {
+      console.log('opBalance updated:' + JSON.stringify(opBalance));
+      if (opBalance == undefined) {
+        this.balancesService.setBalance(this.balancesService.getID(this.eventId));
+        console.log('set empty opBalance');
+        return;
+      }
 
-        const nextOpBalance = this.getMaxStake(opBalance);
-        this.lastOpBalance = nextOpBalance;
-        // return the lower of the two, assuming StakingBalance has been set.
-        const maximum = (nextOpBalance > this.lastStakingBalance && this.lastStakingBalance >= 0) ? nextOpBalance : nextOpBalance;
+      const nextOpBalance = this.getMaxStake(opBalance);
+      this.lastOpBalance = nextOpBalance;
+      // return the lower of the two, assuming StakingBalance has been set.
+      const maximum = (nextOpBalance > this.lastStakingBalance && this.lastStakingBalance >= 0) ? nextOpBalance : nextOpBalance;
 
-        this.form.get('option_stake').setValidators(
-            [CustomValidators.numberRange(0.01, maximum )]
-          );
-      });
-    }
+      this.form.get('option_stake').setValidators(
+        [CustomValidators.numberRange(0.01, maximum)]
+      );
+    });
+  }
 
   ngOnInit() {
     this.activatedRoute.paramMap.pipe(
-        map( params => params.get('eventId') ),
-        filter(id => !this.eventsQuery.hasEntity(id)),
-        untilDestroyed(this),
-        switchMap(id => this.eventsService.getEvent(id))
-      ).subscribe();
+      map(params => params.get('eventId')),
+      filter(id => !this.eventsQuery.hasEntity(id)),
+      untilDestroyed(this),
+      switchMap(id => this.eventsService.getEvent(id))
+    ).subscribe();
 
     this.activatedRoute.paramMap.pipe(
-        map( params => params.get('eventId') ),
-        filter(id => !this.opBalancesQuery.hasEntity(id)),
-        untilDestroyed(this),
-        switchMap(id => this.balancesService.getBalance(id))
-      ).subscribe();
+      map(params => params.get('eventId')),
+      filter(id => !this.opBalancesQuery.hasEntity(id)),
+      untilDestroyed(this),
+      switchMap(id => this.balancesService.getBalance(id))
+    ).subscribe();
   }
 
-  ngOnDestroy(){}
+  ngOnDestroy() { }
 
   async continue() {
     console.log('in continue');
@@ -143,14 +145,14 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     const selection = (this.token === 'IO') ? 0 : 1;
 
     try {
-     const interaction = await this.ui
-                             .loading(  this.eventsService.stake(eventId, numTokensStakedToMint, selection),
-                             'You will be prompted for 2 contract interactions, please approve both to successfully take part and please be patient as it may take a few moments to broadcast to the network.' )
-                             .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) );
+      const interaction = await this.ui
+        .loading(this.eventsService.stake(eventId, numTokensStakedToMint, selection),
+          'You will be prompted for 2 contract interactions, please approve both to successfully take part and please be patient as it may take a few moments to broadcast to the network.')
+        .catch(e => alert(`Error with contract interactions ${JSON.stringify(e)}`));
 
-     if (interaction) {
-      this.showStakeSuccess();
-    }
+      if (interaction) {
+        this.showStakeSuccess();
+      }
     } catch (error) {
       alert(`Error ! ${error}`);
     }
@@ -168,7 +170,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     return this.eventsService.getClass(this.position);
   }
 
-  getDate(timestamp: number){
+  getDate(timestamp: number) {
     return this.eventsService.timestampToDate(timestamp);
   }
 
@@ -183,10 +185,10 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     const factor = 2;
     const total = (balancesFormatted.OToken + balancesFormatted.IOToken);
     const minTokensMaxStake = minTokens / factor;
-    const     totalMaxStake =     total / factor;
+    const totalMaxStake = total / factor;
 
     const selection = (this.token === 'O') ? balancesFormatted.OToken : balancesFormatted.IOToken;
-    const     other = (this.token === 'O') ? balancesFormatted.IOToken : balancesFormatted.OToken;
+    const other = (this.token === 'O') ? balancesFormatted.IOToken : balancesFormatted.OToken;
 
     let result = 0;
     if (total < minTokens) {
@@ -195,8 +197,8 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
       result = (minTokensMaxStake < maxDifference) ? minTokensMaxStake : maxDifference;
     } else {
       let maxStake = (9 * other) - selection;
-      if (maxStake < 0)  { maxStake = 0; }
-      result =  (maxStake > totalMaxStake) ? totalMaxStake : maxStake;
+      if (maxStake < 0) { maxStake = 0; }
+      result = (maxStake > totalMaxStake) ? totalMaxStake : maxStake;
     }
 
     return Number(parseFloat((result * 100).toString()).toFixed(2)); // 100 OPUSD == 1 token
@@ -204,16 +206,16 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
 
 
 
-  getRatio(balances: any){
+  getRatio(balances: any) {
     //console.log('balances: ' + JSON.stringify(balances));
     const balancesFormatted = this.balancesService.format(balances);
 
     const selection = (this.token === 'IO') ? balancesFormatted.IOToken : balancesFormatted.OToken;
-    const other     = (this.token === 'IO') ? balancesFormatted.OToken : balancesFormatted.IOToken;
+    const other = (this.token === 'IO') ? balancesFormatted.OToken : balancesFormatted.IOToken;
 
     // (loser / winner) * 100
     return (selection == 0) ? '0.00' :
-           ((other * 1.0 / selection) * 100).toFixed(2);
+      ((other * 1.0 / selection) * 100).toFixed(2);
   }
 
   // replace with live terms and conditons url
@@ -229,13 +231,13 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
       message: 'Success ! Your stake has been placed.'
     });
     await toast.present();
-    setTimeout( async () => {
+    setTimeout(async () => {
       await toast.dismiss();
       this.navCtrl.navigateForward('/my-events');
     }, 2500);
   }
 
-  getBalance(stakingBalance): string{
+  getBalance(stakingBalance): string {
     return stakingBalance.entities[this.optionService.address] !== undefined
       ? this.parseAmount(stakingBalance.entities[this.optionService.address].balance)
       : '0.0';
@@ -245,5 +247,8 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     return (isNaN(amount)) ? '0.0' : parseFloat(ethers.utils.formatUnits(amount.toString())).toFixed(2);
   }
 
+  information() {
+    this.header.information();
+  }
 
 }

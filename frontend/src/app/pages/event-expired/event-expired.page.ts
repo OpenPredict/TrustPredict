@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { untilDestroyed } from 'ngx-take-until-destroy';
 import { ActivatedRoute } from '@angular/router';
@@ -9,6 +9,7 @@ import { UiService } from '@app/services/ui-service/ui.service';
 import { Position, Side } from '@app/data-model';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
+import { AppHeaderComponent } from "@components/app-header/app-header.component";
 
 @Component({
   selector: 'app-event-expired',
@@ -17,7 +18,7 @@ import { OpBalanceService } from '@app/services/op-balance-service/op-balance.se
 })
 export class EventExpiredPage implements OnInit {
 
-
+  @ViewChild("header") header: AppHeaderComponent;
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
   }
@@ -42,33 +43,33 @@ export class EventExpiredPage implements OnInit {
     private authQuery: AuthQuery,
     private toastCtrl: ToastController,
     private ui: UiService) {
-      console.log('created');
-      this.hasBalanceInAnyToken();
-    }
+    console.log('created');
+    this.hasBalanceInAnyToken();
+  }
 
   ngOnInit() {
     this.activatedRoute.paramMap.pipe(
-        map( params => params.get('eventId') ),
-        filter(id => !this.eventsQuery.hasEntity(id)),
-        untilDestroyed(this),
-        switchMap(id => this.eventService.getEvent(id))
-      ).subscribe();
+      map(params => params.get('eventId')),
+      filter(id => !this.eventsQuery.hasEntity(id)),
+      untilDestroyed(this),
+      switchMap(id => this.eventService.getEvent(id))
+    ).subscribe();
   }
 
-  ngOnDestroy(){}
+  ngOnDestroy() { }
 
   async continue() {
     const eventId = this.activatedRoute.snapshot.params.eventId;
 
     try {
-     const interaction = await this.ui
-                             .loading(  this.eventService.revoke(eventId),
-                             'You will be prompted for 2 contract interactions, please approve both to successfully take part and please be patient as it may take a few moments to broadcast to the network.' )
-                             .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) );
+      const interaction = await this.ui
+        .loading(this.eventService.revoke(eventId),
+          'You will be prompted for 2 contract interactions, please approve both to successfully take part and please be patient as it may take a few moments to broadcast to the network.')
+        .catch(e => alert(`Error with contract interactions ${JSON.stringify(e)}`));
 
-     if (interaction) {
-      this.showRevokeSuccess();
-    }
+      if (interaction) {
+        this.showRevokeSuccess();
+      }
     } catch (error) {
       alert(`Error ! ${error}`);
     }
@@ -90,7 +91,7 @@ export class EventExpiredPage implements OnInit {
     return this.eventService.getToken(position, betSide);
   }
 
-  getDate(timestamp: number){
+  getDate(timestamp: number) {
     return this.eventService.timestampToDate(timestamp);
   }
 
@@ -106,7 +107,7 @@ export class EventExpiredPage implements OnInit {
       message: 'Success ! Your deposit has been withdrawn.'
     });
     await toast.present();
-    setTimeout( async () => {
+    setTimeout(async () => {
       await toast.dismiss();
       this.navCtrl.navigateForward('/my-events');
     }, 2500);
@@ -117,5 +118,7 @@ export class EventExpiredPage implements OnInit {
     return balancesFormatted.IOToken > 0 || balancesFormatted.OToken > 0;
   }
 
-
+  information() {
+    this.header.information();
+  }
 }
