@@ -8,7 +8,7 @@
       <ion-button size="large" color="primary" (click)="openEvents()">
         Events
       </ion-button>
-      <ion-button size="large" color="primary" (click)="information()">
+      <ion-button *ngIf="showHelp" size="large" color="primary" (click)="information()">
         <ion-icon class="btn-info" src="/assets/img/information-circle-sharp.svg" name="information-circle-sharp">
         </ion-icon>
       </ion-button>
