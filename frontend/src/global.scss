@@ -776,6 +776,14 @@ button {
     stroke: #89F4ED !important;
     stroke-width: 3% !important;
 }
+.centered {
+  text-align: center !important;
+}
+.help-btn {
+  margin-top: 10px;
+  --background: transparent !important;
+  --color: #89f4ed !important;
+}
 .alert-radio-group::-webkit-scrollbar,
 .alert-checkbox-group::-webkit-scrollbar {
   width: 1em;
