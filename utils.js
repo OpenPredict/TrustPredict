@@ -7,7 +7,7 @@ module.exports = {
             provider : new ethers.providers.JsonRpcProvider("http://" + truffleConfig.networks.development.host + ":" + truffleConfig.networks.development.port.toString()),
             //eventPeriod
             depositPeriodSeconds : 10,
-            eventPeriodSeconds : 15,
+            eventPeriodSeconds : 20,
             secret: truffleConfig.networks.development.secret
         },
         'kovan': {
