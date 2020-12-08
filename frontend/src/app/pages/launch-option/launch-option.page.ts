@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { OptionService } from '@services/option-service/option.service';
 import { NavController, ToastController } from '@ionic/angular';
 import { OptionQuery } from '@services/option-service/option.service.query';
@@ -13,6 +13,7 @@ import createNumberMask from 'text-mask-addons/dist/createNumberMask';
 import { CustomValidators } from '@app/helpers/CustomValidators';
 import { StakingBalanceQuery } from '@app/services/staking-balance-service/staking-balance.service.query';
 import { ethers } from 'ethers';
+import { AppHeaderComponent } from "@components/app-header/app-header.component";
 
 @Component({
   selector: 'app-launch-option',
@@ -21,6 +22,7 @@ import { ethers } from 'ethers';
 })
 export class LaunchOptionPage extends BaseForm implements OnInit {
 
+  @ViewChild("header") header: AppHeaderComponent;
   loading$: Observable<boolean>;
   stakingBalance$ = this.stakingBalanceQuery.select();
 
@@ -144,6 +146,10 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
     this.form.patchValue({
       option_stake: this.maxStake.toString()
     });
+  }
+  
+  information() {
+    this.header.information();
   }
 
 }
