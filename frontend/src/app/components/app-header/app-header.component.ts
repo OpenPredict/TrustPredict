@@ -1,22 +1,30 @@
-import { ChangeDetectorRef, Component, Input, NgZone, OnInit, SimpleChanges } from '@angular/core';
-import { AuthQuery } from '@app/services/auth-service/auth.service.query';
-import { ModalController, NavController } from '@ionic/angular';
-import { Observable } from 'rxjs';
+import {
+  ChangeDetectorRef,
+  Component,
+  Input,
+  NgZone,
+  OnInit,
+  SimpleChanges
+} from "@angular/core";
+import { AuthQuery } from "@app/services/auth-service/auth.service.query";
+import { ModalController, NavController } from "@ionic/angular";
+import { Observable } from "rxjs";
 import { InformationModalComponent } from "@components/information-modal/information-modal.component";
 import { WalletOptionsModalComponent } from '@components/wallet-options-modal/wallet-options-modal.component';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-app-header',
-  templateUrl: './app-header.component.html',
-  styleUrls: ['./app-header.component.scss'],
+  selector: "app-app-header",
+  templateUrl: "./app-header.component.html",
+  styleUrls: ["./app-header.component.scss"]
 })
 export class AppHeaderComponent implements OnInit {
-
   loggedIn$: Observable<boolean> = this.authQuery.select(user => !!user.wallet);
   address: string;
   @Input() modal_header: string;
   @Input() modal_txt: string;
+  @Input() showHelp: boolean = true;
+
   chainName: any;
 
   constructor(
@@ -41,15 +49,15 @@ export class AppHeaderComponent implements OnInit {
   }
 
   openOptions() {
-    this.navCtrl.navigateForward('landing');
+    this.navCtrl.navigateForward("landing");
   }
 
   openEvents() {
-    this.navCtrl.navigateForward('my-events');
+    this.navCtrl.navigateForward("my-events");
   }
 
   openEventsFinished() {
-    this.navCtrl.navigateForward('event-completed');
+    this.navCtrl.navigateForward("event-completed");
   }
 
   async information() {
@@ -57,10 +65,10 @@ export class AppHeaderComponent implements OnInit {
       const modalOpts = {
         component: InformationModalComponent,
         componentProps: {
-          "modal_header": this.modal_header,
-          "modal_txt": this.modal_txt,
+          modal_header: this.modal_header,
+          modal_txt: this.modal_txt
         },
-        cssClass: 'opt-modal',
+        cssClass: "opt-modal"
       };
       const modal: HTMLIonModalElement = await this.modalCtrl.create(modalOpts);
       await modal.present();
@@ -78,9 +86,8 @@ export class AppHeaderComponent implements OnInit {
     try {
       const modalOpts = {
         component: WalletOptionsModalComponent,
-        componentProps: {
-        },
-        cssClass: 'deposit-modal',
+        componentProps: {},
+        cssClass: "deposit-modal"
       };
       const modal: HTMLIonModalElement = await this.modalCtrl.create(modalOpts);
       await modal.present();
