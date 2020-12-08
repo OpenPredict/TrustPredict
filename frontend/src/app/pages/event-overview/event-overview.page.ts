@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { untilDestroyed } from 'ngx-take-until-destroy';
 import { ActivatedRoute } from '@angular/router';
@@ -10,6 +10,7 @@ import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
 import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
 import { OptionService } from '@app/services/option-service/option.service';
+import { AppHeaderComponent } from "@components/app-header/app-header.component";
 
 @Component({
   selector: 'app-event-overview',
@@ -18,6 +19,7 @@ import { OptionService } from '@app/services/option-service/option.service';
 })
 export class EventOverviewPage implements OnInit, OnDestroy {
 
+  @ViewChild("header") header: AppHeaderComponent;
   public Position = Position;
   public Status = Status;
   public Token = Token;
@@ -48,24 +50,24 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     private balancesService: OpBalanceService,
     private balancesQuery: OpBalanceQuery,
     private authQuery: AuthQuery) {
-      console.log('setting subscriber..');
-      this.balance$.subscribe( res => {
-        console.log('balance updated:' + JSON.stringify(res));
-        if (res == undefined) {
-          this.balancesService.setBalance(this.balancesService.getID(this.eventId));
-          console.log('set empty balances');
-        }
-      });
-      this.event$.subscribe( res => console.log('event updated:' + JSON.stringify(res)) );
-    }
+    console.log('setting subscriber..');
+    this.balance$.subscribe(res => {
+      console.log('balance updated:' + JSON.stringify(res));
+      if (res == undefined) {
+        this.balancesService.setBalance(this.balancesService.getID(this.eventId));
+        console.log('set empty balances');
+      }
+    });
+    this.event$.subscribe(res => console.log('event updated:' + JSON.stringify(res)));
+  }
 
   ngOnInit() {
     this.activatedRoute.paramMap.pipe(
-        map( params => params.get('eventId') ),
-        filter(id => !this.eventsQuery.hasEntity(id)),
-        untilDestroyed(this),
-        switchMap(id => this.eventsService.getEvent(id))
-      ).subscribe();
+      map(params => params.get('eventId')),
+      filter(id => !this.eventsQuery.hasEntity(id)),
+      untilDestroyed(this),
+      switchMap(id => this.eventsService.getEvent(id))
+    ).subscribe();
 
     // this.activatedRoute.paramMap.pipe(
     //     map( params => params.get('eventId') ),
@@ -75,7 +77,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     //   ).subscribe();
   }
 
-  ngOnDestroy(){}
+  ngOnDestroy() { }
 
   goBack() {
     this.navCtrl.back();
@@ -97,7 +99,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     return this.eventsService.getToken(position, betSide);
   }
 
-  getDate(timestamp: number){
+  getDate(timestamp: number) {
     return this.eventsService.timestampToDate(timestamp);
   }
 
@@ -105,7 +107,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     return this.eventsService.currencyFormat(price);
   }
 
-  getTokenBalance(balances: any, position: Position, betSide: Side): any{
+  getTokenBalance(balances: any, position: Position, betSide: Side): any {
     // console.log('balances: ' + JSON.stringify(balances));
     // console.log('token selection: ' + this.eventsService.getToken(position, betSide));
     const balancesFormatted = this.balancesService.format(balances);
@@ -113,7 +115,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     return parseFloat(balance.toString()).toFixed(2);
   }
 
-  getRatio(balances: any, position: Position, betSide: Side){
+  getRatio(balances: any, position: Position, betSide: Side) {
 
     // console.log('balances: ' + JSON.stringify(balances));
     // console.log('token selection: ' + this.eventsService.getToken(position, betSide));
@@ -124,7 +126,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
 
     // (loser / winner) * 100
     return (selection === 0) ? '0.00' :
-           ((other * 1.0 / selection) * 100).toFixed(2);
+      ((other * 1.0 / selection) * 100).toFixed(2);
   }
 
 
@@ -137,11 +139,15 @@ export class EventOverviewPage implements OnInit, OnDestroy {
   continue(balances: any, token: string, position: Position, option: string): void {
     const balancesFormatted = this.balancesService.format(balances);
     const selection = (token === 'IO') ? balancesFormatted.IOToken : balancesFormatted.OToken;
-    if (option === 'transfer' && selection == 0){
+    if (option === 'transfer' && selection == 0) {
       return;
     }
     (option === 'stake') ? this.navCtrl.navigateForward(`/event-overview-stake/${this.eventId}/${token}/${position}`) :
-    (option === 'transfer') ? this.navCtrl.navigateForward(`/transfer-token/${this.eventId}/${token}/${position}`) : '';
+      (option === 'transfer') ? this.navCtrl.navigateForward(`/transfer-token/${this.eventId}/${token}/${position}`) : '';
+  }
+
+  information() {
+    this.header.information();
   }
 
 }
