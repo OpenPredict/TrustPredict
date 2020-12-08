@@ -1,3 +1,4 @@
+
 import { Component, OnInit } from "@angular/core";
 import { OptionService } from "@services/option-service/option.service";
 import { NavController } from "@ionic/angular";
@@ -8,6 +9,7 @@ import { FormBuilder, Validators } from "@angular/forms";
 import { OptionsStore } from "@app/services/option-service/option.service.store";
 import * as moment from "moment";
 import { ThemePalette } from "@angular/material/core";
+import { AppHeaderComponent } from "@components/app-header/app-header.component";
 import {
   NGX_MAT_DATE_FORMATS,
   NgxMatDateAdapter
@@ -36,7 +38,9 @@ export const CUSTOM_MOMENT_FORMATS = {
   ]
 })
 export class EventExpirationPage extends BaseForm implements OnInit {
+
   loading$: Observable<boolean>;
+  @ViewChild("header") header: AppHeaderComponent;
 
   min: string;
 
@@ -86,5 +90,9 @@ export class EventExpirationPage extends BaseForm implements OnInit {
 
   goBack() {
     this.navCtrl.back();
+  }
+
+  information() {
+    this.header.information();
   }
 }
