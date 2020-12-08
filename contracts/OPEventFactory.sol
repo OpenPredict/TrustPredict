@@ -43,14 +43,13 @@ contract OPEventFactory {
                 "OPEventFactory: Chosen bet price is negative.");
     }
 
-    function _validEventPeriod(uint _eventPeriod) view internal {
+    function _validEventSettlementTime(uint _eventSettlementTime) view internal {
         // require that event takes place within maxEventPeriod time
-        uint _endTime = SafeMath.add(block.timestamp, _eventPeriod);
-        require(SafeMath.add(block.timestamp, maxEventPeriod) > _endTime, 
+        require(SafeMath.add(block.timestamp, maxEventPeriod) > _eventSettlementTime,
                 "OPEventFactory: event end is out of bounds");
 
-        // require that event end happens after deposit period
-        require(SafeMath.add(block.timestamp, Utils.GetDepositPeriod()) < _endTime, 
+        // require that event end happens after deposit period (also verifies that eventSettlement date is in the future)
+        require(SafeMath.add(block.timestamp, Utils.GetDepositPeriod()) < _eventSettlementTime,
                 "OPEventFactory: event initiation is out of bounds"); 
     }
     
@@ -126,14 +125,14 @@ contract OPEventFactory {
     // ************************************ start external functions ****************************************************
     function createOPEvent(int _betPrice, 
                            int8 _betSide, 
-                           uint _eventPeriod,
+                           uint _eventSettlementTime,
                            uint numTokensToMint,
                            address _priceAggregator)
             external
             returns(bool)
     {
         _validBetPrice(_betPrice);
-        _validEventPeriod(_eventPeriod);
+        _validEventSettlementTime(_eventSettlementTime);
         _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
         _correctPredictionAmount(address(0), numTokensToMint, true);
 
@@ -147,7 +146,7 @@ contract OPEventFactory {
         EventData memory data;
         data.betPrice = _betPrice;
         data.betSide = Utils.Side(_betSide);
-        data.endTime = block.timestamp + _eventPeriod;
+        data.endTime = _eventSettlementTime;
         data.startTime = block.timestamp + Utils.GetDepositPeriod();
         data.priceAggregator = _priceAggregator;
         data.creator = msg.sender;

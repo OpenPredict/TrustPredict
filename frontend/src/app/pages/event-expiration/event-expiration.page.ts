@@ -53,9 +53,7 @@ export class EventExpirationPage extends BaseForm implements OnInit {
   public color: ThemePalette = "primary";
 
   constructor(
-    private fb: FormBuilder,
-    private optService: OptionService,
-    private optQry: OptionQuery,
+    private fb: FormBuilder, 
     private optStr: OptionsStore,
     public navCtrl: NavController
   ) {
@@ -76,9 +74,9 @@ export class EventExpirationPage extends BaseForm implements OnInit {
     }
     try {
       const expiry = this.form.controls["expiration_date"].value;
-      const a = moment();
-      const b = moment(expiry);
-      const seconds = a.diff(b, "seconds");
+      console.log(expiry);
+      const seconds = moment(expiry).seconds(0).milliseconds(0).unix();
+      console.log('seconds: ' + seconds);
       this.optStr.upsert(1, { expiration_date: Number(Math.abs(seconds)) });
       this.navCtrl.navigateForward([`/launch-option`]);
     } catch (error) {
