@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { OptionService } from '@services/option-service/option.service';
 import { NavController, ToastController } from '@ionic/angular';
 import { OptionQuery } from '@services/option-service/option.service.query';
@@ -13,6 +13,7 @@ import createNumberMask from 'text-mask-addons/dist/createNumberMask';
 import { CustomValidators } from '@app/helpers/CustomValidators';
 import { StakingBalanceQuery } from '@app/services/staking-balance-service/staking-balance.service.query';
 import { ethers } from 'ethers';
+import { AppHeaderComponent } from "@components/app-header/app-header.component";
 
 @Component({
   selector: 'app-launch-option',
@@ -21,6 +22,7 @@ import { ethers } from 'ethers';
 })
 export class LaunchOptionPage extends BaseForm implements OnInit {
 
+  @ViewChild("header") header: AppHeaderComponent;
   loading$: Observable<boolean>;
   stakingBalance$ = this.stakingBalanceQuery.select();
 
@@ -54,61 +56,61 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
     private crypto: CryptoService,
     public navCtrl: NavController,
     public stakingBalanceQuery: StakingBalanceQuery) {
-      super();
+    super();
 
-      this.availableOptions = this.optionService.availableOptions;
+    this.availableOptions = this.optionService.availableOptions;
 
-      this.form = this.fb.group({
-        option_asset: [this.availableOptions[0], Validators.compose([Validators.required])],
-        option_stake: [null, Validators.compose([Validators.required])],
-      });
+    this.form = this.fb.group({
+      option_asset: [this.availableOptions[0], Validators.compose([Validators.required])],
+      option_stake: [null, Validators.compose([Validators.required])],
+    });
 
-      this.stakingBalance$.subscribe( stakingBalance => {
-        //console.log('stakingBalance updated:' + JSON.stringify(stakingBalance));
+    this.stakingBalance$.subscribe(stakingBalance => {
+      //console.log('stakingBalance updated:' + JSON.stringify(stakingBalance));
 
-        const maxEntry = parseFloat(this.getBalance(stakingBalance)) < this.maxStake ?
-                       parseFloat(this.getBalance(stakingBalance)) : this.maxStake;
+      const maxEntry = parseFloat(this.getBalance(stakingBalance)) < this.maxStake ?
+        parseFloat(this.getBalance(stakingBalance)) : this.maxStake;
 
-        this.form.get('option_stake').setValidators(
-            [CustomValidators.numberRange(1, maxEntry)]
-          );
-      });
-    }
+      this.form.get('option_stake').setValidators(
+        [CustomValidators.numberRange(1, maxEntry)]
+      );
+    });
+  }
 
-  ngOnInit() {}
+  ngOnInit() { }
 
   async continue() {
 
-      const option_asset = this.form.controls['option_asset'].value;
-      const option_stake = BaseForm.transformAmount(this.form.controls['option_stake'].value);
-      const item = { option_asset: option_asset.pair_contract, option_stake };
-      this.optStr.upsert(1, item); // update the state object first
+    const option_asset = this.form.controls['option_asset'].value;
+    const option_stake = BaseForm.transformAmount(this.form.controls['option_stake'].value);
+    const item = { option_asset: option_asset.pair_contract, option_stake };
+    this.optStr.upsert(1, item); // update the state object first
 
-      const currentOptions = this.optQry.getAll();
-      const betSide = currentOptions[0].condition;
-      const eventPeriod = currentOptions[0].expiration_date;
-      const numTokensStakedToMint = currentOptions[0].option_stake;
-      const rawBetPrice = currentOptions[0].condition_price;
-      const pairContract = currentOptions[0].pair_contract;
+    const currentOptions = this.optQry.getAll();
+    const betSide = currentOptions[0].condition;
+    const eventPeriod = currentOptions[0].expiration_date;
+    const numTokensStakedToMint = currentOptions[0].option_stake;
+    const rawBetPrice = currentOptions[0].condition_price;
+    const pairContract = currentOptions[0].pair_contract;
 
-      console.log('betSide: ' + betSide);
-      console.log('eventPeriod: ' + eventPeriod);
-      console.log('numTokensStakedToMint: ' + numTokensStakedToMint);
-      console.log('rawBetPrice: ' + rawBetPrice);
-      console.log('pairContract: ' + pairContract);
+    console.log('betSide: ' + betSide);
+    console.log('eventPeriod: ' + eventPeriod);
+    console.log('numTokensStakedToMint: ' + numTokensStakedToMint);
+    console.log('rawBetPrice: ' + rawBetPrice);
+    console.log('pairContract: ' + pairContract);
 
-      try {
-       const interaction = await this.ui
-                               .loading(  this.opEvent.launchEvent(rawBetPrice, betSide, eventPeriod, numTokensStakedToMint, pairContract),
-                               'You will be prompted for 3 contract interactions, please approve all to successfully take part and please be patient as it may take a few moments to broadcast to the network.' )
-                               .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) );
+    try {
+      const interaction = await this.ui
+        .loading(this.opEvent.launchEvent(rawBetPrice, betSide, eventPeriod, numTokensStakedToMint, pairContract),
+          'You will be prompted for 3 contract interactions, please approve all to successfully take part and please be patient as it may take a few moments to broadcast to the network.')
+        .catch(e => alert(`Error with contract interactions ${JSON.stringify(e)}`));
 
-       if (interaction) {
-           this.showWagerSuccess();
-        }
-      } catch (error) {
-        alert(`Error ! ${error}`);
+      if (interaction) {
+        this.showWagerSuccess();
       }
+    } catch (error) {
+      alert(`Error ! ${error}`);
+    }
   }
 
   goBack() {
@@ -123,14 +125,14 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
       message: 'Success ! Your wager has been placed'
     });
     await toast.present();
-    setTimeout( async () => {
+    setTimeout(async () => {
       await toast.dismiss();
       this.navCtrl.navigateForward('/my-events');
     }, 2500);
   }
 
 
-  getBalance(stakingBalance): string{
+  getBalance(stakingBalance): string {
     return stakingBalance.entities[this.optionService.address] !== undefined
       ? this.parseAmount(stakingBalance.entities[this.optionService.address].balance)
       : '0.0';
@@ -138,6 +140,10 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
 
   parseAmount(amount): string {
     return (isNaN(amount)) ? '0.0' : parseFloat(ethers.utils.formatUnits(amount.toString())).toFixed(2);
+  }
+
+  information() {
+    this.header.information();
   }
 
 }

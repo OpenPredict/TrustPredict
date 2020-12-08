@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { untilDestroyed } from 'ngx-take-until-destroy';
 import { ActivatedRoute } from '@angular/router';
@@ -10,6 +10,7 @@ import { Side, Token } from '@app/data-model';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
 import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
+import { AppHeaderComponent } from "@components/app-header/app-header.component";
 
 @Component({
   selector: 'app-event-settled',
@@ -18,6 +19,7 @@ import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.serv
 })
 export class EventSettledPage implements OnInit {
 
+  @ViewChild("header") header: AppHeaderComponent;
   modalHeader = 'Settled Event';
   modalTxt = `
     <p>
@@ -46,42 +48,42 @@ export class EventSettledPage implements OnInit {
     private authQuery: AuthQuery,
     public toastCtrl: ToastController,
     private ui: UiService) {
-      console.log('created');
-      this.balance$.subscribe( balance => {
-        console.log('balance updated:' + JSON.stringify(balance));
-        if (balance == undefined) {
-          this.balancesService.setBalance(this.balancesService.getID(this.eventId));
-          console.log('set empty balances');
-        }
-      });
-    }
+    console.log('created');
+    this.balance$.subscribe(balance => {
+      console.log('balance updated:' + JSON.stringify(balance));
+      if (balance == undefined) {
+        this.balancesService.setBalance(this.balancesService.getID(this.eventId));
+        console.log('set empty balances');
+      }
+    });
+  }
 
   ngOnInit() {
     this.activatedRoute.paramMap.pipe(
-        map( params => params.get('eventId') ),
-        filter(id => !this.eventsQuery.hasEntity(id)),
-        untilDestroyed(this),
-        switchMap(id => this.eventsService.getEvent(id))
-      ).subscribe();
+      map(params => params.get('eventId')),
+      filter(id => !this.eventsQuery.hasEntity(id)),
+      untilDestroyed(this),
+      switchMap(id => this.eventsService.getEvent(id))
+    ).subscribe();
 
     this.activatedRoute.paramMap.pipe(
-        map( params => params.get('eventId') ),
-        filter(id => !this.balancesQuery.hasEntity(id)),
-        untilDestroyed(this),
-        switchMap(id => this.balancesService.getBalance(id))
-      ).subscribe();
+      map(params => params.get('eventId')),
+      filter(id => !this.balancesQuery.hasEntity(id)),
+      untilDestroyed(this),
+      switchMap(id => this.balancesService.getBalance(id))
+    ).subscribe();
   }
 
-  ngOnDestroy(){}
+  ngOnDestroy() { }
 
   async continue() {
     const eventId = this.activatedRoute.snapshot.params.eventId;
 
     try {
       const interaction = await this.ui
-                             .loading(  this.eventsService.claim(eventId),
-                             'You will be prompted for 1 contract interaction, please approve it and be patient as it may take a few moments to broadcast to the network.' )
-                             .catch( e => alert(`Error with contract interactions ${JSON.stringify(e)}`) );
+        .loading(this.eventsService.claim(eventId),
+          'You will be prompted for 1 contract interaction, please approve it and be patient as it may take a few moments to broadcast to the network.')
+        .catch(e => alert(`Error with contract interactions ${JSON.stringify(e)}`));
 
       if (interaction) {
         this.showClaimSuccess();
@@ -118,7 +120,7 @@ export class EventSettledPage implements OnInit {
     return (winner === Token.O) ? 'O' : 'IO';
   }
 
-  getDate(timestamp: number){
+  getDate(timestamp: number) {
     return this.eventsService.timestampToDate(timestamp);
   }
 
@@ -133,7 +135,7 @@ export class EventSettledPage implements OnInit {
     return winner > 0;
   }
 
-  getTokenBalance(balances: any){
+  getTokenBalance(balances: any) {
     const balancesFormatted = this.balancesService.format(balances);
     console.log('balancesFormatted: ' + balancesFormatted);
     const winner = (this.eventsService.events[this.eventId].winner === 0) ? balancesFormatted.IOToken : balancesFormatted.OToken;
@@ -148,9 +150,13 @@ export class EventSettledPage implements OnInit {
       message: 'Success ! Your winnings have been claimed.'
     });
     await toast.present();
-    setTimeout( async () => {
+    setTimeout(async () => {
       await toast.dismiss();
       this.navCtrl.navigateForward('/my-events');
     }, 2500);
+  }
+
+  information() {
+    this.header.information();
   }
 }
