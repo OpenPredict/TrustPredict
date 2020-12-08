@@ -1,82 +1,80 @@
-<app-app-header
-  [modal_header]="modalHeader"
-  [modal_txt]="modalTxt">
+<app-app-header #header [modal_header]="modalHeader" [modal_txt]="modalTxt" [showHelp]="false">
 </app-app-header>
 
 <ion-content>
-  
+
   <ion-grid>
 
     <ion-row>
       <ion-col>
         <div class="darkBox">
-            
-            <form [formGroup]="form">     
-                <div class="formWrapper">   
 
-                  <app-wager-selected-token></app-wager-selected-token>
-                                    
-                  <h2 class="eventHeader">
-                    Choose asset and amount being staked for the Option
-                  </h2>
-                  
-                  <div class="form__item buffer"> 
-                    <div class="form__label"> 
-                      Select Asset
-                    </div>
-                    <ion-select class="form__input form__select" formControlName="option_asset" >
-                      <ion-select-option *ngFor="let t of availableOptions" [value]="t" >
-                        {{ t.name  }} ( {{ t.ticker  }} )
-                      </ion-select-option>
-                    </ion-select>                     
-                    <div *ngIf="hasError('option_asset', 'required')" class="standardInputErr">
-                      option_asset is required
-                    </div>                                      
-                  </div> 
-                  
-                  <div class="form__item buffer"> 
-                    <div class="form__label"> 
-                      Select amount 
-                      <div class="form__label-info">
-                        Max stake: {{ maxStake }} OPUSD
-                      </div>
-                      <div class="form__label-info" *ngIf="(stakingBalance$ | async) as stakingBalance">
-                        Balance: {{getBalance(stakingBalance)}} OPUSD
-                      </div>
-                    </div>
-                    <input              
-                    class="form__input"
-                    type="text"
-                    min="0"
-                    formControlName="option_stake"
-                    placeholder="0.00"                    
-                    [textMask]="{mask: dollarMask }" />  
-                  </div>                  
-                  
-                  <div class="form__item"> 
-                    <ion-button [disabled]="form.invalid" class="o-btn" type="submit" (click)="continue()">
-                      Launch Option
-                    </ion-button>
-                  </div>  
-                  
-                  <app-wager-information-output></app-wager-information-output>
-                                    
+          <form [formGroup]="form">
+            <div class="formWrapper">
+
+              <app-wager-selected-token></app-wager-selected-token>
+
+              <h2 class="eventHeader">
+                Choose asset and amount being staked for the Option
+              </h2>
+
+              <div class="form__item buffer">
+                <div class="form__label">
+                  Select Asset
+                </div>
+                <ion-select class="form__input form__select" formControlName="option_asset">
+                  <ion-select-option *ngFor="let t of availableOptions" [value]="t">
+                    {{ t.name  }} ( {{ t.ticker  }} )
+                  </ion-select-option>
+                </ion-select>
+                <div *ngIf="hasError('option_asset', 'required')" class="standardInputErr">
+                  option_asset is required
+                </div>
+              </div>
+
+              <div class="form__item buffer">
+                <div class="form__label">
+                  Select amount
+                  <div class="form__label-info">
+                    Max stake: {{ maxStake }} OPUSD
                   </div>
-            </form>            
-          
-          </div>          
+                  <div class="form__label-info" *ngIf="(stakingBalance$ | async) as stakingBalance">
+                    Balance: {{getBalance(stakingBalance)}} OPUSD
+                  </div>
+                </div>
+                <input class="form__input" type="text" min="0" formControlName="option_stake" placeholder="0.00"
+                  [textMask]="{mask: dollarMask }" />
+              </div>
 
-      </ion-col>      
+              <div class="form__item">
+                <ion-button [disabled]="form.invalid" class="o-btn" type="submit" (click)="continue()">
+                  Launch Option
+                </ion-button>
+              </div>
+              <div class="form__item centered">
+                <ion-button class="help-btn" size="small" (click)="information()">
+                  Help
+                </ion-button>
+              </div>
+
+              <app-wager-information-output></app-wager-information-output>
+
+            </div>
+          </form>
+
+        </div>
+
+      </ion-col>
     </ion-row>
-    <ion-row>   
-      <ion-col>     
+    <ion-row>
+      <ion-col>
         <div class="back__button" (click)="goBack()">
           <div class="back__button--icon"></div>
           <span>Go back</span>
         </div>
-      </ion-col>      
-    </ion-row>      
-    
+      </ion-col>
+    </ion-row>
+
   </ion-grid>
 
 </ion-content>

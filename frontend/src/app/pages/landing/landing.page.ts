@@ -1,23 +1,24 @@
-import { Component, OnInit } from '@angular/core';
-import { OptionService } from '@services/option-service/option.service';
-import { NavController } from '@ionic/angular';
-import { Observable } from 'rxjs';
-import { OptionQuery } from '@services/option-service/option.service.query';
-import { BaseForm } from '@app/helpers/BaseForm';
-import { FormBuilder, Validators } from '@angular/forms';
-import { OptionsStore } from '@app/services/option-service/option.service.store';
+import { Component, OnInit, ViewChild } from "@angular/core";
+import { OptionService } from "@services/option-service/option.service";
+import { NavController } from "@ionic/angular";
+import { Observable } from "rxjs";
+import { OptionQuery } from "@services/option-service/option.service.query";
+import { BaseForm } from "@app/helpers/BaseForm";
+import { FormBuilder, Validators } from "@angular/forms";
+import { OptionsStore } from "@app/services/option-service/option.service.store";
+import { AppHeaderComponent } from "@components/app-header/app-header.component";
 
 @Component({
-  selector: 'app-landing',
-  templateUrl: 'landing.page.html',
-  styleUrls: ['landing.page.scss'],
+  selector: "app-landing",
+  templateUrl: "landing.page.html",
+  styleUrls: ["landing.page.scss"]
 })
 export class LandingPage extends BaseForm implements OnInit {
-
   loading$: Observable<boolean>;
   availablePairs: {};
+  @ViewChild("header") header: AppHeaderComponent;
 
-  modalHeader = 'Welcome to TrustPredict!';
+  modalHeader = "Welcome to TrustPredict!";
   modalTxt = `
       <p>
         This app allows you to create a prediction on the price of various currency pairs, at a price and time chosen by
@@ -44,35 +45,35 @@ export class LandingPage extends BaseForm implements OnInit {
         and choose a pair.
       </p>`;
 
-
   constructor(
     private fb: FormBuilder,
     private optService: OptionService,
     private optQry: OptionQuery,
     private optStr: OptionsStore,
-    public navCtrl: NavController ) {
-      super();
+    public navCtrl: NavController
+  ) {
+    super();
 
-      this.availablePairs = this.optService.availablePairs;
+    this.availablePairs = this.optService.availablePairs;
 
-      this.form = this.fb.group({
-        asset: [
-                this.availablePairs['0x5813A90f826e16dB392abd2aF7966313fc1fd5B8'],
-                Validators.compose([Validators.required])
-        ]
-      });
-    }
+    this.form = this.fb.group({
+      asset: [
+        this.availablePairs["0x5813A90f826e16dB392abd2aF7966313fc1fd5B8"],
+        Validators.compose([Validators.required])
+      ]
+    });
+  }
 
   ngOnInit() {}
 
   continue() {
     this.setSubmitted();
-    const selectedPair = this.form.controls['asset'].value;
+    const selectedPair = this.form.controls["asset"].value;
     const pair = selectedPair.pair;
     const pair_contract = selectedPair.pair_contract;
 
     const item = { pair: pair, pair_contract: pair_contract };
-    if (!this.form.valid && pair && pair_contract ) {
+    if (!this.form.valid && pair && pair_contract) {
       return;
     }
     try {
@@ -80,7 +81,10 @@ export class LandingPage extends BaseForm implements OnInit {
       this.navCtrl.navigateForward([`/event-condition`]);
     } catch (error) {
       console.log(`Error: ${error}`);
-      }
+    }
   }
 
+  information() {
+    this.header.information();
+  }
 }
