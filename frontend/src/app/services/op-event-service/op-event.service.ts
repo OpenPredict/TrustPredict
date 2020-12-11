@@ -16,8 +16,6 @@ import { WEB3 } from '@app/web3';
 import Web3 from 'web3';
 import { EventsStore } from './op-event.service.store';
 import { IEvent, Status, Position, Side, Token } from '@app/data-model';
-import { OpBalanceService } from '../op-balance-service/op-balance.service';
-import { StakingBalanceService } from '../staking-balance-service/staking-balance.service';
 
 const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
 const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');

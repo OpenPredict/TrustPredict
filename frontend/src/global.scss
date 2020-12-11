@@ -24,6 +24,7 @@
 @import "~@ionic/angular/css/text-alignment.css";
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
+@import "~@angular/material/prebuilt-themes/deeppurple-amber.css";
 
 html,
 body {
@@ -671,7 +672,6 @@ ion-alert.select-alert {
     }
   }
 }
-
 h2.modalHeader {
   font-style: normal;
   font-weight: bold;
@@ -763,6 +763,52 @@ button {
   }
 }
 
+.mat-calendar {
+  background-color: #89f4ed;
+  border-radius: 10px 10px 0 0 !important;
+}
+.mat-datepicker-content .time-container {
+  background-color: #89f4ed;
+}
+.mat-datepicker-content .actions {
+  background-color: #89f4ed;
+  border-radius: 0 0 10px 10px !important;
+}
+.mat-datepicker-content {
+  background-color: unset !important;
+  box-shadow: unset !important;
+  border-radius: 10px;
+  border: 1px solid #1d2c49;
+}
+.mat-calendar-body-selected {
+  background-color: #1d2c49 !important;
+}
+.mat-button.mat-primary,
+.mat-icon-button.mat-primary,
+.mat-stroked-button.mat-primary {
+  color: #1d2c49 !important;
+}
+.mat-form-field-label {
+  /*change color of label*/
+  color: #a6aebe !important;
+}
+.date-label {
+  color: #ffffff !important;
+}
+.mat-form-field-underline {
+  /*change color of underline*/
+  background-color: #a6aebe !important;
+}
+.mat-form-field-ripple {
+  /*change color of underline when focused*/
+  background-color: #89f4ed !important;
+}
+.mat-datepicker-toggle {
+  color: #89f4ed !important;
+}
+.mat-form-field {
+  width: 100% !important;
+}
 .centered {
   text-align: center !important;
 }
