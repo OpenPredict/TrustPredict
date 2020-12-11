@@ -7,17 +7,17 @@ import { WalletGuard } from './wallet.guard';
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'connect-wallet',
+    redirectTo: 'landing',
     pathMatch: 'full'
-  },
-  {
-    path: 'connect-wallet',
-    loadChildren: () => import('./pages/connect-wallet/connect-wallet.module').then( m => m.ConnectWalletPageModule)
   },
   {
     path: 'landing',
     canActivate : [WalletGuard],
     loadChildren: () => import('./pages/landing/landing.module').then( m => m.LandingPageModule)
+  },
+  {
+    path: 'connect-wallet',
+    loadChildren: () => import('./pages/connect-wallet/connect-wallet.module').then( m => m.ConnectWalletPageModule)
   },
   {
     path: 'event-condition',
