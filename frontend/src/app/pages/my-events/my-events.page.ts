@@ -10,6 +10,7 @@ import { CustomValidators } from '@app/helpers/CustomValidators';
 import { IEvent, Status } from '@app/data-model';
 import { OpEventQuery } from '@services/op-event-service/op-event.service.query';
 import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
+import { Order } from '@datorama/akita';
 
 
 @Component({
@@ -75,14 +76,20 @@ export class MyEventsPage extends BaseForm implements OnInit {
     console.log('optionService address:' + this.optionService.address);
 
     this.pendingEvents$ = this.eventQuery.selectAll({
+      sortBy: "completion",
+      sortByOrder: Order.ASC,
       filterBy: state => state.status === Status.Staking
     });
 
     this.activeEvents$ = this.eventQuery.selectAll({
+      sortBy: "completion",
+      sortByOrder: Order.ASC,
       filterBy: state => state.status === Status.Active
     });
 
     this.myEvents$ = this.eventQuery.selectAll({
+      sortBy: "completion",
+      sortByOrder: Order.ASC,
       filterBy: state =>  {
         const balance = this.opBalanceService.getById(this.opBalanceService.getID(String(state.id)));
         return ((state.creator === this.optionService.address) || ((balance.IOToken + balance.OToken) > 0));
