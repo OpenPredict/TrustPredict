@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { untilDestroyed } from 'ngx-take-until-destroy';
 import { ActivatedRoute } from '@angular/router';
@@ -15,14 +15,16 @@ import { CustomValidators } from '@app/helpers/CustomValidators';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
 import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
+import { AppHeaderComponent } from "@components/app-header/app-header.component";
 
 @Component({
   selector: 'app-transfer-token',
   templateUrl: './transfer-token.page.html',
   styleUrls: ['./transfer-token.page.scss'],
 })
-export class TransferTokenPage  extends BaseForm implements OnInit {
+export class TransferTokenPage extends BaseForm implements OnInit {
 
+  @ViewChild("header") header: AppHeaderComponent;
   modalHeader = 'Transfer Event Tokens';
   modalTxt = `
     <p>
@@ -62,43 +64,43 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
     private balancesQuery: OpBalanceQuery,
     private authQuery: AuthQuery,
     private toastCtrl: ToastController) {
-      super();
-      this.availableOptions = this.optService.availableOptions;
+    super();
+    this.availableOptions = this.optService.availableOptions;
 
-      this.form = this.fb.group({
-        transfer_amount: [null, Validators.compose([Validators.required, Validators.min(0)])],
-        transfer_to: [null, Validators.compose(
-          [Validators.required, Validators.minLength(42), Validators.maxLength(42), CustomValidators.isAddress])
-        ],
-      });
+    this.form = this.fb.group({
+      transfer_amount: [null, Validators.compose([Validators.required, Validators.min(0)])],
+      transfer_to: [null, Validators.compose(
+        [Validators.required, Validators.minLength(42), Validators.maxLength(42), CustomValidators.isAddress])
+      ],
+    });
 
+    this.form.get('transfer_amount').setValidators(
+      [CustomValidators.numberRange(0.00000001, Number.MAX_VALUE)]
+    );
+    this.balance$.subscribe(balance => {
       this.form.get('transfer_amount').setValidators(
-        [CustomValidators.numberRange(0.00000001, Number.MAX_VALUE)]
+        [CustomValidators.numberRange(0.00000001, this.getTokenBalance(balance))]
       );
-      this.balance$.subscribe( balance => {
-        this.form.get('transfer_amount').setValidators(
-            [CustomValidators.numberRange(0.00000001, this.getTokenBalance(balance) )]
-          );
-      });
-    }
+    });
+  }
 
   ngOnInit() {
     this.activatedRoute.paramMap.pipe(
-        map( params => params.get('eventId') ),
-        filter(id => !this.eventsQuery.hasEntity(id)),
-        untilDestroyed(this),
-        switchMap(id => this.eventsService.getEvent(id))
-      ).subscribe();
+      map(params => params.get('eventId')),
+      filter(id => !this.eventsQuery.hasEntity(id)),
+      untilDestroyed(this),
+      switchMap(id => this.eventsService.getEvent(id))
+    ).subscribe();
 
     this.activatedRoute.paramMap.pipe(
-        map( params => params.get('eventId') ),
-        filter(id => !this.balancesQuery.hasEntity(id)),
-        untilDestroyed(this),
-        switchMap(id => this.balancesService.getBalance(id))
-      ).subscribe();
+      map(params => params.get('eventId')),
+      filter(id => !this.balancesQuery.hasEntity(id)),
+      untilDestroyed(this),
+      switchMap(id => this.balancesService.getBalance(id))
+    ).subscribe();
   }
 
-  ngOnDestroy(){}
+  ngOnDestroy() { }
 
   async continue() {
     const eventId = this.activatedRoute.snapshot.params.eventId;
@@ -107,14 +109,14 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
     const selection = (this.activatedRoute.snapshot.params.token === 'IO' ? 0 : 1);
 
     try {
-     const interaction = await this.ui
-                             .loading(  this.eventsService.transferFrom(eventId, to, amount, selection),
-                             'please wait...' )
-                             .catch( e => alert(`Error with contract call ${JSON.stringify(e)}`) );
+      const interaction = await this.ui
+        .loading(this.eventsService.transferFrom(eventId, to, amount, selection),
+          'please wait...')
+        .catch(e => alert(`Error with contract call ${JSON.stringify(e)}`));
 
-     if (interaction) {
-      this.showTransferSuccess();
-    }
+      if (interaction) {
+        this.showTransferSuccess();
+      }
     } catch (error) {
       alert(`Error ! ${error}`);
     }
@@ -132,7 +134,7 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
     return this.eventsService.getClass(this.position);
   }
 
-  getDate(timestamp: number){
+  getDate(timestamp: number) {
     return this.eventsService.timestampToDate(timestamp);
   }
 
@@ -140,7 +142,7 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
     return this.eventsService.currencyFormat(price);
   }
 
-  getTokenBalance(balances: any){
+  getTokenBalance(balances: any) {
     console.log('transfer-token balances: ' + balances);
     const balancesFormatted = this.balancesService.format(balances);
     return this.token === 'IO' ? balancesFormatted.IOToken : balancesFormatted.OToken;
@@ -159,12 +161,15 @@ export class TransferTokenPage  extends BaseForm implements OnInit {
       message: 'Success ! Your tokens have been transferred.'
     });
     await toast.present();
-    setTimeout( async () => {
+    setTimeout(async () => {
       await toast.dismiss();
       this.navCtrl.navigateForward('/my-events');
     }, 2500);
   }
 
+  information() {
+    this.header.information();
+  }
 
 }
 
