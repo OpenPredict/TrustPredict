@@ -19,7 +19,7 @@ OPUSDTokenValue = ethers.utils.parseUnits((Constants.numTokens * 1000 * Constant
 defaultArgs = []
 defaultArgs[Constants.betPrice] = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2);
 defaultArgs[Constants.betSide] = Constants.Lower
-defaultArgs[Constants.eventPeriod] = Constants[process.env.NETWORK].eventPeriodSeconds
+defaultArgs[Constants.eventPeriod] = Math.floor(new Date().getTime() / 1000) + Constants[process.env.NETWORK].eventPeriodSeconds
 defaultArgs[Constants.numTokensToMint] = ethers.utils.parseUnits(Constants.numTokens.toString());
 defaultArgs[Constants.priceAggregator] = Constants.pairings['ETH/USD']
 
@@ -67,6 +67,7 @@ async function deployEvent(contracts, accounts, args, shouldFail, revertMessage)
     assert.equal(OPUSDAllowance.valueOf().toString(), 
                  (args[Constants.numTokensToMint].mul(Constants.OPUSDOptionRatio)).toString());
 
+    args[Constants.eventPeriod] = Math.floor(new Date().getTime() / 1000) + Constants[process.env.NETWORK].eventPeriodSeconds
     // deploy event
     console.log("Event deployment..")
     if(!(shouldFail)){
