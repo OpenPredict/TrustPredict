@@ -827,7 +827,12 @@ button {
 .alert-checkbox-group::-webkit-scrollbar-track {
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
 }
-
+.max_stake_btn {
+  color: #ffffff;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration:underline;
+}
 .alert-radio-group::-webkit-scrollbar-thumb,
 .alert-checkbox-group::-webkit-scrollbar-thumb {
   background-color: #89f4ed;
