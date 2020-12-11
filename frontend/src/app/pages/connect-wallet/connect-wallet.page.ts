@@ -57,7 +57,7 @@ export class ConnectWalletPage implements OnInit {
     try {
       
       
-      this.wallets = await this.crypto.setProvider()
+      this.wallets = await this.crypto.setProvider();
       console.log("WALLETS "+JSON.stringify(this.wallets))
       
       if ( this.wallets && 
@@ -65,7 +65,7 @@ export class ConnectWalletPage implements OnInit {
            this.wallets.hasOwnProperty('signer') ) {
             console.log('starting..');
             // this._auth.login(wallet, signer);
-            this.cryptoService.initContracts(this.wallets.wallet, this.wallets.signer);
+            //this.cryptoService.initContracts(this.wallets.wallet, this.wallets.signer);
             this.opEventService.setupSubscriber();
             this.opBalanceService.setupSubscriber();
             this.stakingBalanceService.setupSubscriber();
