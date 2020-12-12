@@ -98,6 +98,21 @@ export class MyEventsPage extends BaseForm implements OnInit {
 
   }
 
+  eventDescription(status: Status) {
+    if (status === Status.Active) {
+      return 'active';
+    }
+    if (status === Status.Expired) {
+      return 'expired';
+    }
+    if (status === Status.Settled) {
+      return 'settled';
+    }
+    if (status === Status.Staking) {
+      return 'stacking';
+    }
+  }
+
   async continue() {
       try {
         console.log('user has entered a custom event ID....');
