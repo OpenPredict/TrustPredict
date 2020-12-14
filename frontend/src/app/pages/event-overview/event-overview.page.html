@@ -81,7 +81,7 @@
                       {{getTokenBalance(balance, Position.Left,event.side)}} “{{getToken(Position.Left,event.side)}}”
                     </div>
 
-                    <div class="eventInfoTxt--small eventInfoTransfer"
+                    <div *ngIf="manageTransferBtn(balance$ | async)" class="eventInfoTxt--small eventInfoTransfer"
                       (click)="continue(balance, getToken(Position.Left, event.side), Position.Left, 'transfer')">
                       <div [ngClass]="getTransferClass(balance, Position.Left, event.side)">
                         Transfer >
@@ -117,7 +117,7 @@
                       {{getTokenBalance(balance, Position.Right,event.side)}} “{{getToken(Position.Right,event.side)}}”
                     </div>
 
-                    <div class="eventInfoTxt--small eventInfoTransfer"
+                    <div *ngIf="manageTransferBtn(balance$ | async)" class="eventInfoTxt--small eventInfoTransfer"
                       (click)="continue(balance, getToken(Position.Right, event.side), Position.Right, 'transfer')">
                       <div [ngClass]="getTransferClass(balance, Position.Right, event.side)">
                         Transfer >
@@ -133,19 +133,17 @@
 
               </ul>
             </div>
-
+            <div class="form__item centered">
+              <ion-button class="help-btn" size="small" (click)="information()">
+                Help
+              </ion-button>
+            </div>
           </div>
         </div>
       </ion-col>
     </ion-row>
     <ion-row>
       <ion-col>
-
-        <div class="form__item centered">
-          <ion-button class="help-btn" size="small" (click)="information()">
-            Help
-          </ion-button>
-        </div>
         <div class="back__button" (click)="goBack()">
           <div class="back__button--icon"></div>
           <span>Go back</span>

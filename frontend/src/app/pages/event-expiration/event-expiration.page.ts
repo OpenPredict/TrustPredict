@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { OptionService } from "@services/option-service/option.service";
 import { NavController } from "@ionic/angular";
 import { Observable } from "rxjs";
