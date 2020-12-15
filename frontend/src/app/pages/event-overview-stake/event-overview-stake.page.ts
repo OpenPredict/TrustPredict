@@ -183,12 +183,12 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     const balancesFormatted = this.balancesService.format(balances);
     const minTokens = 10;
     const factor = 2;
-    const total = (balancesFormatted.OToken + balancesFormatted.IOToken);
+    const total = (balancesFormatted.YesToken + balancesFormatted.NoToken);
     const minTokensMaxStake = minTokens / factor;
     const totalMaxStake = total / factor;
 
-    const selection = (this.token === 'O') ? balancesFormatted.OToken : balancesFormatted.IOToken;
-    const other = (this.token === 'O') ? balancesFormatted.IOToken : balancesFormatted.OToken;
+    const selection = (this.token === 'O') ? balancesFormatted.YesToken : balancesFormatted.NoToken;
+    const other = (this.token === 'O') ? balancesFormatted.NoToken : balancesFormatted.YesToken;
 
     let result = 0;
     if (total < minTokens) {
@@ -210,8 +210,8 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     //console.log('balances: ' + JSON.stringify(balances));
     const balancesFormatted = this.balancesService.format(balances);
 
-    const selection = (this.token === 'IO') ? balancesFormatted.IOToken : balancesFormatted.OToken;
-    const other = (this.token === 'IO') ? balancesFormatted.OToken : balancesFormatted.IOToken;
+    const selection = (this.token === 'IO') ? balancesFormatted.NoToken : balancesFormatted.YesToken;
+    const other = (this.token === 'IO') ? balancesFormatted.YesToken : balancesFormatted.NoToken;
 
     // (loser / winner) * 100
     return (selection == 0) ? '0.00' :
@@ -228,7 +228,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
       position: 'middle',
       duration: 2000,
       cssClass: 'successToast',
-      message: 'Success ! Your stake has been placed.'
+      message: 'You have successfully placed your stake.'
     });
     await toast.present();
     setTimeout(async () => {

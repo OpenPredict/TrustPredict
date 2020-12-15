@@ -5,7 +5,7 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 // Shared utilities between all contracts in TrustPredict.
 library Utils {
 
-    enum Token {IO, O}
+    enum Token {No, Yes}
     enum Side {Lower, Higher}
 
     bool constant test = true;
@@ -68,12 +68,12 @@ library Utils {
     //**************************** Start generic helper functions ****************************
 
     function getOtherToken(Token selection) pure external returns (Token) {
-        return (selection == Token.O) ? Token.IO : Token.O;
+        return (selection == Token.Yes) ? Token.No : Token.Yes;
     }
 
     function convertToOPUSDAmount(uint optionAmount) external pure returns(uint) {
         // assumes optionAmount is already encoded
-        // 1 O/IO token = 100 USD
+        // 1 Yes/No Token = 100 USD
         return SafeMath.mul(optionAmount, 100);
     }
 
@@ -250,7 +250,7 @@ library Utils {
     }
 
     function getTotalSupply(address _eventId, address _token) external returns(uint256 result) {
-        return SafeMath.add(getTokenBalance(_eventId, Token.O, _token), getTokenBalance(_eventId, Token.IO, _token));
+        return SafeMath.add(getTokenBalance(_eventId, Token.Yes, _token), getTokenBalance(_eventId, Token.No, _token));
     }
 
     function balanceOfAddress(address _eventId, address _address, Token _selection, address _token) external returns(uint256 result) {

@@ -111,7 +111,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     // console.log('balances: ' + JSON.stringify(balances));
     // console.log('token selection: ' + this.eventsService.getToken(position, betSide));
     const balancesFormatted = this.balancesService.format(balances);
-    const balance = (this.eventsService.getToken(position, betSide)) === 'IO' ? balancesFormatted.IOToken : balancesFormatted.OToken;
+    const balance = (this.eventsService.getToken(position, betSide)) === 'IO' ? balancesFormatted.NoToken : balancesFormatted.YesToken;
     return parseFloat(balance.toString()).toFixed(2);
   }
 
@@ -138,7 +138,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
    */
   continue(balances: any, token: string, position: Position, option: string): void {
     const balancesFormatted = this.balancesService.format(balances);
-    const selection = (token === 'IO') ? balancesFormatted.IOToken : balancesFormatted.OToken;
+    const selection = (token === 'IO') ? balancesFormatted.NoToken : balancesFormatted.YesToken;
     if (option === 'transfer' && selection == 0) {
       return;
     }
@@ -152,7 +152,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
 
   manageTransferBtn(balance) {
     const balancesFormatted = this.balancesService.format(balance);
-    if(balancesFormatted.IOToken > 0 || balancesFormatted.OToken > 0){
+    if(balancesFormatted.NoToken > 0 || balancesFormatted.YesToken > 0){
       return true;
     } else {
       return false;

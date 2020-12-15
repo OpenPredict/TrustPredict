@@ -35,9 +35,9 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
     function createTokens(address _eventId) external returns(bool){
         _onlyEvent();
 
-        // Create IDs for O/IO tokens.
-        TokenPairs[_eventId].tokens[Utils.Token.O]  = Token(uint256(keccak256(abi.encodePacked(_eventId, Utils.Token.O))), 0);
-        TokenPairs[_eventId].tokens[Utils.Token.IO] = Token(uint256(keccak256(abi.encodePacked(_eventId, Utils.Token.IO))), 0);
+        // Create IDs for Yes/No tokens.
+        TokenPairs[_eventId].tokens[Utils.Token.Yes]  = Token(uint256(keccak256(abi.encodePacked(_eventId, Utils.Token.Yes))), 0);
+        TokenPairs[_eventId].tokens[Utils.Token.No] = Token(uint256(keccak256(abi.encodePacked(_eventId, Utils.Token.No))), 0);
         TokenPairs[_eventId].set = true;
         return true;
     }
@@ -85,8 +85,8 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
     }
 
     function getTokenBalances(address eventId) external view returns (uint, uint){
-        return (getTokenBalance(eventId, uint8(Utils.Token.IO)), 
-                getTokenBalance(eventId, uint8(Utils.Token.O)));
+        return (getTokenBalance(eventId, uint8(Utils.Token.No)), 
+                getTokenBalance(eventId, uint8(Utils.Token.Yes)));
     }
     /************** End view functions *****************/
 }

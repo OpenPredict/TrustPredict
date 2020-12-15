@@ -122,7 +122,7 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
       position: 'middle',
       duration: 2000,
       cssClass: 'successToast',
-      message: 'Success ! Your wager has been placed'
+      message: 'You have successfully placed your wager'
     });
     await toast.present();
     setTimeout(async () => {

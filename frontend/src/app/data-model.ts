@@ -2,8 +2,8 @@ import { ID } from '@datorama/akita';
 import { BigNumber, ethers } from 'ethers';
 
 export enum Token {
-  IO = 0,
-  O = 1
+  No = 0,
+  Yes = 1
 }
 export enum Side {
   Lower = 0,
@@ -67,6 +67,6 @@ export interface IStakingBalance {
 
 export interface ITokenBalance {
   id?: ID; // sha256(eventId + wallet)
-  OToken?: BigNumber;
-  IOToken?: BigNumber;
+  YesToken?: BigNumber;
+  NoToken?: BigNumber;
 }

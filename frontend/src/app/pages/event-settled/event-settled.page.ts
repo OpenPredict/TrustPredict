@@ -100,11 +100,11 @@ export class EventSettledPage implements OnInit {
   goTransfer(winner: Token, betSide: Side) {
     /*
       essentially: is the winning token the same as what's being rendered for event data using betSide.
-      if IO token wins then no; send the inverse for position
-      if O token wins then yes. send the same value.
+      if No token wins then send the inverse for position
+      if Yes token wins then send the same value.
     */
-    const position = (winner === Token.IO) ? 1 - betSide : betSide;
-    const winnerString = (winner === Token.IO) ? 'IO' : 'O';
+    const position = (winner === Token.No) ? 1 - betSide : betSide;
+    const winnerString = (winner === Token.No) ? 'IO' : 'O';
     this.navCtrl.navigateForward(`/transfer-token/${this.eventId}/${winnerString}/${position}`);
   }
 
@@ -117,7 +117,7 @@ export class EventSettledPage implements OnInit {
   }
 
   getWinningTokenText(winner: Token): string {
-    return (winner === Token.O) ? 'O' : 'IO';
+    return (winner === Token.Yes) ? 'O' : 'IO';
   }
 
   getDate(timestamp: number) {
@@ -131,14 +131,14 @@ export class EventSettledPage implements OnInit {
   async hasBalanceInWinningToken() {
     const balancesFormatted = this.balancesService.getById(this.balancesService.getID(this.eventId));
     console.log('balancesFormatted: ' + balancesFormatted);
-    const winner = (this.eventsService.events[this.eventId].winner === 0) ? balancesFormatted.IOToken : balancesFormatted.OToken;
+    const winner = (this.eventsService.events[this.eventId].winner === 0) ? balancesFormatted.NoToken : balancesFormatted.YesToken;
     return winner > 0;
   }
 
   getTokenBalance(balances: any) {
     const balancesFormatted = this.balancesService.format(balances);
     console.log('balancesFormatted: ' + balancesFormatted);
-    const winner = (this.eventsService.events[this.eventId].winner === 0) ? balancesFormatted.IOToken : balancesFormatted.OToken;
+    const winner = (this.eventsService.events[this.eventId].winner === 0) ? balancesFormatted.NoToken : balancesFormatted.YesToken;
     return winner;
   }
 
@@ -147,7 +147,7 @@ export class EventSettledPage implements OnInit {
       position: 'middle',
       duration: 2000,
       cssClass: 'successToast',
-      message: 'Success ! Your winnings have been claimed.'
+      message: 'You have successfully claimed your winnings.'
     });
     await toast.present();
     setTimeout(async () => {
@@ -162,7 +162,7 @@ export class EventSettledPage implements OnInit {
 
   manageTransferBtn(balance) {
     const balancesFormatted = this.balancesService.format(balance);
-    if(balancesFormatted.IOToken > 0 || balancesFormatted.OToken > 0){
+    if(balancesFormatted.NoToken > 0 || balancesFormatted.YesToken > 0){
       return true;
     } else {
       return false;

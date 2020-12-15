@@ -113,12 +113,12 @@ export class OpEventService {
       const ticker = pairing.pair.replace('/USD', '');
       const asset = this.optionService.availableAssets[ticker];
 
-      const tokenValues = [parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenValuesRaw[Token.IO]))),
-                           parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenValuesRaw[Token.O])))];
+      const tokenValues = [parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenValuesRaw[Token.No]))),
+                           parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenValuesRaw[Token.Yes])))];
 
-      const stakedValuesRaw = [tokenValuesRaw[Token.IO].mul(100), tokenValuesRaw[Token.O].mul(100)];
-      const stakedValues = [parseFloat(ethers.utils.formatUnits(BigNumber.from(stakedValuesRaw[Token.IO]))),
-                           parseFloat(ethers.utils.formatUnits(BigNumber.from(stakedValuesRaw[Token.O])))];
+      const stakedValuesRaw = [tokenValuesRaw[Token.No].mul(100), tokenValuesRaw[Token.Yes].mul(100)];
+      const stakedValues = [parseFloat(ethers.utils.formatUnits(BigNumber.from(stakedValuesRaw[Token.No]))),
+                           parseFloat(ethers.utils.formatUnits(BigNumber.from(stakedValuesRaw[Token.Yes])))];
 
       // console.log('tokenValuesRaw: ' + tokenValuesRaw);
       // console.log('tokenValues: ' + tokenValues);
