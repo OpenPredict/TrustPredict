@@ -672,7 +672,6 @@ ion-alert.select-alert {
     }
   }
 }
-
 h2.modalHeader {
   font-style: normal;
   font-weight: bold;
@@ -776,6 +775,52 @@ button {
     stroke: #89F4ED !important;
     stroke-width: 3% !important;
 }
+.mat-calendar {
+  background-color: #89f4ed;
+  border-radius: 10px 10px 0 0 !important;
+}
+.mat-datepicker-content .time-container {
+  background-color: #89f4ed;
+}
+.mat-datepicker-content .actions {
+  background-color: #89f4ed;
+  border-radius: 0 0 10px 10px !important;
+}
+.mat-datepicker-content {
+  background-color: unset !important;
+  box-shadow: unset !important;
+  border-radius: 10px;
+  border: 1px solid #1d2c49;
+}
+.mat-calendar-body-selected {
+  background-color: #1d2c49 !important;
+}
+.mat-button.mat-primary,
+.mat-icon-button.mat-primary,
+.mat-stroked-button.mat-primary {
+  color: #1d2c49 !important;
+}
+.mat-form-field-label {
+  /*change color of label*/
+  color: #a6aebe !important;
+}
+.date-label {
+  color: #ffffff !important;
+}
+.mat-form-field-underline {
+  /*change color of underline*/
+  background-color: #a6aebe !important;
+}
+.mat-form-field-ripple {
+  /*change color of underline when focused*/
+  background-color: #89f4ed !important;
+}
+.mat-datepicker-toggle {
+  color: #89f4ed !important;
+}
+.mat-form-field {
+  width: 100% !important;
+}
 .centered {
   text-align: center !important;
 }
@@ -794,7 +839,12 @@ button {
 .alert-checkbox-group::-webkit-scrollbar-track {
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
 }
-
+.max_stake_btn {
+  color: #ffffff;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration:underline;
+}
 .alert-radio-group::-webkit-scrollbar-thumb,
 .alert-checkbox-group::-webkit-scrollbar-thumb {
   background-color: #89f4ed;
@@ -803,4 +853,12 @@ button {
 .alert-radio-group.sc-ion-alert-md,
 .alert-checkbox-group.sc-ion-alert-md {
   overflow-x: hidden !important;
+}
+.wager_container {
+  display: flex;
+  justify-content: center;
+}
+.assetNameWager {
+  margin-top: 33px;
+  margin-right: 15px;
 }

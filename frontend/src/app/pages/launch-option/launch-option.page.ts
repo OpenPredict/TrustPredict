@@ -142,6 +142,12 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
     return (isNaN(amount)) ? '0.0' : parseFloat(ethers.utils.formatUnits(amount.toString())).toFixed(2);
   }
 
+  setMaxStake() {
+    this.form.patchValue({
+      option_stake: this.maxStake.toString()
+    });
+  }
+  
   information() {
     this.header.information();
   }

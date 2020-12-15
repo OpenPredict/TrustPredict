@@ -2,13 +2,10 @@
 </app-app-header>
 
 <ion-content>
-
   <ion-grid>
-
     <ion-row>
       <ion-col>
         <div class="darkBox">
-
           <form [formGroup]="form">
             <div class="formWrapper">
 
@@ -36,14 +33,14 @@
                 <div class="form__label">
                   Select amount
                   <div class="form__label-info">
-                    Max stake: {{ maxStake }} OPUSD
+                    <span class="max_stake_btn" (click)="setMaxStake()">Max stake</span>: {{ maxStake }} OPUSD
                   </div>
-                  <div class="form__label-info" *ngIf="(stakingBalance$ | async) as stakingBalance">
-                    Balance: {{getBalance(stakingBalance)}} OPUSD
+                  <div class="form__label-info" *ngIf="stakingBalance$ | async as stakingBalance">
+                    Balance: {{ getBalance(stakingBalance) }} OPUSD
                   </div>
                 </div>
                 <input class="form__input" type="text" min="0" formControlName="option_stake" placeholder="0.00"
-                  [textMask]="{mask: dollarMask }" />
+                  [textMask]="{ mask: dollarMask }" />
               </div>
 
               <div class="form__item">
@@ -63,7 +60,6 @@
           </form>
 
         </div>
-
       </ion-col>
     </ion-row>
     <ion-row>
@@ -74,7 +70,5 @@
         </div>
       </ion-col>
     </ion-row>
-
   </ion-grid>
-
 </ion-content>

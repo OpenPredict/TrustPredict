@@ -38,7 +38,8 @@
                   <div class="eventInfoTxt--small">
                     Event expiration date:
                   </div>
-                  <div class="eventInfoTxt bolder">
+
+                  <div class="eventInfoTxt bolder white">
                     {{ getDate(event.deposit_period_end) }}
                   </div>
                 </li>
@@ -57,6 +58,7 @@
                   <div class="btnMint smokey bolder" *ngIf="hasBalanceInAnyToken$ | async" (click)="continue()">
                     <span>Withdraw Deposit</span>
                   </div>
+
                   <div class="form__item centered">
                     <ion-button class="help-btn" size="small" (click)="information()">
                       Help

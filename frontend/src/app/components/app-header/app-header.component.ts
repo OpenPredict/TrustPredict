@@ -10,7 +10,8 @@ import { AuthQuery } from "@app/services/auth-service/auth.service.query";
 import { ModalController, NavController } from "@ionic/angular";
 import { Observable } from "rxjs";
 import { InformationModalComponent } from "@components/information-modal/information-modal.component";
-import { WalletOptionsModalComponent } from "@components/wallet-options-modal/wallet-options-modal.component";
+import { WalletOptionsModalComponent } from '@components/wallet-options-modal/wallet-options-modal.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: "app-app-header",
@@ -23,6 +24,7 @@ export class AppHeaderComponent implements OnInit {
   @Input() modal_header: string;
   @Input() modal_txt: string;
   @Input() showHelp: boolean = true;
+
   chainName: any;
 
   constructor(
@@ -30,22 +32,20 @@ export class AppHeaderComponent implements OnInit {
     private cd: ChangeDetectorRef,
     private zone: NgZone,
     public modalCtrl: ModalController,
-    public authQuery: AuthQuery
-  ) {}
+    public authQuery: AuthQuery,
+    private router: Router) { }
 
   ngOnInit() {
-    this.authQuery
-      .select(user => user)
-      .subscribe(res => {
-        this.zone.run(async () => {
-          if (res && res.wallet) {
-            console.log(res.chainName);
-            this.address = res.wallet;
-            this.chainName = res.chainName;
-            this.cd.detectChanges();
-          }
-        });
+    this.authQuery.select(user => user).subscribe(res => {
+      this.zone.run(async () => {
+        if (res && res.wallet) {
+          console.log(res.chainName)
+          this.address = res.wallet
+          this.chainName = res.chainName
+          this.cd.detectChanges();
+        }
       });
+    });
   }
 
   openOptions() {
@@ -100,4 +100,9 @@ export class AppHeaderComponent implements OnInit {
       throw error;
     }
   }
+
+  navigateToLandingPage() {
+    this.router.navigateByUrl('/landing');
+  }
+
 }
