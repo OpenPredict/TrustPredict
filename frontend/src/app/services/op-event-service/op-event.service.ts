@@ -487,11 +487,11 @@ export class OpEventService {
    * @param condition boolean
    */
   getToken(position: Position, betSide: Side) {
-    // if LHS and Higher, or RHS and Lower, return O. else IO.
+    // if LHS and Higher, or RHS and Lower, return Yes. else No.
     return ((position === Position.Left && betSide === Side.Higher) ||
             (position !== Position.Left && betSide !== Side.Higher)) ?
-            'O' :
-            'IO';
+            'Yes' :
+            'No';
   }
 
   parseTokenAmount(amount) {

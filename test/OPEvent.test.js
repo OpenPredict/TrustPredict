@@ -187,11 +187,11 @@ contract("TrustPredict", async (accounts) => {
 
     // test case A:
     // - valid event deployment
-    // - 3 more valid stakes: 2 on IO side, one on O side.
+    // - 3 more valid stakes: 2 on No side, one on Yes side.
     // - failed attempt to settle before minimum amount reached
     // - 6 more stakes, 3 either side. minimum amount reached
-    // - valid settlement on O side
-    // - 2 valid O claims, 2 invalid IO claims, with values for valid claims asserted
+    // - valid settlement on Yes side
+    // - 2 valid O claims, 2 invalid No claims, with values for valid claims asserted
     // - invalid claim from same address on Yes token side
     // - invalid revokes from all addresses involved
     // - invalid settlement call
@@ -207,7 +207,7 @@ contract("TrustPredict", async (accounts) => {
         // Approve OPUSD to event contract from accounts 2-4 
         await OPUSD_approve(contracts, accounts, 2, 4, Constants.numTokens * Constants.OPUSDOptionRatio);
 
-        // // stake: 2 and 3 on IO side, 4 on O side.
+        // // stake: 2 and 3 on No side, 4 on Yes side.
         stake = {}
         stake[accounts[2]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.NoTokenSelection};
         stake[accounts[3]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.NoTokenSelection};
@@ -270,7 +270,7 @@ contract("TrustPredict", async (accounts) => {
 
         // settle event
         contracts['OPEventFactory'].settle(OPEventID, settlementPrice);
-        // validate price per winning token as 2/3 of a token for each IO holder
+        // validate price per winning token as 2/3 of a token for each No holder
         eventData = await contracts['OPEventFactory'].getEventData(OPEventID);
         amountPerWinningTokenContract = eventData['amountPerWinningToken'];
         amountPerWinningToken = ethers.utils.parseUnits("0666666666666666666", 0);
@@ -355,7 +355,7 @@ contract("TrustPredict", async (accounts) => {
     // test case B:
     // - valid event deployment
     // - failed mint on same side as deployer (incorrect weight)
-    // - 3 more valid stakes: 2 on IO side, one on O side.
+    // - 3 more valid stakes: 2 on No side, one on Yes side.
     // - wait for event deposit period to pass - invalid amount for event
     // - attempt settlement, assert failure
     // - attempt claims from minters, assert failure
@@ -375,7 +375,7 @@ contract("TrustPredict", async (accounts) => {
                                             Constants.YesTokenSelection, 
                                             {from: accounts[2]});
         
-        // - 3 more valid stakes: 2 on IO side, 1 on O side.
+        // - 3 more valid stakes: 2 on No side, 1 on Yes side.
         await OPUSD_approve(contracts, accounts, 2, 4, Constants.numTokens * Constants.OPUSDOptionRatio);
         stake = {}
         stake[accounts[2]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.NoTokenSelection};
@@ -542,8 +542,8 @@ contract("TrustPredict", async (accounts) => {
 
     // test case G
     // deploy valid event
-    // mint 86% O side, 6% IO side
-    // attempt mint 6% O side
+    // mint 86% Yes side, 6% No side
+    // attempt mint 6% Yes side
     // verify incorrect weight
     it("Should pass for test case G", async () => {
 
@@ -554,7 +554,7 @@ contract("TrustPredict", async (accounts) => {
 
         await OPUSD_approve(contracts, accounts, 0, 0, Constants.numTokens * 100 * Constants.OPUSDOptionRatio);
 
-        // mint total of 86%: O side, 6%: IO side
+        // mint total of 86%: Yes side, 6%: No side
         // max 50% per stake
         await contracts['OPEventFactory'].stake(OPEventID, 
             ethers.utils.parseUnits((Constants.initialMaxPrediction).toString()),
@@ -575,7 +575,7 @@ contract("TrustPredict", async (accounts) => {
             {from: accounts[0] }
         );
 
-        // try mint 0.6 O side - valid for prediction amount, should fail at weight.
+        // try mint 0.6 Yes side - valid for prediction amount, should fail at weight.
         await truffleAssert.reverts(
             contracts['OPEventFactory'].stake(OPEventID, 
                 ethers.utils.parseUnits((0.6).toString()),
@@ -584,7 +584,7 @@ contract("TrustPredict", async (accounts) => {
             ), "OPEventFactory: requested tokens would result in invalid weight on one side of the draw."
         );
 
-        // try mint 1.5 IO side - invalid for prediction amount
+        // try mint 1.5 No side - invalid for prediction amount
         await truffleAssert.reverts(
             contracts['OPEventFactory'].stake(OPEventID, 
                 ethers.utils.parseUnits((Constants.initialMaxPrediction * 1.5).toString()),

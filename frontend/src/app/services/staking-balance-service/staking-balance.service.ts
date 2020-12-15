@@ -89,14 +89,14 @@ export class StakingBalanceService {
 
   format(balances) {
       // console.log('balances: ' + balances);
-      const balanceO  = Number(ethers.utils.formatUnits(balances.YesToken.toString()).toString());
-      const balanceIO = Number(ethers.utils.formatUnits(balances.NoToken.toString()).toString());
-      // console.log('balanceO encoded: ' + balanceO);
-      // console.log('balanceIO encoded: ' + balanceIO);
+      const balanceYes  = Number(ethers.utils.formatUnits(balances.YesToken.toString()).toString());
+      const balanceNo = Number(ethers.utils.formatUnits(balances.NoToken.toString()).toString());
+      // console.log('balanceYes encoded: ' + balanceYes);
+      // console.log('balanceNo encoded: ' + balanceNo);
 
       return {
-        NoToken: balanceIO,
-        YesToken: balanceO
+        NoToken: balanceNo,
+        YesToken: balanceYes
       };
   }
 

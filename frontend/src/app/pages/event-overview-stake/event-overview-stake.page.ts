@@ -142,7 +142,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     console.log('in continue');
     const eventId = this.activatedRoute.snapshot.params.eventId;
     const numTokensStakedToMint = BaseForm.transformAmount(this.form.controls['option_stake'].value);
-    const selection = (this.token === 'IO') ? 0 : 1;
+    const selection = (this.token === 'No') ? 0 : 1;
 
     try {
       const interaction = await this.ui
@@ -187,8 +187,8 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     const minTokensMaxStake = minTokens / factor;
     const totalMaxStake = total / factor;
 
-    const selection = (this.token === 'O') ? balancesFormatted.YesToken : balancesFormatted.NoToken;
-    const other = (this.token === 'O') ? balancesFormatted.NoToken : balancesFormatted.YesToken;
+    const selection = (this.token === 'Yes') ? balancesFormatted.YesToken : balancesFormatted.NoToken;
+    const other = (this.token === 'Yes') ? balancesFormatted.NoToken : balancesFormatted.YesToken;
 
     let result = 0;
     if (total < minTokens) {
@@ -210,8 +210,8 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     //console.log('balances: ' + JSON.stringify(balances));
     const balancesFormatted = this.balancesService.format(balances);
 
-    const selection = (this.token === 'IO') ? balancesFormatted.NoToken : balancesFormatted.YesToken;
-    const other = (this.token === 'IO') ? balancesFormatted.YesToken : balancesFormatted.NoToken;
+    const selection = (this.token === 'No') ? balancesFormatted.NoToken : balancesFormatted.YesToken;
+    const other = (this.token === 'No') ? balancesFormatted.YesToken : balancesFormatted.NoToken;
 
     // (loser / winner) * 100
     return (selection == 0) ? '0.00' :

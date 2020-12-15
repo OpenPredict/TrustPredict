@@ -259,20 +259,20 @@ contract OPEventFactory {
         _minimumTimeReached(_eventId, true);
 
         // send OPUSD holdings back to the sending party if they have funds deposited.
-        uint OHoldings = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.Yes, _token);
-        uint IOHoldings = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.No, _token);
-        require(OHoldings > 0 || IOHoldings > 0, "OPEventFactory: no holdings for sender in any token.");
+        uint YesHoldings = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.Yes, _token);
+        uint NoHoldings  = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.No, _token);
+        require(YesHoldings > 0 || NoHoldings > 0, "OPEventFactory: no holdings for sender in any token.");
 
         require(Utils.isApprovedForAll(msg.sender, address(this), _token),
         "OPEventFactory: sender has not granted allowance for tokens.");
 
-        if(OHoldings > 0){
-            Utils.transfer(msg.sender, Utils.convertToOPUSDAmount(OHoldings), Utils.GetOPUSDAddress());
-            Utils.burn(_eventId, msg.sender, OHoldings, Utils.Token.Yes, _token);
+        if(YesHoldings > 0){
+            Utils.transfer(msg.sender, Utils.convertToOPUSDAmount(YesHoldings), Utils.GetOPUSDAddress());
+            Utils.burn(_eventId, msg.sender, YesHoldings, Utils.Token.Yes, _token);
         }
-        if(IOHoldings > 0){
-            Utils.transfer(msg.sender, Utils.convertToOPUSDAmount(IOHoldings), Utils.GetOPUSDAddress());
-            Utils.burn(_eventId, msg.sender, IOHoldings, Utils.Token.No, _token);
+        if(NoHoldings > 0){
+            Utils.transfer(msg.sender, Utils.convertToOPUSDAmount(NoHoldings), Utils.GetOPUSDAddress());
+            Utils.burn(_eventId, msg.sender, NoHoldings, Utils.Token.No, _token);
         }
 
         emit EventUpdate(_eventId);

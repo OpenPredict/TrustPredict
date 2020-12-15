@@ -47,7 +47,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
   pendingEvents$: Observable<IEvent[]>;
   activeEvents$: Observable<IEvent[]>;
   myEvents$: Observable<IEvent[]>;
-  activeEventType = 1;
+  activeEventType = 2;
 
   constructor(
     private fb: FormBuilder,
@@ -81,12 +81,6 @@ export class MyEventsPage extends BaseForm implements OnInit {
       filterBy: state => state.status === Status.Staking
     });
 
-    this.activeEvents$ = this.eventQuery.selectAll({
-      sortBy: "completion",
-      sortByOrder: Order.ASC,
-      filterBy: state => state.status === Status.Active
-    });
-
     this.myEvents$ = this.eventQuery.selectAll({
       sortBy: "completion",
       sortByOrder: Order.ASC,
@@ -94,6 +88,12 @@ export class MyEventsPage extends BaseForm implements OnInit {
         const balance = this.opBalanceService.getById(this.opBalanceService.getID(String(state.id)));
         return ((state.creator === this.optionService.address) || ((balance.NoToken + balance.YesToken) > 0));
       }
+    });
+
+    this.activeEvents$ = this.eventQuery.selectAll({
+      sortBy: "completion",
+      sortByOrder: Order.ASC,
+      filterBy: state => state.status === Status.Active
     });
 
   }
@@ -124,9 +124,9 @@ export class MyEventsPage extends BaseForm implements OnInit {
   openEvent(event: IEvent) {
     console.log(event);
     (event.status === Status.Staking) ||
-      (event.status === Status.Active) ? this.navCtrl.navigateForward(`/event-overview/${event.id}`) :
-      (event.status === Status.Expired) ? this.navCtrl.navigateForward(`/event-expired/${event.id}`) :
-        (event.status === Status.Settled) ? this.navCtrl.navigateForward(`/event-settled/${event.id}`) : '';
+    (event.status === Status.Active)  ? this.navCtrl.navigateForward(`/event-overview/${event.id}`) :
+    (event.status === Status.Expired) ? this.navCtrl.navigateForward(`/event-expired/${event.id}`) :
+    (event.status === Status.Settled) ? this.navCtrl.navigateForward(`/event-settled/${event.id}`) : '';
   }
 
   displayEventType(eventType: number) {
