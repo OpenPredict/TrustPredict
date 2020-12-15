@@ -150,4 +150,13 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     this.header.information();
   }
 
+  manageTransferBtn(balance) {
+    const balancesFormatted = this.balancesService.format(balance);
+    if(balancesFormatted.IOToken > 0 || balancesFormatted.OToken > 0){
+      return true;
+    } else {
+      return false;
+    }
+  }
+
 }

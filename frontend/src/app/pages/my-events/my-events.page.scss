@@ -1,0 +1,28 @@
+.active {
+    border: 1px solid #228B22 !important;
+    &:hover {
+        cursor: pointer;
+        box-shadow: 0px 0px 15px #228B22;    
+    }
+}
+.settled {
+    border: 1px solid #89F4ED !important;
+    &:hover {
+        cursor: pointer;
+        box-shadow: 0px 0px 15px #89F4ED;    
+    }
+}
+.expired {
+    border: 1px solid #DC143C !important;
+    &:hover {
+        cursor: pointer;
+        box-shadow: 0px 0px 15px #DC143C;    
+    }
+}
+.stacking {
+    border: 1px solid rgb(246, 246, 170) !important;
+    &:hover {
+        cursor: pointer;
+        box-shadow: 0px 0px 15px rgb(246, 246, 170);    
+    }
+}

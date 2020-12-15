@@ -17,6 +17,7 @@ export class WagerSelectedTokenComponent implements OnInit {
 
   wager: IOptionsPriceWager;
   selectedToken: any;
+  asset: any;
 
   constructor(
     private optService: OptionService,
@@ -26,7 +27,8 @@ export class WagerSelectedTokenComponent implements OnInit {
 
   ngOnInit() {
     this.optQry.selectAll().subscribe( (opt: IOptionsPriceWager[]) => {
-      this.selectedToken = opt[0].pair;
+      this.asset = opt[0].pair.split("/")[0].toLowerCase();
+      this.selectedToken = this.optService.availableAssets[opt[0].pair.split("/")[0]].name;
     });
   }
 

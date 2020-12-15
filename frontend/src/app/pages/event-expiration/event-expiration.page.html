@@ -2,35 +2,41 @@
 </app-app-header>
 
 <ion-content>
-
   <ion-grid>
-
     <ion-row>
       <ion-col>
         <div class="darkBox">
-
           <form [formGroup]="form" (ngSubmit)="continue()">
             <div class="formWrapper">
-
               <app-wager-selected-token></app-wager-selected-token>
 
-              <h2 class="eventHeader">
-                Set event expiration date
-              </h2>
+              <h2 class="eventHeader">Set event expiration date</h2>
 
               <div class="form__item buffer">
-                <div class="form__label">
-                </div>
-                <ion-datetime class="form__input" [min]="min" max="2028-12-31" formControlName="expiration_date"
-                  displayFormat="D MMM YYYY" placeholder="Select Date">
-                </ion-datetime>
+                <div class="form__label"></div>
+                <!-- <ion-datetime
+                  class="form__input"
+                  [min]="min"
+                  max="2028-12-31"
+                  formControlName="expiration_date"
+                  displayFormat="D MMM YYYY"
+                  placeholder="Select Date"
+                >
+                </ion-datetime> -->
+                <mat-form-field class="date-field">
+                  <input class="date-label" matInput readonly [ngxMatDatetimePicker]="picker" placeholder="Select Date"
+                    formControlName="expiration_date" [min]="min" [max]="maxDate" [disabled]="false" />
+                  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                  <ngx-mat-datetime-picker #picker [showSpinners]="true" [showSeconds]="false" [stepHour]="1"
+                    [stepMinute]="1" [stepSecond]="1" [touchUi]="false" [color]="color" [enableMeridian]="false">
+                  </ngx-mat-datetime-picker>
+                </mat-form-field>
                 <div *ngIf="hasError('expiration_date', 'required')" class="standardInputErr">
                   Expiration is required
                 </div>
               </div>
               <div class="form__item">
-                <ion-button [disabled]="form.invalid" class="o-btn" type="submit" (click)="continue()">
-                  Continue
+                <ion-button [disabled]="form.invalid" class="o-btn" type="submit" (click)="continue()">Continue
                 </ion-button>
               </div>
               <div class="form__item centered">
@@ -40,12 +46,10 @@
               </div>
 
               <app-wager-information-output></app-wager-information-output>
-
             </div>
           </form>
 
         </div>
-
       </ion-col>
     </ion-row>
     <ion-row>
@@ -56,7 +60,5 @@
         </div>
       </ion-col>
     </ion-row>
-
   </ion-grid>
-
 </ion-content>
