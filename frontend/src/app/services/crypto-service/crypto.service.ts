@@ -11,6 +11,7 @@ import 'rxjs/add/operator/map';
 
 import { OptionService } from '../option-service/option.service';
 import { AuthService } from '../auth-service/auth.service';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
 const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
@@ -19,8 +20,6 @@ const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json'
 
 const rlp = require('rlp');
 const keccak = require('keccak');
-
-const kovan = false;
 
 @Injectable({
   providedIn: 'root'
@@ -31,24 +30,46 @@ export class CryptoService {
   wallet: Wallet;
   maxDecimals = 18;
   _provider = null;
+  private _currentNetwork = new BehaviorSubject<string>('');
+  $currentNetwork: Observable<Readonly<string>> = this._currentNetwork.asObservable()
 
   account = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'; // ganache-cli -d account 0
 
-  contractAddresses: any = {
-    'ContractProxy'  : (kovan) ? '0x328eC87d3AE746169DF56089ED96DEa8e34453B1' : this.getNextContractAddress(this.account, 0),
-    'OPUSD'          : (kovan) ? '0xb876a52abd933a02426c31d8231e9b9352864214' : this.getNextContractAddress(this.account, 1),
-    'ChainLink'      : (kovan) ? '0xa36085f69e2889c224210f603d836748e7dc0088' : this.getNextContractAddress(this.account, 2),
-    'Utils'          : (kovan) ? '0xec08ead8f3ea1be6b6ea17ccf80df0a4cf379033' : this.getNextContractAddress(this.account, 3),
-    'Oracle'         : (kovan) ? '0x892Ef27cC1B1A46646CB064f8d12EE66F74BEFc7' : this.getNextContractAddress(this.account, 4),
-    'TrustPredict'   : (kovan) ? '0xb1D9A08BA7d5184829Fa7f84A839Ec98607415dE' : this.getNextContractAddress(this.account, 5),
-    'OPEventFactory' : (kovan) ? '0x0d1a8Cd518f5DEE399584461d00292f964C3B31d' : this.getNextContractAddress(this.account, 6),
-  };
+  contractAddresses: any = {};
 
   constructor(
     public router: Router,
     private storage: Storage,
     private auth: AuthService,
-    public optionService: OptionService ) {}
+    public optionService: OptionService ) {
+      this.$currentNetwork.subscribe( (networkName) => {
+        console.log('network: ' + networkName);
+        if (networkName === 'homestead'){ // mainnet
+        }
+        if (networkName === 'kovan'){
+          this.contractAddresses = {
+            'ContractProxy'  : '0x328eC87d3AE746169DF56089ED96DEa8e34453B1',
+            'OPUSD'          : '0xb876a52abd933a02426c31d8231e9b9352864214',
+            'ChainLink'      : '0xa36085f69e2889c224210f603d836748e7dc0088',
+            'Utils'          : '0xec08ead8f3ea1be6b6ea17ccf80df0a4cf379033',
+            'Oracle'         : '0x892Ef27cC1B1A46646CB064f8d12EE66F74BEFc7',
+            'TrustPredict'   : '0xb1D9A08BA7d5184829Fa7f84A839Ec98607415dE',
+            'OPEventFactory' : '0x0d1a8Cd518f5DEE399584461d00292f964C3B31d',
+          };
+        }
+        if (networkName === 'unknown') { // localhost
+          this.contractAddresses = {
+          'ContractProxy'  : this.getNextContractAddress(this.account, 0),
+          'OPUSD'          : this.getNextContractAddress(this.account, 1),
+          'ChainLink'      : this.getNextContractAddress(this.account, 2),
+          'Utils'          : this.getNextContractAddress(this.account, 3),
+          'Oracle'         : this.getNextContractAddress(this.account, 4),
+          'TrustPredict'   : this.getNextContractAddress(this.account, 5),
+          'OPEventFactory' : this.getNextContractAddress(this.account, 6),
+          };
+        }
+      });
+    }
 
   provider() {
     if (this._provider === null){
@@ -137,6 +158,8 @@ export class CryptoService {
     const network = await this._provider.getNetwork()      
     
     this.storage.set("chainId", network.chainId);   // store chain id in local storage to prevent distributed reload bug
+
+    this._currentNetwork.next(network.name);
     
     const authState: any = {
       wallet,
