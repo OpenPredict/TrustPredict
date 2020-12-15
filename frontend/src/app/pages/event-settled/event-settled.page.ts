@@ -104,7 +104,7 @@ export class EventSettledPage implements OnInit {
       if Yes token wins then send the same value.
     */
     const position = (winner === Token.No) ? 1 - betSide : betSide;
-    const winnerString = (winner === Token.No) ? 'IO' : 'O';
+    const winnerString = (winner === Token.No) ? 'No' : 'Yes';
     this.navCtrl.navigateForward(`/transfer-token/${this.eventId}/${winnerString}/${position}`);
   }
 
@@ -117,7 +117,7 @@ export class EventSettledPage implements OnInit {
   }
 
   getWinningTokenText(winner: Token): string {
-    return (winner === Token.Yes) ? 'O' : 'IO';
+    return (winner === Token.Yes) ? 'Yes' : 'No';
   }
 
   getDate(timestamp: number) {

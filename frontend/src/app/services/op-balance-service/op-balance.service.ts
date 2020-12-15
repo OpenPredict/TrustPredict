@@ -116,30 +116,30 @@ export class OpBalanceService {
     }
 
   getById(_id: ID) {
-    const balanceO  = (this.balances[_id] !== undefined)
+    const balanceYes  = (this.balances[_id] !== undefined)
                     ? Number(ethers.utils.formatUnits(this.balances[_id].YesToken.toString()).toString())
                     : 0;
 
-    const balanceIO = (this.balances[_id] !== undefined)
+    const balanceNo = (this.balances[_id] !== undefined)
                     ? Number(ethers.utils.formatUnits(this.balances[_id].NoToken.toString()).toString())
                     : 0;
 
-    // console.log('balanceO encoded: ' + balanceO);
-    // console.log('balanceIO encoded: ' + balanceIO);
+    // console.log('balanceYes encoded: ' + balanceYes);
+    // console.log('balanceNo encoded: ' + balanceNo);
 
     return {
-      NoToken: balanceIO,
-      YesToken: balanceO
+      NoToken: balanceNo,
+      YesToken: balanceYes
     };
   }
 
   format(balances) {
-      const balanceO  = Number(ethers.utils.formatUnits(balances.YesToken.toString()).toString());
-      const balanceIO = Number(ethers.utils.formatUnits(balances.NoToken.toString()).toString());
+      const balanceYes  = Number(ethers.utils.formatUnits(balances.YesToken.toString()).toString());
+      const balanceNo = Number(ethers.utils.formatUnits(balances.NoToken.toString()).toString());
 
       return {
-        NoToken: balanceIO,
-        YesToken: balanceO
+        NoToken: balanceNo,
+        YesToken: balanceYes
       };
   }
 
@@ -181,7 +181,7 @@ export class OpBalanceService {
   getMaxStake(balances, selectionID) {
     const balancesFormatted = this.format(balances);
     const total = balancesFormatted.YesToken + balancesFormatted.NoToken;
-    const selection = (selectionID === 'O') ? balancesFormatted.YesToken : balancesFormatted.NoToken;
+    const selection = (selectionID === 'Yes') ? balancesFormatted.YesToken : balancesFormatted.NoToken;
 
     // get 10% of pot
     const maxStake = total / 10;

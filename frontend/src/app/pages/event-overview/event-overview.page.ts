@@ -111,7 +111,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     // console.log('balances: ' + JSON.stringify(balances));
     // console.log('token selection: ' + this.eventsService.getToken(position, betSide));
     const balancesFormatted = this.balancesService.format(balances);
-    const balance = (this.eventsService.getToken(position, betSide)) === 'IO' ? balancesFormatted.NoToken : balancesFormatted.YesToken;
+    const balance = (this.eventsService.getToken(position, betSide)) === 'No' ? balancesFormatted.NoToken : balancesFormatted.YesToken;
     return parseFloat(balance.toString()).toFixed(2);
   }
 
@@ -120,7 +120,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     // console.log('balances: ' + JSON.stringify(balances));
     // console.log('token selection: ' + this.eventsService.getToken(position, betSide));
 
-    const index = (this.eventsService.getToken(position, betSide)) === 'IO' ? 0 : 1;
+    const index = (this.eventsService.getToken(position, betSide)) === 'No' ? 0 : 1;
     const selection = balances[index];
     const other = balances[1 - index];
 
@@ -138,7 +138,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
    */
   continue(balances: any, token: string, position: Position, option: string): void {
     const balancesFormatted = this.balancesService.format(balances);
-    const selection = (token === 'IO') ? balancesFormatted.NoToken : balancesFormatted.YesToken;
+    const selection = (token === 'No') ? balancesFormatted.NoToken : balancesFormatted.YesToken;
     if (option === 'transfer' && selection == 0) {
       return;
     }

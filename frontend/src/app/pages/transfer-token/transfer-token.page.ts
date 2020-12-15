@@ -106,7 +106,7 @@ export class TransferTokenPage extends BaseForm implements OnInit {
     const eventId = this.activatedRoute.snapshot.params.eventId;
     const to = this.form.controls['transfer_to'].value;
     const amount = BaseForm.transformAmount(this.form.controls['transfer_amount'].value);
-    const selection = (this.activatedRoute.snapshot.params.token === 'IO' ? 0 : 1);
+    const selection = (this.activatedRoute.snapshot.params.token === 'No' ? 0 : 1);
 
     try {
       const interaction = await this.ui
@@ -145,7 +145,7 @@ export class TransferTokenPage extends BaseForm implements OnInit {
   getTokenBalance(balances: any) {
     console.log('transfer-token balances: ' + balances);
     const balancesFormatted = this.balancesService.format(balances);
-    return this.token === 'IO' ? balancesFormatted.NoToken : balancesFormatted.YesToken;
+    return this.token === 'No' ? balancesFormatted.NoToken : balancesFormatted.YesToken;
   }
 
   // replace with live terms and conditons url
