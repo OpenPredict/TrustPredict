@@ -26,7 +26,7 @@ async function settle() {
     console.log('staking event..')
     result = await contracts['OPEventFactory'].stake(eventId, 
                                                      ethers.utils.parseUnits('2'),
-                                                     Constants.OTokenSelection,
+                                                     Constants.YesTokenSelection,
                                                      {gasLimit: 1000000});
     console.log(result);
 }

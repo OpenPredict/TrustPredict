@@ -47,7 +47,7 @@ async function createEvent() {
 
         await new Promise(r => setTimeout(r, 5 * 1000));
 
-        // approve OPEventFactory address for 100 OPUSD (ie. 1 O Token) from deployer address
+        // approve OPEventFactory address for 100 OPUSD (ie. 1 Yes Token) from deployer address
          console.log("OPUSD approve..")
         await contracts['OPUSD'].approve(contracts['OPEventFactory'].address,
                             ethers.utils.parseUnits(((Constants.numTokens * 10) * Constants.OPUSDOptionRatio).toString()))
@@ -64,11 +64,11 @@ async function createEvent() {
                                                         {gasLimit: 1000000});
         console.log('result: ' + JSON.stringify(result));
 
-        OToken = await contracts['TrustPredict'].getToken(OPEventID, Constants.OTokenSelection)
-        IOToken = await contracts['TrustPredict'].getToken(OPEventID, Constants.IOTokenSelection)
+        YesToken = await contracts['TrustPredict'].getToken(OPEventID, Constants.YesTokenSelection)
+        NoToken = await contracts['TrustPredict'].getToken(OPEventID, Constants.NoTokenSelection)
         console.log('OPEventID: ' + OPEventID);
-        console.log('OToken: ' + OToken);
-        console.log('IOToken: ' + IOToken);
+        console.log('YesToken: ' + YesToken);
+        console.log('NoToken: ' + NoToken);
 
         eventData = await contracts['OPEventFactory'].getEventData(OPEventID)
         console.log('EventData: ' + eventData);
@@ -88,7 +88,7 @@ async function stake() {
     const OPEventID = '0xc011AeF248A96270a3a1Bb500746E930965b408D';
     const selection = 0;
 
-    // approve OPEventFactory address for 1000 OPUSD (ie. 10 IO Token) from deployer address
+    // approve OPEventFactory address for 1000 OPUSD (ie. 10 No Token) from deployer address
     // console.log("OPUSD approve..")
     // await contracts['OPUSD'].approve(contracts['OPEventFactory'].address,
     //                     ethers.utils.parseUnits(((Constants.numTokens * 10) * Constants.OPUSDOptionRatio).toString()))
@@ -101,12 +101,12 @@ async function stake() {
 async function eventData() {
     await setContractAddresses();
     const OPEventID = '0xc011AeF248A96270a3a1Bb500746E930965b408D';
-    OToken = await contracts['TrustPredict'].getToken(OPEventID, Constants.OTokenSelection)
+    YesToken = await contracts['TrustPredict'].getToken(OPEventID, Constants.YesTokenSelection)
     await new Promise(r => setTimeout(r, 5 * 1000));
-    IOToken = await contracts['TrustPredict'].getToken(OPEventID, Constants.IOTokenSelection)  
+    NoToken = await contracts['TrustPredict'].getToken(OPEventID, Constants.NoTokenSelection)  
     console.log('OPEventID: ' + OPEventID);
-    console.log('OToken: ' + OToken);
-    console.log('IOToken: ' + IOToken);
+    console.log('YesToken: ' + YesToken);
+    console.log('NoToken: ' + NoToken);
 
     await new Promise(r => setTimeout(r, 5 * 1000));
     eventData = await contracts['OPEventFactory'].getEventData(OPEventID)

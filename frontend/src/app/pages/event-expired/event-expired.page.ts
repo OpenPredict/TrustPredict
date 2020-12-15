@@ -104,7 +104,7 @@ export class EventExpiredPage implements OnInit {
       position: 'middle',
       duration: 2000,
       cssClass: 'successToast',
-      message: 'Success ! Your deposit has been withdrawn.'
+      message: 'You have successfully withdrawn your deposit.'
     });
     await toast.present();
     setTimeout(async () => {
@@ -115,7 +115,7 @@ export class EventExpiredPage implements OnInit {
 
   async hasBalanceInAnyToken() {
     const balancesFormatted = this.balancesService.getById(this.balancesService.getID(this.eventId));
-    return balancesFormatted.IOToken > 0 || balancesFormatted.OToken > 0;
+    return balancesFormatted.NoToken > 0 || balancesFormatted.YesToken > 0;
   }
 
   information() {

@@ -73,8 +73,8 @@ export class OpBalanceService {
             if (!(_id in this.balances)) {
               // get initial balances
               balanceEntry.id = _id;
-              balanceEntry.IOToken = BigNumber.from(0);
-              balanceEntry.OToken = BigNumber.from(0);
+              balanceEntry.NoToken = BigNumber.from(0);
+              balanceEntry.YesToken = BigNumber.from(0);
               this.balances[_id] = balanceEntry;
             } else {
               balanceEntry = this.balances[_id];
@@ -86,24 +86,24 @@ export class OpBalanceService {
               this.updates[id] = true;
               // We can't assign to values in the state directly (ie. this.balances), so pull out the values and reassign a
               // new object after.
-              let OTokenValue  = this.balances[_id].OToken;
-              let IOTokenValue = this.balances[_id].IOToken;
+              let YesTokenValue  = this.balances[_id].YesToken;
+              let NoTokenValue = this.balances[_id].NoToken;
 
               if (to === this.optionService.address) {
                 //console.log('Balance add - to wallet address from: ' + to + ' selection: ' + selection.valueOf().toString());
-                (selection === 0) ? IOTokenValue = IOTokenValue.add(amount)
-                                  :  OTokenValue = OTokenValue.add(amount);
+                (selection === 0) ? NoTokenValue = NoTokenValue.add(amount)
+                                  :  YesTokenValue = YesTokenValue.add(amount);
               }
               if (from === this.optionService.address) {
                 //console.log('Balance sub - from wallet address to: ' + to + ' selection: ' + selection.valueOf().toString());
-                (selection === 0) ? IOTokenValue = IOTokenValue.sub(amount)
-                                  :  OTokenValue = OTokenValue.sub(amount);
+                (selection === 0) ? NoTokenValue = NoTokenValue.sub(amount)
+                                  :  YesTokenValue = YesTokenValue.sub(amount);
               }
 
               balanceEntry = {
                 id: this.balances[_id].id,
-                OToken: OTokenValue,
-                IOToken: IOTokenValue,
+                YesToken: YesTokenValue,
+                NoToken: NoTokenValue,
               };
 
               this.balances[_id] = balanceEntry;
@@ -117,29 +117,29 @@ export class OpBalanceService {
 
   getById(_id: ID) {
     const balanceO  = (this.balances[_id] !== undefined)
-                    ? Number(ethers.utils.formatUnits(this.balances[_id].OToken.toString()).toString())
+                    ? Number(ethers.utils.formatUnits(this.balances[_id].YesToken.toString()).toString())
                     : 0;
 
     const balanceIO = (this.balances[_id] !== undefined)
-                    ? Number(ethers.utils.formatUnits(this.balances[_id].IOToken.toString()).toString())
+                    ? Number(ethers.utils.formatUnits(this.balances[_id].NoToken.toString()).toString())
                     : 0;
 
     // console.log('balanceO encoded: ' + balanceO);
     // console.log('balanceIO encoded: ' + balanceIO);
 
     return {
-      IOToken: balanceIO,
-      OToken: balanceO
+      NoToken: balanceIO,
+      YesToken: balanceO
     };
   }
 
   format(balances) {
-      const balanceO  = Number(ethers.utils.formatUnits(balances.OToken.toString()).toString());
-      const balanceIO = Number(ethers.utils.formatUnits(balances.IOToken.toString()).toString());
+      const balanceO  = Number(ethers.utils.formatUnits(balances.YesToken.toString()).toString());
+      const balanceIO = Number(ethers.utils.formatUnits(balances.NoToken.toString()).toString());
 
       return {
-        IOToken: balanceIO,
-        OToken: balanceO
+        NoToken: balanceIO,
+        YesToken: balanceO
       };
   }
 
@@ -155,8 +155,8 @@ export class OpBalanceService {
   setBalance(_id: ID) {
     const balanceEntry = {
       id: _id,
-      OToken: ethers.BigNumber.from('0'),
-      IOToken: ethers.BigNumber.from('0'),
+      YesToken: ethers.BigNumber.from('0'),
+      NoToken: ethers.BigNumber.from('0'),
     };
 
     this.balances[_id] = balanceEntry;
@@ -180,8 +180,8 @@ export class OpBalanceService {
 
   getMaxStake(balances, selectionID) {
     const balancesFormatted = this.format(balances);
-    const total = balancesFormatted.OToken + balancesFormatted.IOToken;
-    const selection = (selectionID === 'O') ? balancesFormatted.OToken : balancesFormatted.IOToken;
+    const total = balancesFormatted.YesToken + balancesFormatted.NoToken;
+    const selection = (selectionID === 'O') ? balancesFormatted.YesToken : balancesFormatted.NoToken;
 
     // get 10% of pot
     const maxStake = total / 10;

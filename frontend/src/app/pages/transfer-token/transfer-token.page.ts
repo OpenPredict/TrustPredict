@@ -145,7 +145,7 @@ export class TransferTokenPage extends BaseForm implements OnInit {
   getTokenBalance(balances: any) {
     console.log('transfer-token balances: ' + balances);
     const balancesFormatted = this.balancesService.format(balances);
-    return this.token === 'IO' ? balancesFormatted.IOToken : balancesFormatted.OToken;
+    return this.token === 'IO' ? balancesFormatted.NoToken : balancesFormatted.YesToken;
   }
 
   // replace with live terms and conditons url
@@ -158,7 +158,7 @@ export class TransferTokenPage extends BaseForm implements OnInit {
       position: 'middle',
       duration: 2000,
       cssClass: 'successToast',
-      message: 'Success ! Your tokens have been transferred.'
+      message: 'You have successfully transferred your tokens.'
     });
     await toast.present();
     setTimeout(async () => {

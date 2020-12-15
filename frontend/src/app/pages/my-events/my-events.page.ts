@@ -38,7 +38,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
         This window contains all events your wallet has been involved in, that is;
         <ul>
           <li>events created</li>
-          <li>events holding O/IO tokens in</li>
+          <li>events holding Yes/No tokens in</li>
         </ul>
         This also includes events that failed to go active (Expired Events) and events that have finalized (Settled Events) that involved the
         currently connected wallet in some way.
@@ -92,7 +92,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
       sortByOrder: Order.ASC,
       filterBy: state =>  {
         const balance = this.opBalanceService.getById(this.opBalanceService.getID(String(state.id)));
-        return ((state.creator === this.optionService.address) || ((balance.IOToken + balance.OToken) > 0));
+        return ((state.creator === this.optionService.address) || ((balance.NoToken + balance.YesToken) > 0));
       }
     });
 

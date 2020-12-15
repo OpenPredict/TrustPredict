@@ -42,8 +42,8 @@ module.exports = {
             "sDEFI/USD" : "0x70179FB2F3A0a5b7FfB36a235599De440B0922ea"
         },
         // Token selection
-        IOTokenSelection : 0,
-        OTokenSelection : 1,
+        NoTokenSelection : 0,
+        YesTokenSelection : 1,
         // args
         // -- keys --
         betPrice : 0,

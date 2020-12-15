@@ -160,7 +160,7 @@ contract OPEventFactory {
         // Transfer OPUSD to this contract
         Utils.transferFrom(msg.sender, address(this), Utils.convertToOPUSDAmount(numTokensToMint), Utils.GetOPUSDAddress());        
         // mint tokens to sender
-        Utils.mint(_eventId, msg.sender, numTokensToMint, Utils.Token.O, _token);
+        Utils.mint(_eventId, msg.sender, numTokensToMint, Utils.Token.Yes, _token);
 
         emit EventUpdate(_eventId);
         return true;
@@ -199,9 +199,9 @@ contract OPEventFactory {
 
         if((settledPrice >= data.betPrice &&  data.betSide == Utils.Side.Higher) || 
            (settledPrice <  data.betPrice &&  data.betSide == Utils.Side.Lower)) {
-            data.winner = Utils.Token.O;
+            data.winner = Utils.Token.Yes;
         }else {
-            data.winner = Utils.Token.IO;
+            data.winner = Utils.Token.No;
         }
         data.settledPrice = settledPrice;
 
@@ -259,8 +259,8 @@ contract OPEventFactory {
         _minimumTimeReached(_eventId, true);
 
         // send OPUSD holdings back to the sending party if they have funds deposited.
-        uint OHoldings = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.O, _token);
-        uint IOHoldings = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.IO, _token);
+        uint OHoldings = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.Yes, _token);
+        uint IOHoldings = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.No, _token);
         require(OHoldings > 0 || IOHoldings > 0, "OPEventFactory: no holdings for sender in any token.");
 
         require(Utils.isApprovedForAll(msg.sender, address(this), _token),
@@ -268,11 +268,11 @@ contract OPEventFactory {
 
         if(OHoldings > 0){
             Utils.transfer(msg.sender, Utils.convertToOPUSDAmount(OHoldings), Utils.GetOPUSDAddress());
-            Utils.burn(_eventId, msg.sender, OHoldings, Utils.Token.O, _token);
+            Utils.burn(_eventId, msg.sender, OHoldings, Utils.Token.Yes, _token);
         }
         if(IOHoldings > 0){
             Utils.transfer(msg.sender, Utils.convertToOPUSDAmount(IOHoldings), Utils.GetOPUSDAddress());
-            Utils.burn(_eventId, msg.sender, IOHoldings, Utils.Token.IO, _token);
+            Utils.burn(_eventId, msg.sender, IOHoldings, Utils.Token.No, _token);
         }
 
         emit EventUpdate(_eventId);
