@@ -4,12 +4,11 @@ import { NavController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { OptionQuery } from '@services/option-service/option.service.query';
 import { BaseForm } from '@app/helpers/BaseForm';
-import { AbstractControl, FormBuilder, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {  FormBuilder, Validators } from '@angular/forms';
 import { OptionsStore } from '@app/services/option-service/option.service.store';
-import createNumberMask from 'text-mask-addons/dist/createNumberMask';
-import { parse } from 'path';
 import { CustomValidators } from '@app/helpers/CustomValidators';
 import { AppHeaderComponent } from "@components/app-header/app-header.component";
+const axios = require('axios');
 
 @Component({
   selector: 'app-event-condition',
@@ -46,6 +45,14 @@ export class EventConditionPage extends BaseForm implements OnInit {
   }
 
   ngOnInit() { }
+
+  async getPrice(address) {
+    const response = await axios({
+          baseURL: `https://kovan.etherscan.io/readContract?m=normal&a=${address}&v=0x44D01B3F44E8351E60296bdF57B27CF2659B0200#`,
+      method: 'post',
+      });
+      return response;
+  };
 
   continue() {
     this.setSubmitted();
