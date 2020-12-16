@@ -51,10 +51,10 @@ export class CryptoService {
             'ContractProxy'  : '0x328eC87d3AE746169DF56089ED96DEa8e34453B1',
             'OPUSD'          : '0xb876a52abd933a02426c31d8231e9b9352864214',
             'ChainLink'      : '0xa36085f69e2889c224210f603d836748e7dc0088',
-            'Utils'          : '0xec08ead8f3ea1be6b6ea17ccf80df0a4cf379033',
-            'Oracle'         : '0x892Ef27cC1B1A46646CB064f8d12EE66F74BEFc7',
-            'TrustPredict'   : '0xb1D9A08BA7d5184829Fa7f84A839Ec98607415dE',
-            'OPEventFactory' : '0x0d1a8Cd518f5DEE399584461d00292f964C3B31d',
+            'Utils'          : '0xaFfAa8Bd46155e536FF863Cad355a237B8102142',
+            'Oracle'         : '0x16406518B81e70E131357F8eC53C6c8F604EBdB4',
+            'TrustPredict'   : '0xb91208C000f75f1564663A53109F08BdC8dF7a60',
+            'OPEventFactory' : '0xeBabC1c93fc645a9C47CC4373FE456fD6791660c',
           };
         }
         if (networkName === 'unknown') { // localhost
