@@ -29,6 +29,7 @@ export class OptionService {
   contracts: any = {};
   OPUSDOptionRatio = 100;
   priceFeedDecimals = 8;
+  depositPeriod: any;
 
   availableAssets: any = {
     'AUD':   { name: 'Australian Dollar',     icon: '/assets/img/aud.svg',   ticker: 'AUD',   selected: false },

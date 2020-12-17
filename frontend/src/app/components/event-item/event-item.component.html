@@ -26,7 +26,7 @@
         <div class="lb"></div>
         <ul class="list-reset">
           <li class="status-status">
-            {{ getStatusText(event) }}
+            {{ getStatusText(event) }}<span *ngIf="event.deposit_period_end && event.status == 0"> : {{timeToShow}}</span> 
           </li>
           <li>
             value: ${{ this.getTotalValue(event.staked_values) }} USD (<em>$1000 USD minimum needed to activate</em>)
