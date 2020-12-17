@@ -27,11 +27,15 @@ export class EventItemComponent implements OnInit {
   }
 
   initializeTime(endtime) {
-    this.timeLeft = endtime;
+    this.timeLeft = endtime - (new Date().getTime() / 1000);
     this.interval = setInterval(() => {
       if(this.timeLeft > 0) {
         this.timeLeft--;
-        this.timeToShow = new Date(this.timeLeft * 1000).toISOString().substr(11, 8);
+        const secondsInThisHour = this.timeLeft % 3600;
+        const hours   = Math.floor(this.timeLeft / 3600);
+        const minutes = Math.floor(secondsInThisHour / 60);
+        const seconds = Math.floor(secondsInThisHour % 60);
+        this.timeToShow = `${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
       } else {
         clearInterval(this.interval);
       }
