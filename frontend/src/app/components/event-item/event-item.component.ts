@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { IEvent, Side } from '@app/data-model';
 import { OpEventService } from '@services/op-event-service/op-event.service';
 
@@ -11,10 +11,36 @@ import { OpEventService } from '@services/op-event-service/op-event.service';
 export class EventItemComponent implements OnInit {
 
   @Input() event: IEvent;
-
+  timeLeft: number;
+  timeToShow: any;
+  interval;
   constructor(private eventService: OpEventService ) { }
 
-  ngOnInit() {}
+  ngOnInit() {
+    if(this.event.deposit_period_end !== undefined){
+      this.initializeTime(this.event.deposit_period_end)
+    }
+  }
+
+  ngOnDestroy() {
+    clearInterval(this.interval);
+  }
+
+  initializeTime(endtime) {
+    this.timeLeft = endtime - (new Date().getTime() / 1000);
+    this.interval = setInterval(() => {
+      if(this.timeLeft > 0) {
+        this.timeLeft--;
+        const secondsInThisHour = this.timeLeft % 3600;
+        const hours   = Math.floor(this.timeLeft / 3600);
+        const minutes = Math.floor(secondsInThisHour / 60);
+        const seconds = Math.floor(secondsInThisHour % 60);
+        this.timeToShow = `${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+      } else {
+        clearInterval(this.interval);
+      }
+    },1000)
+  }
 
   getClass(betSide: Side): string {
     return (betSide === Side.Higher) ? 'status-green' : 'status-red';

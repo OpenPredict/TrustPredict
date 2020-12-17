@@ -12,6 +12,7 @@ import 'rxjs/add/operator/map';
 import { OptionService } from '../option-service/option.service';
 import { AuthService } from '../auth-service/auth.service';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { OpEventService } from '../op-event-service/op-event.service';
 
 const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
 const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
@@ -56,6 +57,7 @@ export class CryptoService {
             'TrustPredict'   : '0xb91208C000f75f1564663A53109F08BdC8dF7a60',
             'OPEventFactory' : '0xeBabC1c93fc645a9C47CC4373FE456fD6791660c',
           };
+          optionService.depositPeriod = 86400;
         }
         if (networkName === 'unknown') { // localhost
           this.contractAddresses = {
@@ -67,6 +69,7 @@ export class CryptoService {
           'TrustPredict'   : this.getNextContractAddress(this.account, 5),
           'OPEventFactory' : this.getNextContractAddress(this.account, 6),
           };
+          optionService.depositPeriod = 200;
         }
       });
     }
