@@ -30,7 +30,6 @@ export class OpEventService {
   events = {} as IEvent;
 
   address = '';
-  depositPeriod = 200;
   minimumTokenAmountPerEvent = BigNumber.from(ethers.utils.parseUnits('10'));
   constructor(
     private crypto: CryptoService,
@@ -125,6 +124,8 @@ export class OpEventService {
       // console.log('stakedValuesRaw: ' + stakedValuesRaw);
       // console.log('stakedValues: ' + stakedValues);
 
+      console.log('startTime: ' + Number(eventData['startTime']));
+
       const eventEntry = {
         id: eventId,
         asset_name: asset.name,
@@ -135,7 +136,7 @@ export class OpEventService {
         condition_price: ethers.utils.formatUnits(eventData['betPrice'].valueOf().toString(), 8).toString(),
         settled_price: parseFloat(ethers.utils.formatUnits(eventData['settledPrice'].valueOf().toString(), 8).toString()).toFixed(2),
         winner: Number(eventData['winner']),
-        creation:  Number(eventData['startTime']) - this.depositPeriod,
+        creation:  Number(eventData['startTime']) - this.optionService.depositPeriod,
         deposit_period_end:  (Number(eventData['startTime'])),
         completion: eventData['endTime'],
         status: this.parseEventStatus(eventData, tokenValuesRaw),
