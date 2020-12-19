@@ -35,8 +35,13 @@
               </div>
 
               <div class="form__item buffer">
-                <div class="form__label">
-                  Input settled price in USD
+                <div class="price_info">
+                  <div class="form__label settled_price">
+                    Input settled price in USD
+                  </div>
+                  <div class="form__label current_price">
+                    Current price ${{usdPrice}}
+                  </div>
                 </div>
                 <input class="form__input" type="text" min="0" formControlName="wager" placeholder="0.00"
                   [textMask]="{mask: dollarMask }" />

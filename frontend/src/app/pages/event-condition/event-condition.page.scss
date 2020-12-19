@@ -76,6 +76,15 @@ input[type="radio"]:checked + label {
 input[type=radio] {
     display: none;
 }
+.price_info {
+    display: flex;
+}
+.current_price {
+    margin-right: 0 !important;
+}
+.settled_price {
+    margin-left: 0 !important;
+}
 
 
 
