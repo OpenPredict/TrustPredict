@@ -14,3 +14,37 @@
 .hide {
     visibility: hidden;
 }
+
+
+.confirm-details {
+    height: 20px;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 35px;
+}
+.progress-title {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 26px;
+}
+.progress-bar {
+    display: flex;
+    flex-direction: row;
+    padding: 0 26px;
+    div{
+        height: 14px;
+    }
+}
+.yes {
+    background-color: #24f67d;
+    border-radius: 0 0 0 0;
+}
+.no {
+    background-color: #fe4a49;
+    border-radius: 0 0 0 0;
+}
+.yes-label,
+.no-label {
+    font-size: 14px;
+    color: white;
+}
