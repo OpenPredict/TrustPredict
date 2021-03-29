@@ -102,7 +102,7 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
     try {
       const interaction = await this.ui
         .loading(this.opEvent.launchEvent(rawBetPrice, betSide, eventPeriod, numTokensStakedToMint, pairContract),
-          'You will be prompted for contract interactions, please approve all to successfully take part and please be patient as it may take a few moments to broadcast to the network.')
+          'You will be prompted for contract interactions, please be patient as it may take a few moments to broadcast to the network.')
         .catch(e => alert(`Error with contract interactions ${JSON.stringify(e)}`));
 
       if (interaction) {
