@@ -31,7 +31,7 @@ function setContractAddresses(wallet) {
     nonce = 0;
     contractAddresses = []
     contractAddresses['ContractProxy']  = utils.getNextContractAddress(wallet.address, nonce++)
-    contractAddresses['OPUSD']          = utils.getNextContractAddress(wallet.address, nonce++)
+    contractAddresses['USDC']          = utils.getNextContractAddress(wallet.address, nonce++)
     contractAddresses['ChainLink']      = utils.getNextContractAddress(wallet.address, nonce++)
     contractAddresses['Utils']          = utils.getNextContractAddress(wallet.address, nonce++)
     contractAddresses['Oracle']         = utils.getNextContractAddress(wallet.address, nonce++)

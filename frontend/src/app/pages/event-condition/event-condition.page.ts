@@ -51,6 +51,7 @@ export class EventConditionPage extends BaseForm implements OnInit {
     this.getPrice(); 
   }
 
+  // TODO update this to use the graph.
   async getPrice() {
     const currentOptions = this.optQry.getAll();
     const pairContract = currentOptions[0].pair_contract;

@@ -16,7 +16,7 @@ module.exports = {
             eventPeriodSeconds : 100000,
             secret: truffleConfig.networks.kovan.secret,
             contractAddresses: {
-                'OPUSD'      : '0xB876a52ABD933a02426C31d8231e9B9352864214',
+                'USDC'      : '0xB876a52ABD933a02426C31d8231e9B9352864214',
                 'ChainLink'  : '0xa36085F69e2889c224210F603D836748e7dC0088'
             }
         },
@@ -59,7 +59,7 @@ module.exports = {
         Higher : 1,
         // numTokensToMint
         numTokens : 1,
-        OPUSDOptionRatio : 100,
+        USDCOptionRatio : 100,
         initialMaxPrediction : 5,
         minTokenAmount : 10,
         maxPredictionFactor: 2,

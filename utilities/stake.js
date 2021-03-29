@@ -18,10 +18,10 @@ async function settle() {
     wallet = wallet.connect(Constants['development'].provider)
     
     contracts['OPEventFactory'] = new ethers.Contract(contractAddresses['OPEventFactory'], OPEventFactory.abi, wallet);
-    contracts['OPUSD']   = new ethers.Contract(contractAddresses['OPUSD'],     OPUSD.abi, wallet);
+    contracts['USDC']   = new ethers.Contract(contractAddresses['USDC'],     OPUSD.abi, wallet);
 
     console.log('Setting approval to contract..')
-    await contracts['OPUSD'].approve(contracts['OPEventFactory'].address, ethers.utils.parseUnits('200'));
+    await contracts['USDC'].approve(contracts['OPEventFactory'].address, ethers.utils.parseUnits('200'));
 
     console.log('staking event..')
     result = await contracts['OPEventFactory'].stake(eventId, 
@@ -35,7 +35,7 @@ function setContractAddresses(wallet) {
     nonce = 0;
     contractAddresses = []
     contractAddresses['ContractProxy']  = utils.getNextContractAddress(wallet.address, nonce++)
-    contractAddresses['OPUSD']          = utils.getNextContractAddress(wallet.address, nonce++)
+    contractAddresses['USDC']          = utils.getNextContractAddress(wallet.address, nonce++)
     contractAddresses['ChainLink']      = utils.getNextContractAddress(wallet.address, nonce++)
     contractAddresses['Utils']          = utils.getNextContractAddress(wallet.address, nonce++)
     contractAddresses['Oracle']         = utils.getNextContractAddress(wallet.address, nonce++)

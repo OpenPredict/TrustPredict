@@ -33,10 +33,10 @@
                 <div class="form__label">
                   Select amount
                   <div class="form__label-info">
-                    <span class="max_stake_btn" (click)="setMaxStake()">Max stake</span>: {{ maxStake }} OPUSD
+                    <span class="max_stake_btn" (click)="setMaxStake()">Max stake</span>: ${{ maxStake }}
                   </div>
                   <div class="form__label-info" *ngIf="stakingBalance$ | async as stakingBalance">
-                    Balance: {{ getBalance(stakingBalance) }} OPUSD
+                    Balance: ${{ getBalance(stakingBalance) }}
                   </div>
                 </div>
                 <input class="form__input" type="text" min="0" formControlName="option_stake" placeholder="0.00"

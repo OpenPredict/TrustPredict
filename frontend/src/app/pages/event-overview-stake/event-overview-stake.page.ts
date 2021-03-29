@@ -201,7 +201,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
       result = (maxStake > totalMaxStake) ? totalMaxStake : maxStake;
     }
 
-    return Number(parseFloat((result * 100).toString()).toFixed(2)); // 100 OPUSD == 1 token
+    return Number(parseFloat((result * 100).toString()).toFixed(2)); // 100 USD == 1 token
   }
 
 

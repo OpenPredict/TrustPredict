@@ -1,9 +1,19 @@
-pragma solidity ^0.6.0;
-pragma experimental ABIEncoderV2;
-    
-import "./Utils.sol";
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+pragma abicoder v2;
+
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./interfaces/IOracle.sol";
+import "./interfaces/ITrustPredictToken.sol";
+import "./libraries/Utils.sol";
 
 contract OPEventFactory {
+    using SafeMath for uint256;
+    using SafeERC20 for IERC20;
+
     // ********** Start Events ***************
     event EventUpdate(address);
     // ********** End Events ***************
@@ -11,86 +21,88 @@ contract OPEventFactory {
 
     // ********** Start State variables **********    
     // constants
-    uint constant maxEventPeriod = 315360000; // max time any one event can last for (10y in seconds)
+    uint256 immutable public maxEventPeriod = 315360000;                        // max time any one event can last for (10y in seconds)
+    uint256 immutable public minimumTokenAmountPerEvent = 10000000000000000000; // 10 tokens
+    uint256 immutable public maxPredictionFactor = 2;                           // ie. 50% of max pot per stake (1/2 == 50%)
+    //uint256 immutable public depositPeriod = (Utils.GetTest()) ? 10 : 86400;    // test: 10 seconds, otherwise: 1 day
+    uint256 immutable public depositPeriod = 200;                                 // test: 10 seconds, otherwise: 1 day
+    uint256 immutable public usdValuePerToken = 100;                            // value of 1 minted token in USD.
+    // enums
+    enum Side {Lower, Higher}
 
     // addresses
-    address _oracle;
-    address _token;
+    IOracle            immutable public oracle;
+    ITrustPredictToken immutable public trustPredictToken;
+    IERC20             immutable public staking; // USD-denominated stablecoin
     
     // event data
     struct EventData {
-        int betPrice;
-        Utils.Side betSide;
-        uint startTime;
-        uint endTime;
+        int256 betPrice;
+        int256 settledPrice;
+        uint256 startTime;
+        uint256 endTime;
+        uint256 amountPerWinningToken;
+        Side betSide;
+        uint8 winner;
+        bool eventSettled;
         address creator;
         address priceAggregator;
-        int settledPrice;
-        Utils.Token winner;
-        bool eventSettled;
-        uint amountPerWinningToken;
     }
-    mapping(address => EventData) events;
+    mapping(address => EventData) public events;
 
-    uint nonce = 1; // have to keep track of nonce independently. Used for deterministic event ID generation.
+    uint256 public nonce = 1; // have to keep track of nonce independently. Used for deterministic event ID generation.
     // ********** End State variables **********    
 
 
     // ************************************ start gatekeeping functions *************************************************
-    function _validBetPrice(int _betPrice) pure internal {
+    function _validBetPrice(int _betPrice) internal pure {
         // require that betPrice is > 0.
-        require(_betPrice> 0,
+        require(_betPrice > 0,
                 "OPEventFactory: Chosen bet price is negative.");
-    }
+     }
 
-    function _validEventSettlementTime(uint _eventSettlementTime) view internal {
+    function _validEventSettlementTime(uint256 _eventSettlementTime) internal view {
         // require that event takes place within maxEventPeriod time
-        require(SafeMath.add(block.timestamp, maxEventPeriod) > _eventSettlementTime,
+        require(block.timestamp.add(maxEventPeriod) > _eventSettlementTime,
                 "OPEventFactory: event end is out of bounds");
 
         // require that event end happens after deposit period (also verifies that eventSettlement date is in the future)
-        require(SafeMath.add(block.timestamp, Utils.GetDepositPeriod()) < _eventSettlementTime,
+        require(block.timestamp.add(depositPeriod) < _eventSettlementTime,
                 "OPEventFactory: event initiation is out of bounds"); 
-    }
-    
-    function _hasGrantedAllowance(uint numTokens) internal {
-        require(Utils.allowance(msg.sender, address(this), Utils.GetOPUSDAddress()) >=  numTokens,
-                "OPEventFactory: OPUSD balance not granted");
-    }
+     }
 
-    function _correctPredictionAmount(address _eventId, uint numTokensToMint, bool deployment) internal {
+
+    function _correctPredictionAmount(address _eventId, uint256 numTokensToMint, bool deployment) internal view {
 
         // The maximum prediction is either the total token amount / maxPredictionFactor OR minimum amount / maxPredictionFactor, whichever is higher.
-        uint totalMinted = deployment ? 0 : Utils.getTotalSupply(_eventId, _token);
-        uint maximumPrediction = (totalMinted > Utils.GetMinimumTokenAmountPerEvent()) ?
-                                 (totalMinted                          ) / Utils.GetMaxPredictionFactor() :
-                                 (Utils.GetMinimumTokenAmountPerEvent()) / Utils.GetMaxPredictionFactor();
+        uint256 totalMinted = deployment ? 0 : trustPredictToken.getTotalSupply(_eventId);
+        uint256 maximumPrediction = (totalMinted > minimumTokenAmountPerEvent) ?
+                                 (totalMinted                    ).div(maxPredictionFactor) :
+                                 (minimumTokenAmountPerEvent).div(maxPredictionFactor);
 
         require(numTokensToMint <= maximumPrediction,
                "OPEventFactory: requested token amount exceeds current valid prediction amount.");
-    }
-     
-    function _correctWeight(address _eventId, uint numTokensToMint, Utils.Token selection) internal {
+    }   
+
+    function _correctWeight(address _eventId, uint256 numTokensToMint, uint8 selection) internal view {
         // ensure that minting this number of tokens will result in less than 90% holdings on one side.        
         // (((selection + new) * 100) / (total + new)) <= 90.
-        uint totalMinted = Utils.getTotalSupply(_eventId, _token);
-        uint nextTotal = SafeMath.add(totalMinted, numTokensToMint);
-        uint amount = (nextTotal > Utils.GetMinimumTokenAmountPerEvent()) ? 
+        uint256 totalMinted = trustPredictToken.getTotalSupply(_eventId);
+        uint256 nextTotal = totalMinted.add(numTokensToMint);
+        uint256 amount = (nextTotal > minimumTokenAmountPerEvent) ? 
                        nextTotal : 
-                       Utils.GetMinimumTokenAmountPerEvent();
+                       minimumTokenAmountPerEvent;
 
-        uint weightSelection = SafeMath.div(
-            SafeMath.mul(
-                SafeMath.add(Utils.getTokenBalance(_eventId, selection, _token), 
-                numTokensToMint), 
-            100), 
-            amount
-        );
+        uint256 weightSelection = trustPredictToken.getTokenBalance(_eventId, selection)
+                                .add(numTokensToMint)
+                                .mul(100)
+                                .div(amount);
 
         require(weightSelection <= 90, "OPEventFactory: requested tokens would result in invalid weight on one side of the draw.");
      }
 
-    function _minimumTimeReached(address _eventId, bool reached) view internal {
+
+    function _minimumTimeReached(address _eventId, bool reached) internal view {
         if(reached){
             require(block.timestamp >= events[_eventId].startTime, "OPEventFactory: Event not yet started. Minting of new tokens is enabled.");
         }else {
@@ -98,22 +110,22 @@ contract OPEventFactory {
         }
      }
      
-    function _minimumAmountReached(address _eventId, bool reached) internal {
-        uint totalSupply = Utils.getTotalSupply(_eventId, Utils.GetTrustPredictAddress());
+    function _minimumAmountReached(address _eventId, bool reached) internal view {
+        uint256 totalSupply = trustPredictToken.getTotalSupply(_eventId);
         if(reached)
-            require(totalSupply >= Utils.GetMinimumTokenAmountPerEvent(), "OPEventFactory: minimum amount not yet reached.");
+            require(totalSupply >= minimumTokenAmountPerEvent, "OPEventFactory: minimum amount not yet reached.");
         else
-            require(totalSupply < Utils.GetMinimumTokenAmountPerEvent(), "OPEventFactory: minimum amount reached.");
-    }
+            require(totalSupply < minimumTokenAmountPerEvent, "OPEventFactory: minimum amount reached.");
+     }
     
-    function _isSettled(address _eventId, bool _settled) view internal {
+    function _isSettled(address _eventId, bool _settled) internal view {
         if(_settled)
             require(events[_eventId].eventSettled, "OPEventFactory: Event not yet settled.");
         else
             require(!events[_eventId].eventSettled, "OPEventFactory: Event settled.");
-    }
+     }
     
-    function _isConcluded(address _eventId, bool _concluded) view internal {
+    function _isConcluded(address _eventId, bool _concluded) internal view {
         if(_concluded)
             require(block.timestamp >= events[_eventId].endTime, "OPEventFactory: Event not yet concluded.");
         else
@@ -121,173 +133,158 @@ contract OPEventFactory {
      }
     // ************************************ end gatekeeping functions ***************************************************
 
+    constructor(IOracle _oracle, ITrustPredictToken _trustPredictToken, IERC20 _staking) {
+        oracle = _oracle;
+        trustPredictToken = _trustPredictToken;
+        staking = _staking;
+    }
 
     // ************************************ start external functions ****************************************************
-    function createOPEvent(int _betPrice, 
-                           int8 _betSide, 
-                           uint _eventSettlementTime,
-                           uint numTokensToMint,
-                           address _priceAggregator)
+    function createOPEvent(int betPrice, 
+                           int8 betSide, 
+                           uint256 eventSettlementTime,
+                           uint256 numTokensToMint,
+                           address priceAggregator)
             external
-            returns(bool)
-    {
-        _validBetPrice(_betPrice);
-        _validEventSettlementTime(_eventSettlementTime);
-        _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
+            returns(bool){
+        _validBetPrice(betPrice);
+        _validEventSettlementTime(eventSettlementTime);
         _correctPredictionAmount(address(0), numTokensToMint, true);
-
-        // set event addresses
-        _oracle = Utils.GetOracleAddress();
-        _token = Utils.GetTrustPredictAddress();
 
         // get next OPEvent ID
         address _eventId = Utils.addressFrom(address(this), nonce++);
         // set event data
         EventData memory data;
-        data.betPrice = _betPrice;
-        data.betSide = Utils.Side(_betSide);
-        data.endTime = _eventSettlementTime;
-        data.startTime = block.timestamp + Utils.GetDepositPeriod();
-        data.priceAggregator = _priceAggregator;
+        data.betPrice = betPrice;
+        data.betSide = Side(betSide);
+        data.endTime = eventSettlementTime;
+        data.startTime = block.timestamp.add(depositPeriod);
+        data.priceAggregator = priceAggregator;
         data.creator = msg.sender;
         events[_eventId] = data;
-
-        // Create Oracle request. give the callback some leeway
-        Utils.newRequest(data.endTime + 2 minutes, _priceAggregator, _eventId, _oracle);
         
         // Create event entry in TrustPredictToken.
-        Utils.createTokens(_eventId, _token);
-        // Transfer OPUSD to this contract
-        Utils.transferFrom(msg.sender, address(this), Utils.convertToOPUSDAmount(numTokensToMint), Utils.GetOPUSDAddress());        
+        trustPredictToken.createTokens(_eventId);
+        // Transfer staking token to this contract
+        staking.transferFrom(msg.sender, address(this), convertToStakingAmount(numTokensToMint));        
         // mint tokens to sender
-        Utils.mint(_eventId, msg.sender, numTokensToMint, Utils.Token.Yes, _token);
+        trustPredictToken.mint(_eventId, msg.sender, numTokensToMint, 1);
 
         emit EventUpdate(_eventId);
         return true;
-    }
+     }
 
     function stake(address _eventId, 
-                   uint numTokensToMint, 
-                   Utils.Token selection)
+                   uint256 numTokensToMint, 
+                   uint8 selection)
         external
-        returns(bool)
-    {
+        returns(bool){
         _isSettled(_eventId, false);
         _minimumTimeReached(_eventId, false);
         _correctWeight(_eventId, numTokensToMint, selection);
-        _hasGrantedAllowance(Utils.convertToOPUSDAmount(numTokensToMint));
         _correctPredictionAmount(_eventId, numTokensToMint, false);
         
-        Utils.transferFrom(msg.sender, address(this), Utils.convertToOPUSDAmount(numTokensToMint), Utils.GetOPUSDAddress());
-        Utils.mint(_eventId, msg.sender, numTokensToMint, selection, _token);
+        staking.transferFrom(msg.sender, address(this), convertToStakingAmount(numTokensToMint));
+        trustPredictToken.mint(_eventId, msg.sender, numTokensToMint, selection);
 
         emit EventUpdate(_eventId);
         return true;
-    }
+     }
 
     function settle(address _eventId, 
                     int _settledPrice) 
-        external
-        returns(bool)
-    {
+        public {
         _minimumAmountReached(_eventId, true);
         _isConcluded(_eventId, true);
         _isSettled(_eventId, false);
 
-        EventData storage data = events[_eventId];
-        int settledPrice = (Utils.GetTest() == false) ? Utils.getLatestPrice(data.priceAggregator, _oracle) : _settledPrice;
+        EventData storage eventData = events[_eventId];
+        int settledPrice = (Utils.GetTest() == false) ? oracle.getLatestPrice(eventData.priceAggregator) : _settledPrice;
 
-        if((settledPrice >= data.betPrice &&  data.betSide == Utils.Side.Higher) || 
-           (settledPrice <  data.betPrice &&  data.betSide == Utils.Side.Lower)) {
-            data.winner = Utils.Token.Yes;
+        if((settledPrice >= eventData.betPrice && eventData.betSide == Side.Higher) || 
+           (settledPrice <  eventData.betPrice && eventData.betSide == Side.Lower)) {
+            eventData.winner = 1;
         }else {
-            data.winner = Utils.Token.No;
+            eventData.winner = 0;
         }
-        data.settledPrice = settledPrice;
+        eventData.settledPrice = settledPrice;
 
         // next, calculate payment per winning token.
-        uint winnerAmount = Utils.getTokenBalance(_eventId, data.winner, _token);
-        uint  loserAmount = Utils.getTokenBalance(_eventId, Utils.getOtherToken(data.winner), _token);
-        
-        // (loser * (10 ^ 18)) / winner (valid uint division)
-        data.amountPerWinningToken = SafeMath.div(
-            loserAmount * (10**18),
-            winnerAmount
-        );
-        data.eventSettled = true;
+        uint256 winnerAmount = trustPredictToken.getTokenBalance(_eventId, eventData.winner);
+        uint256  loserAmount = trustPredictToken.getTokenBalance(_eventId, getOtherToken(eventData.winner));
+
+        // (loser * (10 ^ 18)) / winner (valid uint256 division)
+        eventData.amountPerWinningToken = loserAmount.mul(1e18).div(winnerAmount);
+
+        eventData.eventSettled = true;
         emit EventUpdate(_eventId);
-        return true;
-    }
+     }
     
     function claim(address _eventId)
-        external
-        returns(bool)
-    {
-        _isSettled(_eventId, true);
+        external {
+        // if event has not been settled yet, settle first.
+        if(!events[_eventId].eventSettled){
+            settle(_eventId, 0);
+        }
 
-        EventData storage data = events[_eventId];
-        uint tokenHoldings = Utils.balanceOfAddress(_eventId, msg.sender, data.winner, _token);
+        EventData storage eventData = events[_eventId];
+        uint256 tokenHoldings = trustPredictToken.balanceOfAddress(_eventId, msg.sender, eventData.winner);
         // sender has winnings
         require(tokenHoldings > 0, "OPEventFactory: no holdings for sender in winning token.");
-        // sender has granted allowance to the contract to handle the deposit
-        require(Utils.isApprovedForAll(msg.sender, address(this), Utils.GetTrustPredictAddress()),
-                "OPEventFactory: sender has not granted allowance for tokens.");
-        
-        // first return OPUSD holdings (deposited amount of OPUSD on winning side)
-        uint OPUSDHoldings = Utils.convertToOPUSDAmount(tokenHoldings);
-        Utils.transfer(msg.sender, OPUSDHoldings, Utils.GetOPUSDAddress()); 
 
-        // next, distribute winnings: give sender their portion of the loser OPUSD pool.
-        uint senderWinnings = SafeMath.div(
-            SafeMath.mul(OPUSDHoldings, data.amountPerWinningToken),
-            10 ** 18
-        );
-        Utils.transfer(msg.sender, senderWinnings, Utils.GetOPUSDAddress());
+        // first calculate staking holdings (deposited amount of staking on winning side)
+        uint256 stakingHoldings = convertToStakingAmount(tokenHoldings);
+
+        // next, calculate winnings: give sender their portion of the loser staking pool.
+        uint256 senderWinnings = stakingHoldings.mul(eventData.amountPerWinningToken).div(1e18);
 
         // Completed, burn winning event tokens.
-        Utils.burn(_eventId, msg.sender, tokenHoldings, data.winner, _token);
+        trustPredictToken.burn(_eventId, msg.sender, tokenHoldings, eventData.winner);
+
+        // send holdings and winnings back to staker
+        staking.safeTransfer(msg.sender, stakingHoldings);
+        staking.safeTransfer(msg.sender, senderWinnings);
 
         emit EventUpdate(_eventId);
-        return true;
-    }
+     }
 
     function revoke(address _eventId) 
-        external
-        returns(bool)
-    {
+        external {
         _minimumAmountReached(_eventId, false);
         _minimumTimeReached(_eventId, true);
 
-        // send OPUSD holdings back to the sending party if they have funds deposited.
-        uint YesHoldings = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.Yes, _token);
-        uint NoHoldings  = Utils.balanceOfAddress(_eventId, msg.sender, Utils.Token.No, _token);
+        // send staking holdings back to the sending party if they have funds deposited.
+        uint256 YesHoldings = trustPredictToken.balanceOfAddress(_eventId, msg.sender, 1);
+        uint256 NoHoldings  = trustPredictToken.balanceOfAddress(_eventId, msg.sender, 0);
         require(YesHoldings > 0 || NoHoldings > 0, "OPEventFactory: no holdings for sender in any token.");
 
-        require(Utils.isApprovedForAll(msg.sender, address(this), _token),
-        "OPEventFactory: sender has not granted allowance for tokens.");
-
-        if(YesHoldings > 0){
-            Utils.transfer(msg.sender, Utils.convertToOPUSDAmount(YesHoldings), Utils.GetOPUSDAddress());
-            Utils.burn(_eventId, msg.sender, YesHoldings, Utils.Token.Yes, _token);
+        if(YesHoldings > 0 && NoHoldings > 0){
+            trustPredictToken.burn(_eventId, msg.sender, YesHoldings, 1);
+            trustPredictToken.burn(_eventId, msg.sender,  NoHoldings, 0);
+            staking.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings.add(NoHoldings)));
         }
-        if(NoHoldings > 0){
-            Utils.transfer(msg.sender, Utils.convertToOPUSDAmount(NoHoldings), Utils.GetOPUSDAddress());
-            Utils.burn(_eventId, msg.sender, NoHoldings, Utils.Token.No, _token);
+        else if(YesHoldings > 0){
+            trustPredictToken.burn(_eventId, msg.sender, YesHoldings, 1);
+            staking.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings));
+        }
+        else {
+            trustPredictToken.burn(_eventId, msg.sender, NoHoldings, 0);
+            staking.safeTransfer(msg.sender, convertToStakingAmount(NoHoldings));
         }
 
         emit EventUpdate(_eventId);
-        return true;
-    }
+     }
     // ************************************ End external functions ****************************************************
     
-    
     // ************************************ start view functions **************************************************
-    function getEventData(address _eventId) view public returns(EventData memory) {
-        return events[_eventId];
+    function convertToStakingAmount(uint256 optionAmount) internal pure returns(uint) {
+        // assumes optionAmount is already encoded
+        // 1 Yes/No Token = 100 USD
+        return optionAmount.mul(usdValuePerToken);
     }
 
-    function getNonce() view external returns(uint256) {
-       return nonce;
+    function getOtherToken(uint8 selection) internal pure returns (uint8) {
+        return (selection == 1) ? 0 : 1;
     }
    // ************************************ end view functions **************************************************
 }
