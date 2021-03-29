@@ -310,29 +310,12 @@ export class OpEventService {
       }
 
       try {
-        const optionsTP = {};
-        const approveTP = this.optionService.contracts['TrustPredict'].setApprovalForAll(this.crypto.contractAddresses['OPEventFactory'],
-                                                    true,
-                                                    optionsTP );
-
-        const waitForApproval = Promise.all([approveTP]);
-        waitForApproval.then( async (res) => {
-          const approveTPWait = await res[0].wait();
-          if (approveTPWait.status === 1) {
-
-            const revokeOP = this.optionService.contracts['OPEventFactory'].revoke(eventId);
-            const waitForRevoke = Promise.all([revokeOP]);
-            waitForRevoke.then( async (res) => {
-              const revokeOPWait = await res[0].wait();
-              if (revokeOPWait.status === 1) {
-                resolve(true);
-              }
-            }).catch( err =>
-              reject(
-                `Error during transaction creation: ${JSON.stringify(err)}`
-              )
-            );
-
+        const revokeOP = this.optionService.contracts['OPEventFactory'].revoke(eventId);
+        const waitForRevoke = Promise.all([revokeOP]);
+        waitForRevoke.then( async (res) => {
+          const revokeOPWait = await res[0].wait();
+          if (revokeOPWait.status === 1) {
+            resolve(true);
           }
         }).catch( err =>
           reject(

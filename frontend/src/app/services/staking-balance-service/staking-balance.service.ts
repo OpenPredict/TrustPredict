@@ -37,9 +37,11 @@ export class StakingBalanceService {
 
     async setupSubscriber(){
 
+      const _balance = await this.optionService.contracts['USDC'].balanceOf(this.optionService.address);
+
       this.balance[this.optionService.address] = {
         id: this.optionService.address,
-        balance: ethers.BigNumber.from(0),
+        balance: _balance,
       };
       this.balanceStore.upsert(this.optionService.address, this.balance[this.optionService.address]);
 
@@ -57,7 +59,6 @@ export class StakingBalanceService {
           // Check wallet balance change
           if (from === this.optionService.address || to === this.optionService.address) {
 
-            const amount = ethers.BigNumber.from(log['data']);
             //console.log('amount: ' + amount);
             // Unique identifier for log
             const id = log['transactionHash'].concat(log['logIndex']);
@@ -66,17 +67,12 @@ export class StakingBalanceService {
 
             if (!(id in this.balanceUpdates)){
               this.balanceUpdates[id] = true;
-              if (to === this.optionService.address) {
-                //console.log('Wallet Balance add - to wallet address from: ' + from);
-                currentBalance = currentBalance.add(amount);
-              }
-              if (from === this.optionService.address) {
-                //console.log('Wallet Balance sub - from wallet address to: ' + to);
-                currentBalance = currentBalance.sub(amount);
-              }
+
+              const _balance = await this.optionService.contracts['USDC'].balanceOf(this.optionService.address);
+
               this.balance[this.optionService.address] = {
                 id: this.optionService.address,
-                balance: currentBalance,
+                balance: _balance,
               };
               this.balanceStore.upsert(this.optionService.address, this.balance[this.optionService.address]);
               //console.log('wallet balance: ' + currentBalance.valueOf().toString());
