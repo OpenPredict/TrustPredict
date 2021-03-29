@@ -73,7 +73,7 @@ export class OptionService {
 
 
     availableOptions: any[] = [
-      { ticker: 'USDC', name: 'OpenPredict USD', pair_contract: '0x0bF499444525a23E7Bb61997539725cA2e928138' },
+      { ticker: 'USDC', name: 'USD Coin', pair_contract: '0x0bF499444525a23E7Bb61997539725cA2e928138' },
     ];
 
 
