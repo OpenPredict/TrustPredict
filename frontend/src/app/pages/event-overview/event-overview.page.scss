@@ -37,11 +37,19 @@
 }
 .yes {
     background-color: #24f67d;
-    border-radius: 0 0 0 0;
+    border-radius: 10px 0 0 10px;
+}
+.yes-100 {
+    background-color: #24f67d;
+    border-radius: 10px;
 }
 .no {
     background-color: #fe4a49;
-    border-radius: 0 0 0 0;
+    border-radius: 0 10px 10px 0;
+}
+.no-100 {
+    background-color: #fe4a49;
+    border-radius: 10px;
 }
 .yes-label,
 .no-label {

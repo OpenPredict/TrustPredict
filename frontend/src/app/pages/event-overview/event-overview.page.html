@@ -55,8 +55,8 @@
                         <div class="no-label">No <span>{{noRation}}%</span></div>
                     </div>
                     <div class="progress-bar">
-                        <div class="yes" [style.width.%]="yesRation"></div>
-                        <div class="no" [style.width.%]="noRation"></div>
+                        <div [ngClass]="yesRation == '100' ? 'yes-100' : 'yes'" [style.width.%]="yesRation"></div>
+                        <div [ngClass]="noRation == '100' ? 'no-100' : 'no'" [style.width.%]="noRation"></div>
                     </div>
                 </div>
                 </li>
