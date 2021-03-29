@@ -8,14 +8,6 @@ import { CryptoService } from '../crypto-service/crypto.service';
 
 export const options: any[] = [];
 
-const ContractProxy     = require('@truffle/build/contracts/ContractProxy.json');
-const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
-const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
-const Utils             = require('@truffle/build/contracts/Utils.json');
-const Oracle            = require('@truffle/build/contracts/Oracle.json');
-const TrustPredictToken = require('@truffle/build/contracts/TrustPredictToken.json');
-const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json');
-
 @Injectable({
   providedIn: 'root'
 })
@@ -27,7 +19,7 @@ export class OptionService {
   address: any;
   signer: any;
   contracts: any = {};
-  OPUSDOptionRatio = 100;
+  USDCOptionRatio = 100;
   priceFeedDecimals = 8;
   depositPeriod: any;
 
@@ -81,7 +73,7 @@ export class OptionService {
 
 
     availableOptions: any[] = [
-      { ticker: 'OPUSD', name: 'OpenPredict USD', pair_contract: '0x0bF499444525a23E7Bb61997539725cA2e928138' },
+      { ticker: 'USDC', name: 'OpenPredict USD', pair_contract: '0x0bF499444525a23E7Bb61997539725cA2e928138' },
     ];
 
 

@@ -49,8 +49,8 @@ async function createEvent() {
 
         // approve OPEventFactory address for 100 OPUSD (ie. 1 Yes Token) from deployer address
          console.log("OPUSD approve..")
-        await contracts['OPUSD'].approve(contracts['OPEventFactory'].address,
-                            ethers.utils.parseUnits(((Constants.numTokens * 10) * Constants.OPUSDOptionRatio).toString()))
+        await contracts['USDC'].approve(contracts['OPEventFactory'].address,
+                            ethers.utils.parseUnits(((Constants.numTokens * 10) * Constants.USDCOptionRatio).toString()))
 
         await new Promise(r => setTimeout(r, 5 * 1000));
 
@@ -70,7 +70,7 @@ async function createEvent() {
         console.log('YesToken: ' + YesToken);
         console.log('NoToken: ' + NoToken);
 
-        eventData = await contracts['OPEventFactory'].getEventData(OPEventID)
+        eventData = await contracts['OPEventFactory'].events(OPEventID)
         console.log('EventData: ' + eventData);
     });
 };
@@ -90,8 +90,8 @@ async function stake() {
 
     // approve OPEventFactory address for 1000 OPUSD (ie. 10 No Token) from deployer address
     // console.log("OPUSD approve..")
-    // await contracts['OPUSD'].approve(contracts['OPEventFactory'].address,
-    //                     ethers.utils.parseUnits(((Constants.numTokens * 10) * Constants.OPUSDOptionRatio).toString()))
+    // await contracts['USDC'].approve(contracts['OPEventFactory'].address,
+    //                     ethers.utils.parseUnits(((Constants.numTokens * 10) * Constants.USDCOptionRatio).toString()))
     // await new Promise(r => setTimeout(r, 5 * 1000));
     console.log("Stake..")
     const result = await contracts['OPEventFactory'].stake(OPEventID, args[Constants.numTokensToMint], selection, {from: wallet.address});
@@ -109,7 +109,7 @@ async function eventData() {
     console.log('NoToken: ' + NoToken);
 
     await new Promise(r => setTimeout(r, 5 * 1000));
-    eventData = await contracts['OPEventFactory'].getEventData(OPEventID)
+    eventData = await contracts['OPEventFactory'].events(OPEventID)
     console.log('EventData: ' + eventData);
 }
 
@@ -118,7 +118,7 @@ async function setContractAddresses() {
     if(kovan){
         contractAddresses['ContractProxy'] = '0x328eC87d3AE746169DF56089ED96DEa8e34453B1';
         contracts['ContractProxy']          = new ethers.Contract(contractAddresses['ContractProxy'], ContractProxy.abi, wallet);
-        contractAddresses['OPUSD']          = await contracts['ContractProxy'].getOPUSDAddress();
+        contractAddresses['USDC']          = await contracts['ContractProxy'].getOPUSDAddress();
         contractAddresses['ChainLink']      = await contracts['ContractProxy'].getChainLinkAddress();
         contractAddresses['Utils']          = await contracts['ContractProxy'].getUtilsAddress();
         contractAddresses['Oracle']         = await contracts['ContractProxy'].getOracleAddress();
@@ -126,7 +126,7 @@ async function setContractAddresses() {
         contractAddresses['OPEventFactory'] = await contracts['ContractProxy'].getOPEventFactoryAddress();
     }else {
         contractAddresses['ContractProxy']  = utils.getNextContractAddress(wallet.address, nonce++);
-        contractAddresses['OPUSD']          = utils.getNextContractAddress(wallet.address, nonce++);
+        contractAddresses['USDC']          = utils.getNextContractAddress(wallet.address, nonce++);
         contractAddresses['ChainLink']      = utils.getNextContractAddress(wallet.address, nonce++);
         contractAddresses['Utils']          = utils.getNextContractAddress(wallet.address, nonce++);
         contractAddresses['Oracle']         = utils.getNextContractAddress(wallet.address, nonce++);
@@ -138,7 +138,7 @@ async function setContractAddresses() {
         console.log(key + " address: " + contractAddresses[key])
     })
 
-    contracts['OPUSD']          = new ethers.Contract(contractAddresses['OPUSD'],          OPUSD.abi,             wallet);
+    contracts['USDC']          = new ethers.Contract(contractAddresses['USDC'],          OPUSD.abi,             wallet);
     contracts['ChainLink']      = new ethers.Contract(contractAddresses['ChainLink'],      ChainLink.abi,         wallet);
     contracts['Utils']          = new ethers.Contract(contractAddresses['Utils'],          OPUSD.abi,             wallet);
     contracts['Oracle']         = new ethers.Contract(contractAddresses['Oracle'],         OPEventFactory.abi,    wallet);

@@ -17,11 +17,6 @@ import Web3 from 'web3';
 import { EventsStore } from './op-event.service.store';
 import { IEvent, Status, Position, Side, Token } from '@app/data-model';
 
-const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
-const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
-const TrustPredictToken = require('@truffle/build/contracts/TrustPredictToken.json');
-const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json');
-
 @Injectable({
   providedIn: 'root'
 })
@@ -99,7 +94,7 @@ export class OpEventService {
       const totalTokenValue = tokenValuesRaw[0].add(tokenValuesRaw[1]);
       const isDepositPeriod = (new Date() < new Date(this.timestampToDate(Number(eventData['startTime']))));
       return  isDepositPeriod                                                         ? Status.Staking :
-              (eventData['eventSettled'] === true)                                    ? Status.Settled :
+              (eventData['eve ntSettled'] === true)                                   ? Status.Settled :
               !isDepositPeriod && totalTokenValue.lt(this.minimumTokenAmountPerEvent) ? Status.Expired :
                                                                                         Status.Active;
     }
@@ -176,7 +171,7 @@ export class OpEventService {
           const eventID = '0x' + eventIdRaw.data.substring(26);
           //console.log('eventID subscriber: ' + eventID);
           //console.log('events length: ' + Object.keys(this.events).length);
-          const eventData = await this.optionService.contracts['OPEventFactory'].getEventData(eventID);
+          const eventData = await this.optionService.contracts['OPEventFactory'].events(eventID);
           const balances = await this.optionService.contracts['TrustPredict'].getTokenBalances(eventID);
           await this.parseEventData(eventID, eventData, balances);
         });
@@ -206,25 +201,19 @@ export class OpEventService {
 
       console.log(Math.ceil(rawBetPrice * 100).toString());
       const betPrice        = ethers.utils.parseUnits(Math.ceil(rawBetPrice  * 100).toString(), this.optionService.priceFeedDecimals - 2);
-      const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / this.optionService.OPUSDOptionRatio).toString());
+      const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / this.optionService.USDCOptionRatio).toString());
       console.log(numTokensToMint);
 
       try {
-        const optionsCL = {};
         const optionsOP = {};
-        const approveCL = this.optionService.contracts['ChainLink'].approve(this.crypto.contractAddresses['Oracle'],
-                                                        ethers.utils.parseUnits('1'),
-                                                        optionsCL );
-
-        const approveOP = this.optionService.contracts['OPUSD'].approve(this.crypto.contractAddresses['OPEventFactory'],
+        const approveOP = this.optionService.contracts['USDC'].approve(this.crypto.contractAddresses['OPEventFactory'],
                                                   ethers.utils.parseUnits(numTokensStakedToMint.toString()),
                                                   optionsOP );
 
-        const waitForApprovals = Promise.all([approveCL, approveOP]);
+        const waitForApprovals = Promise.all([approveOP]);
         waitForApprovals.then( async (res) => {
-          const approveCLWait = await res[0].wait();
-          const approveOPWait = await res[1].wait();
-          if (approveCLWait.status === 1 && approveOPWait.status === 1) {
+          const approveOPWait = await res[0].wait();
+          if (approveOPWait.status === 1) {
             console.log(`Deploying event with =>> betPrice: ${betPrice} | betSide: ${Number(betSide)} | eventPeriod: ${eventPeriod} | numTokensToMint: ${numTokensToMint} || pairContract: ${pairContract} `);
             const createOPEvent = this.optionService.contracts['OPEventFactory'].createOPEvent(betPrice,
                                                             Number(betSide),
@@ -270,11 +259,11 @@ export class OpEventService {
               );
             }
 
-            const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / this.optionService.OPUSDOptionRatio).toString());
+            const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / this.optionService.USDCOptionRatio).toString());
             console.log(numTokensToMint);
             try {
               const optionsOP = {};
-              const approveOP = this.optionService.contracts['OPUSD'].approve(this.crypto.contractAddresses['OPEventFactory'],
+              const approveOP = this.optionService.contracts['USDC'].approve(this.crypto.contractAddresses['OPEventFactory'],
                                                         ethers.utils.parseUnits(numTokensStakedToMint.toString()),
                                                         optionsOP );
 

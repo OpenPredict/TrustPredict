@@ -1,10 +1,8 @@
-const ContractProxy = artifacts.require('ContractProxy');
-const OPUSDToken = artifacts.require('OPUSDToken');
-const ChainLinkToken = artifacts.require('ChainLinkToken');
-const Utils = artifacts.require('Utils');
-const Oracle = artifacts.require('Oracle');
-const OPEventFactory = artifacts.require('OPEventFactory');
+const ERC20             = artifacts.require("ERC20Mock");
+const Utils             = artifacts.require("Utils");
+const Oracle            = artifacts.require("Oracle");
 const TrustPredictToken = artifacts.require('TrustPredictToken');
+const OPEventFactory    = artifacts.require("OPEventFactory");
 
 const assert = require("chai").assert;
 const truffleAssert = require('truffle-assertions');
@@ -13,7 +11,7 @@ const ethers = require('ethers');
 const { AssertionError } = require("chai");
 let Constants = utils.Constants
 
-OPUSDTokenValue = ethers.utils.parseUnits((Constants.numTokens * 1000 * Constants.OPUSDOptionRatio).toString())
+USDCTokenValue = ethers.utils.parseUnits((Constants.numTokens * 1000 * Constants.USDCOptionRatio).toString())
 
 //encode constructor arguments
 defaultArgs = []
@@ -24,54 +22,40 @@ defaultArgs[Constants.numTokensToMint] = ethers.utils.parseUnits(Constants.numTo
 defaultArgs[Constants.priceAggregator] = Constants.pairings['ETH/USD']
 
 async function sendTokensToAddresses(contracts, accounts) {
-    // send enough OPUSD for 10 tokens per account
+    // send enough USDC for 10 tokens per account
     const range = (account,index) => index > 0;
     await Promise.all(accounts.filter(range).map(async (account) => {
-        await contracts['OPUSD'].mint(account, OPUSDTokenValue);
-        const balance = await contracts['OPUSD'].balanceOf.call(account);
-        assert.equal(balance.valueOf().toString(), OPUSDTokenValue.valueOf().toString());
+        await contracts['USDC'].mint(account, USDCTokenValue);
+        const balance = await contracts['USDC'].balanceOf.call(account);
+        assert.equal(balance.valueOf().toString(), USDCTokenValue.valueOf().toString());
     }))
-
-    // send enough LINK for 10 contract deployments to account 1
-    ChainLinkTokenValue = ethers.utils.parseUnits((Constants.numTokens * 10).toString())
-    await contracts['ChainLink'].transfer(accounts[1], ChainLinkTokenValue);
-    const balance = await contracts['ChainLink'].balanceOf.call(accounts[1]);
-    assert.equal(balance.valueOf().toString(), ChainLinkTokenValue.valueOf().toString());
 }
 
 async function deployEvent(contracts, accounts, args, shouldFail, revertMessage) {
     // get deployer address nonce
-    nonce = await contracts['OPEventFactory'].getNonce();
+    nonce = await contracts['OPEventFactory'].nonce();
     console.log('nonce: ' + nonce);
 
     // contract address creation starts at nonce 1, so we emulate that for the Event ID.
     OPEventID = utils.getNextContractAddress(contracts['OPEventFactory'].address, nonce++)
 
-    console.log("ChainLink approve..")
-    await contracts['ChainLink'].approve(contracts['Oracle'].address, 
-                             ethers.utils.parseUnits((Constants.numTokens).toString()), 
-                             {from: accounts[1]})
-     // assert approval happened successfully
-    const chainLinkAllowance = await contracts['ChainLink'].allowance(accounts[1], contracts['Oracle'].address);
-    assert.equal(chainLinkAllowance.valueOf().toString(), 
-                 ethers.utils.parseUnits((Constants.numTokens).toString()).toString());
 
-
-    // approve OPEventFactory address for 100 OPUSD (ie. 1 Yes Token) from deployer address
-    console.log("OPUSD approve..")
-    await contracts['OPUSD'].approve(contracts['OPEventFactory'].address, 
-                        args[Constants.numTokensToMint].mul(Constants.OPUSDOptionRatio), 
+    // approve OPEventFactory address for 100 USDC (ie. 1 Yes Token) from deployer address
+    console.log("USDC approve..")
+    await contracts['USDC'].approve(contracts['OPEventFactory'].address, 
+                        args[Constants.numTokensToMint].mul(Constants.USDCOptionRatio), 
                         {from: accounts[1]})
     // assert approval happened successfully
-    const OPUSDAllowance = await contracts['OPUSD'].allowance(accounts[1], contracts['OPEventFactory'].address);
-    assert.equal(OPUSDAllowance.valueOf().toString(), 
-                 (args[Constants.numTokensToMint].mul(Constants.OPUSDOptionRatio)).toString());
+    const USDCAllowance = await contracts['USDC'].allowance(accounts[1], contracts['OPEventFactory'].address);
+    assert.equal(USDCAllowance.valueOf().toString(), 
+                 (args[Constants.numTokensToMint].mul(Constants.USDCOptionRatio)).toString());
 
     args[Constants.eventPeriod] = Math.floor(new Date().getTime() / 1000) + Constants[process.env.NETWORK].eventPeriodSeconds
     // deploy event
     console.log("Event deployment..")
     if(!(shouldFail)){
-        await contracts['OPEventFactory'].createOPEvent(args[Constants.betPrice], 
+        await contracts['OPEventFactory'].createOPEvent(
+            args[Constants.betPrice], 
             args[Constants.betSide], 
             args[Constants.eventPeriod], 
             args[Constants.numTokensToMint],
@@ -84,14 +68,15 @@ async function deployEvent(contracts, accounts, args, shouldFail, revertMessage)
             console.log('YesToken: ' + YesToken);
             console.log('NoToken: ' + NoToken);
 
-            eventData = await contracts['OPEventFactory'].getEventData(OPEventID)
-            console.log('EventData: ' + eventData);
+            //eventData = await contracts['OPEventFactory'].events(OPEventID)
+            //console.log('EventData: ' + JSON.stringify(eventData));
 
             return [OPEventID, YesToken, NoToken];
     }else{
         // assert it overflows with maxUint setting
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].createOPEvent(args[Constants.betPrice], 
+            contracts['OPEventFactory'].createOPEvent(
+                args[Constants.betPrice], 
                 args[Constants.betSide], 
                 args[Constants.eventPeriod], 
                 args[Constants.numTokensToMint],
@@ -103,14 +88,14 @@ async function deployEvent(contracts, accounts, args, shouldFail, revertMessage)
 
 }
 
-async function OPUSD_approve(contracts, accounts, start, end, amount){
+async function USDC_approve(contracts, accounts, start, end, amount){
     const range = (account,index) => index >= start && index <= end;
     await Promise.all(accounts.filter(range).map(async (account) => {
-        await contracts['OPUSD'].approve(contracts['OPEventFactory'].address, 
+        await contracts['USDC'].approve(contracts['OPEventFactory'].address, 
                                          ethers.utils.parseUnits((amount).toString()), 
                                          {from: account})
         // assert approval happened successfully
-        const contractAllowance = await contracts['OPUSD'].allowance(account, contracts['OPEventFactory'].address);
+        const contractAllowance = await contracts['USDC'].allowance(account, contracts['OPEventFactory'].address);
         assert.equal(contractAllowance.valueOf().toString(), ethers.utils.parseUnits((amount).toString()).toString());
     }));
 }
@@ -162,16 +147,21 @@ contract("TrustPredict", async (accounts) => {
     let contracts = []
 
     before( async () => {
-        let accountIndex = 0
-        contracts['ContractProxy']  = await ContractProxy.at(    utils.getNextContractAddress(accounts[0], accountIndex++));
-        contracts['OPUSD']          = await OPUSDToken.at(       utils.getNextContractAddress(accounts[0], accountIndex++));
-        contracts['ChainLink']      = await ChainLinkToken.at(   utils.getNextContractAddress(accounts[0], accountIndex++));
-        contracts['Utils']          = await Utils.at(            utils.getNextContractAddress(accounts[0], accountIndex++));
-        contracts['Oracle']         = await Oracle.at(           utils.getNextContractAddress(accounts[0], accountIndex++));
-        contracts['TrustPredict']   = await TrustPredictToken.at(utils.getNextContractAddress(accounts[0], accountIndex++));
-        contracts['OPEventFactory'] = await OPEventFactory.at(   utils.getNextContractAddress(accounts[0], accountIndex++));
+        contracts['USDC'] = await ERC20.new("USD Coin", "USDC", ethers.utils.parseUnits('100000'));
+        contracts['Utils'] = await Utils.new();
+        contracts['Oracle'] = await Oracle.new();
+        contracts['TrustPredict'] = await TrustPredictToken.new();
+        
+        await OPEventFactory.link("Utils", contracts['Utils'].address);
+        contracts['OPEventFactory'] = await OPEventFactory.new(
+            contracts['Oracle'].address,
+            contracts['TrustPredict'].address,
+            contracts['USDC'].address
+        );
 
-        // Give all accounts 1000 OPUSD
+        await contracts['TrustPredict'].setFactory(contracts['OPEventFactory'].address, true);
+
+        // Give all accounts 1000 USDC
         await sendTokensToAddresses(contracts, accounts);
     })
 
@@ -179,9 +169,9 @@ contract("TrustPredict", async (accounts) => {
         console.log("excuting after hook..")
         // burn existing and reset balance to 1000 for all
         await Promise.all(accounts.filter((account, index) => index > 0).map(async (account) => {
-            const balance = await contracts['OPUSD'].balanceOf.call(account);
-            await contracts['OPUSD'].burn(account, balance);
-            await contracts['OPUSD'].mint(account, OPUSDTokenValue);
+            const balance = await contracts['USDC'].balanceOf.call(account);
+            await contracts['USDC'].burn(account, balance);
+            await contracts['USDC'].mint(account, USDCTokenValue);
         }));
     })
 
@@ -204,8 +194,8 @@ contract("TrustPredict", async (accounts) => {
         YesToken = IDs[1]
         NoToken = IDs[2]
 
-        // Approve OPUSD to event contract from accounts 2-4 
-        await OPUSD_approve(contracts, accounts, 2, 4, Constants.numTokens * Constants.OPUSDOptionRatio);
+        // Approve USDC to event contract from accounts 2-4 
+        await USDC_approve(contracts, accounts, 2, 4, Constants.numTokens * Constants.USDCOptionRatio);
 
         // // stake: 2 and 3 on No side, 4 on Yes side.
         stake = {}
@@ -216,12 +206,12 @@ contract("TrustPredict", async (accounts) => {
         await OPEventFactory_stake(contracts, accounts, stake, 4, 4);
 
         // assert it overflows with maxUint setting
-        await truffleAssert.reverts(
-            contracts['OPEventFactory'].stake(OPEventID,
-                                              ethers.constants.MaxUint256,
-                                              Constants.NoTokenSelection),
-            "SafeMath: addition overflow"
-        );
+        // await truffleAssert.reverts(
+        //     contracts['OPEventFactory'].stake(OPEventID,
+        //                                       ethers.constants.MaxUint256,
+        //                                       Constants.NoTokenSelection),
+        //     "Error: Returned error: VM Exception while processing transaction: revert"
+        // );
 
         // Ensure settlement price is higher
         settlementPrice = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2).add(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
@@ -232,7 +222,7 @@ contract("TrustPredict", async (accounts) => {
             "OPEventFactory: minimum amount not yet reached."
         );
 
-        await OPUSD_approve(contracts, accounts, 2, 4, 2 * Constants.numTokens * Constants.OPUSDOptionRatio); 
+        await USDC_approve(contracts, accounts, 2, 4, 2 * Constants.numTokens * Constants.USDCOptionRatio); 
         // // mint enough to satisfy event params
         for(i=0;i<2;i++){
             await OPEventFactory_stake(contracts, accounts, stake, 2, 3); // we require this call to be semi-syncronous so first call 2 and 3, and then 4
@@ -248,7 +238,7 @@ contract("TrustPredict", async (accounts) => {
         // verify mint fails following deposit period complete
         console.log("waiting for deposit period to pass..")
         await new Promise(r => setTimeout(r, Constants[process.env.NETWORK].depositPeriodSeconds * 1000));
-        await contracts['OPUSD'].approve(contracts['OPEventFactory'].address, ethers.utils.parseUnits((2 * Constants.numTokens * Constants.OPUSDOptionRatio).toString()), {from: accounts[2]})
+        await contracts['USDC'].approve(contracts['OPEventFactory'].address, ethers.utils.parseUnits((2 * Constants.numTokens * Constants.USDCOptionRatio).toString()), {from: accounts[2]})
         await truffleAssert.reverts(
             contracts['OPEventFactory'].stake(OPEventID, 
                                               ethers.utils.parseUnits((2 * Constants.numTokens).toString()), 
@@ -261,17 +251,17 @@ contract("TrustPredict", async (accounts) => {
         console.log("waiting for event settlement..")
         await new Promise(r => setTimeout(r, (Constants[process.env.NETWORK].eventPeriodSeconds - Constants[process.env.NETWORK].depositPeriodSeconds) * 1000));
         
-        // attempt a claim where event not yet settled
+        // attempt a claim from account 0, fails with no tokens for sender
         await contracts['TrustPredict'].setApprovalForAll(contracts['OPEventFactory'].address, true, {from: accounts[0]})
         await truffleAssert.reverts(
             contracts['OPEventFactory'].claim(OPEventID, {from: accounts[0]}),
-            "OPEventFactory: Event not yet settled."
+            "OPEventFactory: no holdings for sender in winning token."
         );
 
         // settle event
         contracts['OPEventFactory'].settle(OPEventID, settlementPrice);
         // validate price per winning token as 2/3 of a token for each No holder
-        eventData = await contracts['OPEventFactory'].getEventData(OPEventID);
+        eventData = await contracts['OPEventFactory'].events(OPEventID);
         amountPerWinningTokenContract = eventData['amountPerWinningToken'];
         amountPerWinningToken = ethers.utils.parseUnits("0666666666666666666", 0);
 
@@ -303,11 +293,11 @@ contract("TrustPredict", async (accounts) => {
         await contracts['OPEventFactory'].claim(OPEventID, {from: accounts[3]})
 
         // verify balance for accounts is previous tokens + winning tokens
-        balanceAccount2Contract = await contracts['OPUSD'].balanceOf(accounts[2])
-        balanceAccount3Contract = await contracts['OPUSD'].balanceOf(accounts[3])
+        balanceAccount2Contract = await contracts['USDC'].balanceOf(accounts[2])
+        balanceAccount3Contract = await contracts['USDC'].balanceOf(accounts[3])
         // calculate new balance
-        depositedAmount = ethers.utils.parseUnits((Constants.numTokens * 3 * Constants.OPUSDOptionRatio).toString());
-        balanceAccount = OPUSDTokenValue.add(depositedAmount.mul(amountPerWinningToken).div(ethers.utils.parseUnits('1')));
+        depositedAmount = ethers.utils.parseUnits((Constants.numTokens * 3 * Constants.USDCOptionRatio).toString());
+        balanceAccount = USDCTokenValue.add(depositedAmount.mul(amountPerWinningToken).div(ethers.utils.parseUnits('1')));
         // verify balance is the same
         assert.equal(balanceAccount2Contract.valueOf().toString(), balanceAccount.valueOf().toString());
         assert.equal(balanceAccount3Contract.valueOf().toString(), balanceAccount.valueOf().toString());
@@ -345,7 +335,7 @@ contract("TrustPredict", async (accounts) => {
         );
         
         // assert invalid mint call: event settled
-        await contracts['OPUSD'].approve(contracts['OPEventFactory'].address, ethers.utils.parseUnits((Constants.numTokens * Constants.OPUSDOptionRatio).toString()), {from: accounts[2]})
+        await contracts['USDC'].approve(contracts['OPEventFactory'].address, ethers.utils.parseUnits((Constants.numTokens * Constants.USDCOptionRatio).toString()), {from: accounts[2]})
         await truffleAssert.reverts(
             contracts['OPEventFactory'].stake(OPEventID, ethers.utils.parseUnits((Constants.numTokens).toString()), Constants.NoTokenSelection, {from: accounts[2]}),
             "OPEventFactory: Event settled."
@@ -368,7 +358,7 @@ contract("TrustPredict", async (accounts) => {
         YesToken = IDs[1]
         NoToken = IDs[2]
 
-        await OPUSD_approve(contracts, accounts, 0, 2, Constants.numTokens * Constants.OPUSDOptionRatio);
+        await USDC_approve(contracts, accounts, 0, 2, Constants.numTokens * Constants.USDCOptionRatio);
         //await truffleAssert.reverts(
         contracts['OPEventFactory'].stake(OPEventID, 
                                             ethers.utils.parseUnits((Constants.numTokens).toString()), 
@@ -376,7 +366,7 @@ contract("TrustPredict", async (accounts) => {
                                             {from: accounts[2]});
         
         // - 3 more valid stakes: 2 on No side, 1 on Yes side.
-        await OPUSD_approve(contracts, accounts, 2, 4, Constants.numTokens * Constants.OPUSDOptionRatio);
+        await USDC_approve(contracts, accounts, 2, 4, Constants.numTokens * Constants.USDCOptionRatio);
         stake = {}
         stake[accounts[2]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.NoTokenSelection};
         stake[accounts[3]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.NoTokenSelection};
@@ -398,7 +388,7 @@ contract("TrustPredict", async (accounts) => {
 
         // - attempt claims from minters, assert failure
         const range = (account, index) => { index >= 1 && index <= 4 };
-        await OPEventFactory_claim(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: Event not yet settled.");
+        await OPEventFactory_claim(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount not yet reached.");
 
 
         // - valid revokes from all minters
@@ -428,7 +418,7 @@ contract("TrustPredict", async (accounts) => {
         await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: Event not yet started. Minting of new tokens is enabled.");
         
         // -  valid wagers to reach minimum amount
-        await OPUSD_approve(contracts, accounts, 2, 4, 5 * Constants.numTokens * Constants.OPUSDOptionRatio);
+        await USDC_approve(contracts, accounts, 2, 4, 5 * Constants.numTokens * Constants.USDCOptionRatio);
         stake = {}
         stake[accounts[2]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.NoTokenSelection};
         stake[accounts[3]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.NoTokenSelection};
@@ -464,20 +454,8 @@ contract("TrustPredict", async (accounts) => {
         YesToken = IDs[1]
         NoToken = IDs[2]
 
-
-
         // safeTransfer tokens to another account
         await contracts['TrustPredict'].transferFrom(OPEventID, accounts[1], accounts[2], ethers.utils.parseUnits('1'), Constants.YesTokenSelection,  {from: accounts[1]});
-
-        // attempt to set contract address in ContractProxy from non-owner
-        await truffleAssert.reverts(
-            contracts['ContractProxy'].setUtilsAddress(contracts['OPUSD'].address,  {from: accounts[1]}),
-            "ContractProxy: attempt to set address from non-owner."
-        );
-        // assert UtilsAddress is the same
-        const UtilsAddress = await contracts['ContractProxy'].getUtilsAddress()
-        assert.equal(UtilsAddress, contracts['Utils'].address);
-
 
         // attempt to create tokens, mint and burn for OPEventID from any EOA. Here we try the event creation EOA
         await truffleAssert.reverts(
@@ -514,7 +492,7 @@ contract("TrustPredict", async (accounts) => {
         YesToken = IDs[1]
         NoToken = IDs[2]
 
-        await OPUSD_approve(contracts, accounts, 0, 9, Constants.numTokens * 100 * Constants.OPUSDOptionRatio);
+        await USDC_approve(contracts, accounts, 0, 9, Constants.numTokens * 100 * Constants.USDCOptionRatio);
         // Try to mint more than 10% of outstanding pot
         await truffleAssert.reverts(
             contracts['OPEventFactory'].stake(OPEventID, 
@@ -552,7 +530,7 @@ contract("TrustPredict", async (accounts) => {
         YesToken = IDs[1]
         NoToken = IDs[2]
 
-        await OPUSD_approve(contracts, accounts, 0, 0, Constants.numTokens * 100 * Constants.OPUSDOptionRatio);
+        await USDC_approve(contracts, accounts, 0, 0, Constants.numTokens * 100 * Constants.USDCOptionRatio);
 
         // mint total of 86%: Yes side, 6%: No side
         // max 50% per stake

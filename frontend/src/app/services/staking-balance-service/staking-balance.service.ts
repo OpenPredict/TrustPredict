@@ -17,8 +17,6 @@ import Web3 from 'web3';
 import { StakingBalancesStore } from './staking-balance.service.store';
 import { IStakingBalance } from '@app/data-model';
 
-const OPUSD = require('@truffle/build/contracts/OPUSDToken.json');
-
 @Injectable({
   providedIn: 'root'
 })
@@ -46,7 +44,7 @@ export class StakingBalanceService {
       this.balanceStore.upsert(this.optionService.address, this.balance[this.optionService.address]);
 
       this.crypto.provider().on( {
-          address: this.optionService.contracts['OPUSD'].address,
+          address: this.optionService.contracts['USDC'].address,
           topics: [ethers.utils.id('Transfer(address,address,uint256)')],
         }, async (log) => {
           //console.log('staking-balance log:' + log);

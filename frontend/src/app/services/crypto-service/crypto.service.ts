@@ -14,8 +14,7 @@ import { AuthService } from '../auth-service/auth.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { OpEventService } from '../op-event-service/op-event.service';
 
-const OPUSD             = require('@truffle/build/contracts/OPUSDToken.json');
-const ChainLink         = require('@truffle/build/contracts/ChainLinkToken.json');
+const ERC20             = require('@truffle/build/contracts/ERC20.json');
 const TrustPredictToken = require('@truffle/build/contracts/TrustPredictToken.json');
 const OPEventFactory    = require('@truffle/build/contracts/OPEventFactory.json');
 
@@ -48,10 +47,8 @@ export class CryptoService {
         if (networkName === 'homestead'){ // mainnet
         }
         if (networkName === 'kovan'){
-          this.contractAddresses = {
-            'ContractProxy'  : '0x328eC87d3AE746169DF56089ED96DEa8e34453B1',
-            'OPUSD'          : '0xb876a52abd933a02426c31d8231e9b9352864214',
-            'ChainLink'      : '0xa36085f69e2889c224210f603d836748e7dc0088',
+          this.contractAddresses = { // TODO
+            'USDC'           : '0xb876a52abd933a02426c31d8231e9b9352864214',
             'Utils'          : '0xaFfAa8Bd46155e536FF863Cad355a237B8102142',
             'Oracle'         : '0x16406518B81e70E131357F8eC53C6c8F604EBdB4',
             'TrustPredict'   : '0xb91208C000f75f1564663A53109F08BdC8dF7a60',
@@ -60,14 +57,18 @@ export class CryptoService {
           optionService.depositPeriod = 86400;
         }
         if (networkName === 'unknown') { // localhost
+          console.log('contract addresses: ');
+          console.log(this.getNextContractAddress(this.account, 0));
+          console.log(this.getNextContractAddress(this.account, 1));
+          console.log(this.getNextContractAddress(this.account, 2));
+          console.log(this.getNextContractAddress(this.account, 3));
+          console.log(this.getNextContractAddress(this.account, 4));
           this.contractAddresses = {
-          'ContractProxy'  : this.getNextContractAddress(this.account, 0),
-          'OPUSD'          : this.getNextContractAddress(this.account, 1),
-          'ChainLink'      : this.getNextContractAddress(this.account, 2),
-          'Utils'          : this.getNextContractAddress(this.account, 3),
-          'Oracle'         : this.getNextContractAddress(this.account, 4),
-          'TrustPredict'   : this.getNextContractAddress(this.account, 5),
-          'OPEventFactory' : this.getNextContractAddress(this.account, 6),
+          'USDC'           : this.getNextContractAddress(this.account, 0),
+          'Utils'          : this.getNextContractAddress(this.account, 1),
+          'Oracle'         : this.getNextContractAddress(this.account, 2),
+          'TrustPredict'   : this.getNextContractAddress(this.account, 3),
+          'OPEventFactory' : this.getNextContractAddress(this.account, 4),
           };
           optionService.depositPeriod = 200;
         }
@@ -232,15 +233,10 @@ export class CryptoService {
       TrustPredictToken.abi,
       signer);
 
-    this.optionService.contracts['OPUSD'] = new ethers.Contract(
-      this.contractAddresses['OPUSD'],
-      OPUSD.abi,
+    this.optionService.contracts['USDC'] = new ethers.Contract(
+      this.contractAddresses['USDC'],
+      ERC20.abi,
       signer);
-
-    this.optionService.contracts['ChainLink'] = new ethers.Contract(
-        this.contractAddresses['ChainLink'],
-        ChainLink.abi,
-        signer);
 
     this.provider().resetEventsBlock(0);
   }

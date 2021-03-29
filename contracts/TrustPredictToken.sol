@@ -1,13 +1,19 @@
-pragma solidity ^0.6.0;
-pragma experimental ABIEncoderV2;
+// SPDX-License-Identifier: MIT
 
-import "./Utils.sol";
-import "openzeppelin-solidity/contracts/token/ERC1155/ERC1155.sol";
-import "openzeppelin-solidity/contracts/token/ERC1155/ERC1155Burnable.sol";
+pragma solidity ^0.8.0;
+pragma abicoder v2;
 
-contract TrustPredictToken is ERC1155, ERC1155Burnable {
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract TrustPredictToken is Ownable, ERC1155 {
+
+    using SafeMath for uint256;
 
     event BalanceChange(address, address, address, uint256, uint8);
+
+    mapping(address => bool) factories;
 
     // Token data
     struct Token {
@@ -17,51 +23,55 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
     
     // Event data
     struct TokenPair {
-        mapping(Utils.Token => Token) tokens;
+        mapping(uint8 => Token) tokens;
         bool set;
     }
     // only store as mapping. contract address creation is deterministic so don't need to track keys.
     mapping(address => TokenPair) TokenPairs;
 
     // ********** start modifiers ******************************
-    function _onlyEvent() internal {
-        require(msg.sender==Utils.GetOPEventFactoryAddress(),
+    function _onlyEvent() internal view {
+        require(factories[msg.sender],
                 "TrustPredictToken: Caller is not the designated OPEventFactory address.");
     }
     // ********** end modifiers ******************************
 
-    constructor(string memory uri) public ERC1155(uri) {}
+    constructor() ERC1155("") {}
+
+    // allow contract owner to set a factory, which can create tokens for events.
+    function setFactory(address _OPEventFactory, bool set) external onlyOwner {
+        factories[_OPEventFactory] = set;
+    }
 
     function createTokens(address _eventId) external returns(bool){
         _onlyEvent();
 
         // Create IDs for Yes/No tokens.
-        TokenPairs[_eventId].tokens[Utils.Token.Yes]  = Token(uint256(keccak256(abi.encodePacked(_eventId, Utils.Token.Yes))), 0);
-        TokenPairs[_eventId].tokens[Utils.Token.No] = Token(uint256(keccak256(abi.encodePacked(_eventId, Utils.Token.No))), 0);
+        TokenPairs[_eventId].tokens[1] = Token(uint256(keccak256(abi.encodePacked(_eventId, uint8(1)))), 0);
+        TokenPairs[_eventId].tokens[0] = Token(uint256(keccak256(abi.encodePacked(_eventId, uint8(0)))), 0);
         TokenPairs[_eventId].set = true;
         return true;
     }
 
-    function mint(address eventId, address to, uint amount, uint8 selection) external returns(bool) {
+    function mint(address eventId, address to, uint256 amount, uint8 selection) external returns(bool) {
         _onlyEvent();
 
-        _mint(to, getTokenID(eventId, Utils.Token(selection)), amount, "");
-        TokenPairs[eventId].tokens[Utils.Token(selection)].balance += amount;
+        _mint(to, getTokenID(eventId, selection), amount, "");
+        TokenPairs[eventId].tokens[selection].balance += amount;
         emit BalanceChange(eventId, address(0), to, amount, selection);
         return true;
     }
 
-    function burn(address eventId, address from, uint amount, uint8 selection) external returns(bool) {
+    function burn(address eventId, address from, uint256 amount, uint8 selection) external returns(bool) {
         _onlyEvent();
 
-        _burn(from, getTokenID(eventId, Utils.Token(selection)), amount);
+        _burn(from, getTokenID(eventId, selection), amount);
         emit BalanceChange(eventId, from, address(0), amount, selection);
         return true;
     }
 
     function transferFrom(address eventId, address from, address to, uint256 amount, uint8 selection) external returns(bool) {
-
-        safeTransferFrom(from, to, getTokenID(eventId, Utils.Token(selection)), amount, "");
+        safeTransferFrom(from, to, getTokenID(eventId, selection), amount, "");
         emit BalanceChange(eventId, from, to, amount, selection);
         return true;
     }
@@ -72,21 +82,26 @@ contract TrustPredictToken is ERC1155, ERC1155Burnable {
     }
 
     /************** Start view functions *****************/
-    function getTokenID(address eventId, Utils.Token selection) internal view returns (uint256){
+    function getTokenID(address eventId, uint8 selection) public view returns (uint256){
         return TokenPairs[eventId].tokens[selection].id;
     }
 
     function getToken(address eventId, uint8 selection) public view returns(Token memory){
-        return TokenPairs[eventId].tokens[Utils.Token(selection)];
+        return TokenPairs[eventId].tokens[selection];
     }
 
-    function getTokenBalance(address eventId, uint8 selection) public view returns (uint256){
-        return TokenPairs[eventId].tokens[Utils.Token(selection)].balance;
+    function getTokenBalance(address eventId, uint8 selection) external view returns (uint256){
+        return TokenPairs[eventId].tokens[selection].balance;
     }
 
-    function getTokenBalances(address eventId) external view returns (uint, uint){
-        return (getTokenBalance(eventId, uint8(Utils.Token.No)), 
-                getTokenBalance(eventId, uint8(Utils.Token.Yes)));
+    function getTokenBalances(address eventId) external view returns (uint256, uint256){
+        return ((TokenPairs[eventId].tokens[0].balance), 
+                (TokenPairs[eventId].tokens[1].balance));
+    }
+
+    function getTotalSupply(address _eventId) external view returns(uint256) {
+        return TokenPairs[_eventId].tokens[1].balance.add(
+               TokenPairs[_eventId].tokens[0].balance);
     }
     /************** End view functions *****************/
 }

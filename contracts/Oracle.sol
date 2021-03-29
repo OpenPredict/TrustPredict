@@ -1,10 +1,10 @@
-pragma solidity ^0.6.2;
+// SPDX-License-Identifier: MIT
 
-import "@chainlink/contracts/src/v0.6/interfaces/AggregatorInterface.sol";
-import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
-import "./Utils.sol";
+pragma solidity ^0.8.0;
 
-contract Oracle is ChainlinkClient {
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorInterface.sol";
+
+contract Oracle {
 
     // storage
     struct Pairing {
@@ -12,12 +12,6 @@ contract Oracle is ChainlinkClient {
         bool set;
     }
     mapping(address => Pairing) priceAggregators; // price aggregator contracts mapped to Pairings
-    mapping(bytes32 => address) eventIDs;         // Request IDs mapped to event IDs
-    
-    // ChainLink data (Kovan network)
-    address _token            = 0xa36085F69e2889c224210F603D836748e7dC0088; // ChainLink ERC20
-    address _oracle           = 0x2f90A6D021db21e1B2A077c5a37B3C7E75D15b7e; // oracle contract
-    bytes32 _jobId             =        "a7ab70d561d34eb49e9b1612fd2e044b"; // callback job
 
     // gatekeepers
     function _validPriceAggregator(address _priceAggregator) view internal {
@@ -27,27 +21,10 @@ contract Oracle is ChainlinkClient {
                 "Oracle: Invalid Price Aggregator address.");
     }
 
-    function _hasGrantedAllowance() internal {
-        require(Utils.allowance(tx.origin, address(this), Utils.GetChainLinkAddress()) ==  (1 * LINK), 
-                "Oracle: Required LINK amount not granted.");
-        // Transfer here so that it can be used by the LINK contract
-        Utils.transferFrom(tx.origin, address(this), (1 * LINK), Utils.GetChainLinkAddress());
-    }
-
-    function _onlyEvent() internal {
-        require(msg.sender==Utils.GetOPEventFactoryAddress(),
-                "TrustPredictToken: Caller is not the designated OPEventFactory address.");
-    }
-
-
     // constructor
-    constructor() public
-    {
-        if(Utils.GetTest() == false)
-            setPublicChainlinkToken();
+    constructor() {
         setPriceAggregators();
     }
-
 
     // functions
     function setPriceAggregators() private {
@@ -72,50 +49,16 @@ contract Oracle is ChainlinkClient {
         priceAggregators[0x70179FB2F3A0a5b7FfB36a235599De440B0922ea] = Pairing("sDEFI/USD", true);
     }
 
-    /**
-     * Create a new oracle request
-     */
-    function newRequest(uint256 _until, address _priceAggregator, address _eventId)
-        external
-        returns (bool)
+    function validPriceAggregator(address _priceAggregator) external view returns (bool)
     {
         _validPriceAggregator(_priceAggregator);
-        _hasGrantedAllowance();
-        _onlyEvent();
-
-        if(Utils.GetTest() == false) {
-            Chainlink.Request memory req = buildChainlinkRequest(
-                _jobId,
-                address(this), 
-                this.fullfillRequest.selector
-            );
-            req.addUint("until", _until);
-            bytes32 _requestId = sendChainlinkRequestTo(_oracle, req, 1 * LINK);
-            eventIDs[_requestId] = _eventId;            
-        }
         return true;
-    }
-
-    /**
-     * Get the latest price at the correct time
-     */
-    function fullfillRequest(bytes32 _requestId) 
-        recordChainlinkFulfillment(_requestId)
-        public
-    {
-        address _event = eventIDs[_requestId];
-        int256 settledPrice = 36560000000; // for tests
-        (bool success, bytes memory result) = Utils.GetOPEventFactoryAddress().call(
-            (abi.encodeWithSignature("settle(address,int256)",
-            _event, settledPrice)
-        ));
-        require(success, "Oracle: call to event contract failed");
     }
 
     /**
      * Get the pairing for the price aggregator
      */
-    function getPairing (address _priceAggregator) view external returns(string memory) {
+    function getPairing(address _priceAggregator) external view returns(string memory) {
         _validPriceAggregator(_priceAggregator);
 
         return priceAggregators[_priceAggregator].value;

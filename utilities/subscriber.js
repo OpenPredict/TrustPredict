@@ -15,7 +15,7 @@ wallet = wallet.connect(utils.Constants['development'].provider)
 contracts = []   
 let accountIndex = 0   
 contracts['ContractProxy']  = new ethers.Contract(utils.getNextContractAddress(wallet.address, accountIndex++), ContractProxy.abi,     wallet);
-contracts['OPUSD']          = new ethers.Contract(utils.getNextContractAddress(wallet.address, accountIndex++), OPUSD.abi,             wallet);
+contracts['USDC']          = new ethers.Contract(utils.getNextContractAddress(wallet.address, accountIndex++), OPUSD.abi,             wallet);
 contracts['ChainLink']      = new ethers.Contract(utils.getNextContractAddress(wallet.address, accountIndex++), ChainLink.abi,         wallet);
 contracts['Utils']          = new ethers.Contract(utils.getNextContractAddress(wallet.address, accountIndex++), OPUSD.abi,             wallet);
 contracts['Oracle']         = new ethers.Contract(utils.getNextContractAddress(wallet.address, accountIndex++), OPEventFactory.abi,    wallet);
@@ -33,7 +33,7 @@ contracts['OPEventFactory'] = new ethers.Contract(utils.getNextContractAddress(w
 //     .map(async (nonce) => {
 //       const eventID = this.crypto.getNextContractAddress(contracts['OPEventFactory'].address, nonce);
 //       console.log('\nEvent ID: ' + eventID);
-//       const eventData = await contracts['OPEventFactory'].getEventData(eventID);
+//       const eventData = await contracts['OPEventFactory'].events(eventID);
 //       console.log('\nEvent Data: ' + eventData);
 //       const balances = await contracts['TrustPredict'].getTokenBalances(eventID);
 //       console.log('\nbalances: ' + balances);
@@ -49,7 +49,7 @@ utils.Constants['development'].provider.on({
 }, (result) => {
     eventID = '0x' + result.data.substring(26)
     console.log("\nEvent ID: " + eventID)
-    contracts['OPEventFactory'].getEventData(eventID).then(result => {
+    contracts['OPEventFactory'].events(eventID).then(result => {
         console.log(" ")
         Object.keys(result).splice(result.length, result.length * 2).forEach((key) => {
             console.log(key + ": " + result[key]);

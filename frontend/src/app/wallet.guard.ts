@@ -27,7 +27,7 @@ export class WalletGuard implements CanActivate {
       // attempt to init with first connected wallet, if not, go to 'connect wallet' screen.
       this.cryptoService.setProvider()
       .then(async wallets => {
-        console.log('wallets: ' + JSON.stringify(wallets));
+        //console.log('wallets: ' + JSON.stringify(wallets));
         this.cryptoService.initContracts(wallets['wallet'], wallets['signer']);
         this.opEventService.setupSubscriber().then( () => {
             this.opBalanceService.setupSubscriber().then( () => {
