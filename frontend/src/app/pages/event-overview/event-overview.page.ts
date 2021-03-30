@@ -163,8 +163,8 @@ export class EventOverviewPage implements OnInit, OnDestroy {
 
   calcRatio(yesVal, noVal) {
     let total = yesVal + noVal;
-    this.yesRation = (yesVal / total) * 100;
-    this.noRation = (noVal / total) * 100;
+    this.yesRation = parseFloat(((yesVal / total) * 100).toString()).toFixed(2);
+    this.noRation = parseFloat(((noVal / total) * 100).toString()).toFixed(2);
   }
 
 }

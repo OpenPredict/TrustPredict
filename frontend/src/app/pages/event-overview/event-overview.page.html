@@ -51,8 +51,8 @@
                   <div>{{calcRatio(event.staked_values[Token.Yes], event.staked_values[Token.No])}}</div>
                   <div class="confirm-details">
                     <div class="progress-title">
-                        <div class="yes-label">Yes <span>{{yesRation}}%</span></div>
-                        <div class="no-label">No <span>{{noRation}}%</span></div>
+                        <div class="yes-label">Yes (${{event.staked_values[Token.Yes]}}): <span>{{yesRation}}%</span></div>
+                        <div class="no-label">No (${{event.staked_values[Token.No]}}): <span>{{noRation}}%</span></div>
                     </div>
                     <div class="progress-bar">
                         <div [ngClass]="yesRation == '100' ? 'yes-100' : 'yes'" [style.width.%]="yesRation"></div>

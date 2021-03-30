@@ -119,7 +119,7 @@ export class OpEventService {
       // console.log('stakedValuesRaw: ' + stakedValuesRaw);
       // console.log('stakedValues: ' + stakedValues);
 
-      console.log('startTime: ' + Number(eventData['startTime']));
+      //console.log('startTime: ' + Number(eventData['startTime']));
 
       const eventEntry = {
         id: eventId,
@@ -201,7 +201,7 @@ export class OpEventService {
 
       console.log(Math.ceil(rawBetPrice * 100).toString());
       const betPrice        = ethers.utils.parseUnits(Math.ceil(rawBetPrice  * 100).toString(), this.optionService.priceFeedDecimals - 2);
-      const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / this.optionService.USDCOptionRatio).toString());
+      const numTokensToMint = ethers.utils.parseUnits(numTokensStakedToMint.toString()).div(this.optionService.USDCOptionRatio).toString();
       console.log(numTokensToMint);
 
       try {
@@ -255,7 +255,7 @@ export class OpEventService {
               );
             }
 
-            const numTokensToMint = ethers.utils.parseUnits((numTokensStakedToMint / this.optionService.USDCOptionRatio).toString());
+            const numTokensToMint = ethers.utils.parseUnits(numTokensStakedToMint.toString()).div(this.optionService.USDCOptionRatio).toString();
             console.log(numTokensToMint);
             try {
               const optionsOP = {};
@@ -275,12 +275,9 @@ export class OpEventService {
                     if (stakeOPWait.status === 1) {
                       resolve(true);
                     }
-                  }).catch( err =>
-                    reject(
-                      `Error during transaction creation: ${JSON.stringify(err)}`
-                    )
-                  );
-
+                  }).catch( err => {
+                    resolve(false);
+                  });
                 }
               }).catch( err => {
                 resolve(false);
@@ -451,11 +448,11 @@ export class OpEventService {
   }
 
   getTotalValue(value) {
-    return value[0] + value[1];
+    return parseFloat((value[0] + value[1]).toString()).toFixed(2);
   }
 
   /**
-   * Return text depending on if the conditionis true/false
+   * Return text depending on if the condition is true/false
    * @param condition boolean
    */
   getConditionText(position: Position) {

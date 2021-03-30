@@ -204,6 +204,12 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     return Number(parseFloat((result * 100).toString()).toFixed(2)); // 100 USD == 1 token
   }
 
+  setMaxStake(balances) {
+    this.form.patchValue({
+      option_stake: this.getMaxStake(balances).toString()
+    });
+  }
+
 
 
   getRatio(balances: any) {
