@@ -227,17 +227,13 @@ export class OpEventService {
               if (createOPEventWait.status === 1) {
                 resolve(true);
               }
-            }).catch( err =>
-              reject(
-                `Error during transaction creation: ${JSON.stringify(err)}`
-              )
-            );
+            }).catch( err => {
+              resolve(false);
+            });
           }
-        }).catch( err =>
-          reject(
-            `Error during transaction creation: ${JSON.stringify(err)}`
-          )
-        );
+        }).catch( err => {
+          resolve(false);
+        });
       } catch (error) {
         console.log();
         reject(
@@ -286,11 +282,9 @@ export class OpEventService {
                   );
 
                 }
-              }).catch( err =>
-                reject(
-                  `Error during transaction creation: ${JSON.stringify(err)}`
-                )
-              );
+              }).catch( err => {
+                resolve(false);
+              });
             } catch (error) {
               console.log();
               reject(
@@ -317,11 +311,9 @@ export class OpEventService {
           if (revokeOPWait.status === 1) {
             resolve(true);
           }
-        }).catch( err =>
-          reject(
-            `Error during transaction creation: ${JSON.stringify(err)}`
-          )
-        );
+        }).catch( err => {
+          resolve(false);
+        });
       } catch (error) {
         console.log();
         reject(
@@ -341,15 +333,6 @@ export class OpEventService {
       }
 
       try {
-        const optionsTP = {};
-        const approveTP = this.optionService.contracts['TrustPredict'].setApprovalForAll(this.crypto.contractAddresses['OPEventFactory'],
-                                                    true,
-                                                    optionsTP );
-
-        const waitForInteractions = Promise.all([approveTP]);
-        waitForInteractions.then( async (res) => {
-          const approveTPWait = await res[0].wait();
-          if (approveTPWait.status === 1) {
 
             const claimOP = this.optionService.contracts['OPEventFactory'].claim(eventId);
             const waitForClaim = Promise.all([claimOP]);
@@ -358,20 +341,11 @@ export class OpEventService {
               if (claimOPWait.status === 1) {
                 resolve(true);
               }
-            }).catch( err =>
-              reject(
-                `Error during transaction creation: ${JSON.stringify(err)}`
-              )
-            );
-
-
-          }
-        }).catch( err =>
-          reject(
-            `Error during transaction creation: ${JSON.stringify(err)}`
-          )
-        );
-      } catch (error) {
+            }).catch( err => {
+              resolve(false);
+            });
+      }
+      catch (error) {
         console.log();
         reject(
           new Error(error)
@@ -414,11 +388,9 @@ export class OpEventService {
           if (transferTPWait.status === 1) {
             resolve(true);
           }
-        }).catch( err =>
-          reject(
-            `Error during transaction creation: ${JSON.stringify(err)}`
-          )
-        );
+        }).catch( err => {
+          resolve(false);
+        });
       } catch (error) {
         console.log();
         reject(

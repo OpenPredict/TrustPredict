@@ -47,7 +47,7 @@ export class MyEventsPage extends BaseForm implements OnInit {
   pendingEvents$: Observable<IEvent[]>;
   activeEvents$: Observable<IEvent[]>;
   myEvents$: Observable<IEvent[]>;
-  activeEventType = 2;
+  activeEventType = 1;
 
   constructor(
     private fb: FormBuilder,
