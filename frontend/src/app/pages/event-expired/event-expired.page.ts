@@ -10,6 +10,7 @@ import { Position, Side } from '@app/data-model';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
 import { AppHeaderComponent } from "@components/app-header/app-header.component";
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-event-expired',
@@ -42,7 +43,8 @@ export class EventExpiredPage implements OnInit {
     private eventsQuery: OpEventQuery,
     private authQuery: AuthQuery,
     private toastCtrl: ToastController,
-    private ui: UiService) {
+    private ui: UiService,
+    private toastr: ToastrService) {
     console.log('created');
     this.hasBalanceInAnyToken();
   }
@@ -100,15 +102,16 @@ export class EventExpiredPage implements OnInit {
   }
 
   async showRevokeSuccess() {
-    const toast = await this.toastCtrl.create({
-      position: 'top',
-      duration: 2000,
-      cssClass: 'successToast',
-      message: 'You have successfully withdrawn your deposit.'
-    });
-    await toast.present();
+    // const toast = await this.toastCtrl.create({
+    //   position: 'top',
+    //   duration: 2000,
+    //   cssClass: 'successToast',
+    //   message: 'You have successfully withdrawn your deposit.'
+    // });
+    // await toast.present();
+    this.toastr.info("Revoke successful.");
     setTimeout(async () => {
-      await toast.dismiss();
+      //await toast.dismiss();
       this.navCtrl.navigateForward('/my-events');
     }, 2500);
   }

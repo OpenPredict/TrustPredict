@@ -11,6 +11,7 @@ import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
 import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
 import { AppHeaderComponent } from "@components/app-header/app-header.component";
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-event-settled',
@@ -47,7 +48,8 @@ export class EventSettledPage implements OnInit {
     private balancesQuery: OpBalanceQuery,
     private authQuery: AuthQuery,
     public toastCtrl: ToastController,
-    private ui: UiService) {
+    private ui: UiService,
+    private toastr: ToastrService) {
     console.log('created');
     this.balance$.subscribe(balance => {
       console.log('balance updated:' + JSON.stringify(balance));
@@ -143,15 +145,16 @@ export class EventSettledPage implements OnInit {
   }
 
   async showClaimSuccess() {
-    const toast = await this.toastCtrl.create({
-      position: 'middle',
-      duration: 2000,
-      cssClass: 'successToast',
-      message: 'You have successfully claimed your winnings.'
-    });
-    await toast.present();
+    // const toast = await this.toastCtrl.create({
+    //   position: 'middle',
+    //   duration: 2000,
+    //   cssClass: 'successToast',
+    //   message: 'You have successfully claimed your winnings.'
+    // });
+    // await toast.present();
+    this.toastr.info("Claim successful.");
     setTimeout(async () => {
-      await toast.dismiss();
+      //await toast.dismiss();
       this.navCtrl.navigateForward('/my-events');
     }, 2500);
   }

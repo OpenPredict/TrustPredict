@@ -11,6 +11,7 @@ import { AppComponent } from "./app.component";
 import { AppRoutingModule } from "./app-routing.module";
 import { HashLocationStrategy, LocationStrategy } from "@angular/common";
 import { IonicStorageModule } from "@ionic/storage";
+import { ToastNoAnimationModule, ToastrModule } from "ngx-toastr";
 
 @NgModule({
   declarations: [AppComponent],
@@ -23,7 +24,9 @@ import { IonicStorageModule } from "@ionic/storage";
     IonicStorageModule.forRoot({
       name: "__mydb",
       driverOrder: ["indexeddb", "sqlite", "websql", "localstorage"]
-    })
+    }),
+    ToastNoAnimationModule,
+    ToastrModule.forRoot(),
   ],
   providers: [
     StatusBar,
