@@ -10,6 +10,7 @@ import { map, mapTo } from 'rxjs/operators';
 import { ID, cacheable } from '@datorama/akita';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { timer } from 'rxjs/internal/observable/timer';
+import { ToastrService } from 'ngx-toastr';
 
 
 import { WEB3 } from '@app/web3';
@@ -30,6 +31,7 @@ export class OpEventService {
     private crypto: CryptoService,
     private optionService: OptionService,
     private eventsStore: EventsStore,
+    private toastr: ToastrService,
     @Inject(WEB3) private web3: Web3) {}
 
     updateStatusFollowingDepositPeriod(depositPeriodEnd, eventId) {
@@ -93,10 +95,16 @@ export class OpEventService {
     parseEventStatus(eventData, tokenValuesRaw: ethers.BigNumber[]) {
       const totalTokenValue = tokenValuesRaw[0].add(tokenValuesRaw[1]);
       const isDepositPeriod = (new Date() < new Date(this.timestampToDate(Number(eventData['startTime']))));
-      return  isDepositPeriod                                                         ? Status.Staking :
-              (eventData['eve ntSettled'] === true)                                   ? Status.Settled :
-              !isDepositPeriod && totalTokenValue.lt(this.minimumTokenAmountPerEvent) ? Status.Expired :
-                                                                                        Status.Active;
+      let status = isDepositPeriod                                                         ? Status.Staking :
+                   (eventData['eventSettled'] === true)                                    ? Status.Settled :
+                   !isDepositPeriod && totalTokenValue.lt(this.minimumTokenAmountPerEvent) ? Status.Expired :
+                                                                                             Status.Active;
+      // handle the case where the event is not yet settled but ready to be.
+
+      const readyToSettle = (status == Status.Active) && (new Date() >= new Date(this.timestampToDate(Number(eventData['endTime']))));
+      if(readyToSettle) status = Status.Settled;
+
+      return status;
     }
 
     async parseEventData(eventId, eventData, tokenValuesRaw){
@@ -228,10 +236,12 @@ export class OpEventService {
                 resolve(true);
               }
             }).catch( err => {
+              this.showError(err);
               resolve(false);
             });
           }
         }).catch( err => {
+          this.showError(err);
           resolve(false);
         });
       } catch (error) {
@@ -276,10 +286,12 @@ export class OpEventService {
                       resolve(true);
                     }
                   }).catch( err => {
+                    this.showError(err);
                     resolve(false);
                   });
                 }
               }).catch( err => {
+                this.showError(err);
                 resolve(false);
               });
             } catch (error) {
@@ -309,6 +321,7 @@ export class OpEventService {
             resolve(true);
           }
         }).catch( err => {
+          this.showError(err);
           resolve(false);
         });
       } catch (error) {
@@ -339,6 +352,7 @@ export class OpEventService {
                 resolve(true);
               }
             }).catch( err => {
+              this.showError(err);
               resolve(false);
             });
       }
@@ -386,6 +400,7 @@ export class OpEventService {
             resolve(true);
           }
         }).catch( err => {
+          this.showError(err);
           resolve(false);
         });
       } catch (error) {
@@ -466,4 +481,11 @@ export class OpEventService {
             'Active (Staking Complete)';
   }
 
+  showError(e) {
+    if(e.message=="Internal JSON-RPC error."){
+      return this.toastr.error("Error during transaction creation: " + e.data.message.split(':')[2]);
+    }else {
+      return this.toastr.error(e.message.split(':')[1]);
+    }
+  }
 }

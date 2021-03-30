@@ -25,7 +25,7 @@ contract OPEventFactory {
     uint256 immutable public minimumTokenAmountPerEvent = 10000000000000000000; // 10 tokens
     uint256 immutable public maxPredictionFactor = 2;                           // ie. 50% of max pot per stake (1/2 == 50%)
     //uint256 immutable public depositPeriod = (Utils.GetTest()) ? 10 : 86400;    // test: 10 seconds, otherwise: 1 day
-    uint256 immutable public depositPeriod = 200;                                 // test: 10 seconds, otherwise: 1 day
+    uint256 immutable public depositPeriod = 10;                                 // test: 10 seconds, otherwise: 1 day
     uint256 immutable public usdValuePerToken = 100;                            // value of 1 minted token in USD.
     // enums
     enum Side {Lower, Higher}

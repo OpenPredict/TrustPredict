@@ -17,6 +17,7 @@ import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.serv
 import { StakingBalanceQuery } from '@app/services/staking-balance-service/staking-balance.service.query';
 import { ethers } from 'ethers';
 import { AppHeaderComponent } from "@components/app-header/app-header.component";
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-event-overview-stake',
@@ -77,7 +78,8 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     private eventsQuery: OpEventQuery,
     private opBalancesQuery: OpBalanceQuery,
     private stakingBalanceQuery: StakingBalanceQuery,
-    private toastCtrl: ToastController) {
+    private toastCtrl: ToastController,
+    private toastr: ToastrService) {
     super();
     this.availableOptions = this.optService.availableOptions;
 
@@ -148,7 +150,10 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
       const interaction = await this.ui
         .loading(this.eventsService.stake(eventId, numTokensStakedToMint, selection),
           'You will be prompted for contract interactions, please be patient as it may take a few moments to broadcast to the network.')
-        .catch(e => alert(`Error with contract interactions ${JSON.stringify(e)}`));
+        .catch(e =>  { 
+          this.toastr.error(`Failed: ${JSON.stringify(e)}`);
+          alert(`Error with contract interactions ${JSON.stringify(e)}`) 
+        });
 
       if (interaction) {
         this.showStakeSuccess();
@@ -230,15 +235,16 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
   }
 
   async showStakeSuccess() {
-    const toast = await this.toastCtrl.create({
-      position: 'middle',
-      duration: 2000,
-      cssClass: 'successToast',
-      message: 'You have successfully placed your stake.'
-    });
-    await toast.present();
+    // const toast = await this.toastCtrl.create({
+    //   position: 'middle',
+    //   duration: 2000,
+    //   cssClass: 'successToast',
+    //   message: 'You have successfully placed your stake.'
+    // });
+    //await toast.present();
+    this.toastr.info("Stake successful.");
     setTimeout(async () => {
-      await toast.dismiss();
+      //await toast.dismiss();
       this.navCtrl.navigateForward('/my-events');
     }, 2500);
   }

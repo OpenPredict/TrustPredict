@@ -34,7 +34,6 @@ export class LandingPage extends BaseForm implements OnInit {
           <li> You have some of the following tokens:
             <ul>
               <li><a target="_blank" href="https://faucet.kovan.network/">kETH</a></li>
-              <li><a target="_blank" href="https://kovan.chain.link/">LINK</a></li>
               <li><a target="_blank" href="http://kovan.openpredict.io/">OPUSD</a></li>
             </ul>
           </li>

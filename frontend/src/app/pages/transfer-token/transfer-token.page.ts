@@ -16,6 +16,7 @@ import { AuthQuery } from '@app/services/auth-service/auth.service.query';
 import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
 import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
 import { AppHeaderComponent } from "@components/app-header/app-header.component";
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-transfer-token',
@@ -63,7 +64,8 @@ export class TransferTokenPage extends BaseForm implements OnInit {
     private eventsQuery: OpEventQuery,
     private balancesQuery: OpBalanceQuery,
     private authQuery: AuthQuery,
-    private toastCtrl: ToastController) {
+    private toastCtrl: ToastController,
+    private toastr: ToastrService) {
     super();
     this.availableOptions = this.optService.availableOptions;
 
@@ -153,15 +155,16 @@ export class TransferTokenPage extends BaseForm implements OnInit {
   }
 
   async showTransferSuccess() {
-    const toast = await this.toastCtrl.create({
-      position: 'middle',
-      duration: 2000,
-      cssClass: 'successToast',
-      message: 'You have successfully transferred your tokens.'
-    });
-    await toast.present();
+    // const toast = await this.toastCtrl.create({
+    //   position: 'middle',
+    //   duration: 2000,
+    //   cssClass: 'successToast',
+    //   message: 'You have successfully transferred your tokens.'
+    // });
+    // await toast.present();
+    this.toastr.info('Token transfer successful.');
     setTimeout(async () => {
-      await toast.dismiss();
+      //await toast.dismiss();
       this.navCtrl.navigateForward('/my-events');
     }, 2500);
   }

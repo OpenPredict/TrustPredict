@@ -20,7 +20,7 @@
             expiration: {{ event.expiration}}
           </li>
           <li>
-            value: ${{ this.getTotalValue(event.staked_values) }} USD <em *ngIf="showMinimumText(event.staked_values, event.status)">($1000 USD minimum needed to activate)</em>
+            value: ${{ this.getTotalValue(event.staked_values) }} <em *ngIf="showMinimumText(event.staked_values, event.status)">($1000 minimum needed to activate)</em>
           </li>                    
         </ul>
         <div class="lb"></div>

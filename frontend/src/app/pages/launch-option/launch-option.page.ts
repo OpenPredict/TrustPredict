@@ -14,6 +14,7 @@ import { CustomValidators } from '@app/helpers/CustomValidators';
 import { StakingBalanceQuery } from '@app/services/staking-balance-service/staking-balance.service.query';
 import { ethers } from 'ethers';
 import { AppHeaderComponent } from "@components/app-header/app-header.component";
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-launch-option',
@@ -55,7 +56,8 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
     public ui: UiService,
     private crypto: CryptoService,
     public navCtrl: NavController,
-    public stakingBalanceQuery: StakingBalanceQuery) {
+    public stakingBalanceQuery: StakingBalanceQuery,
+    private toastr: ToastrService) {
     super();
 
     this.availableOptions = this.optionService.availableOptions;
@@ -103,7 +105,10 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
       const interaction = await this.ui
         .loading(this.opEvent.launchEvent(rawBetPrice, betSide, eventPeriod, numTokensStakedToMint, pairContract),
           'You will be prompted for contract interactions, please be patient as it may take a few moments to broadcast to the network.')
-        .catch(e => alert(`Error with contract interactions ${JSON.stringify(e)}`));
+        .catch(e => { 
+          this.toastr.error(`Failed: ${JSON.stringify(e)}`);
+          alert(`Error with contract interactions ${JSON.stringify(e)}`) 
+        });
 
       if (interaction) {
         this.showWagerSuccess();
@@ -118,15 +123,16 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
   }
 
   async showWagerSuccess() {
-    const toast = await this.toastCtrl.create({
-      position: 'middle',
-      duration: 2000,
-      cssClass: 'successToast',
-      message: 'You have successfully placed your wager'
-    });
-    await toast.present();
+    // const toast = await this.toastCtrl.create({
+    //   position: 'middle',
+    //   duration: 2000,
+    //   cssClass: 'successToast',
+    //   message: 'You have successfully placed your wager'
+    // });
+    //await toast.present();
+    this.toastr.info("Stake successful.");
     setTimeout(async () => {
-      await toast.dismiss();
+      //await toast.dismiss();
       this.navCtrl.navigateForward('/my-events');
     }, 2500);
   }
