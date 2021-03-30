@@ -64,7 +64,7 @@ export class EventExpiredPage implements OnInit {
     try {
       const interaction = await this.ui
         .loading(this.eventService.revoke(eventId),
-          'You will be prompted for 2 contract interactions, please approve both to successfully take part and please be patient as it may take a few moments to broadcast to the network.')
+          'You will be prompted for contract interactions, please be patient as it may take a few moments to broadcast to the network.')
         .catch(e => alert(`Error with contract interactions ${JSON.stringify(e)}`));
 
       if (interaction) {
@@ -101,7 +101,7 @@ export class EventExpiredPage implements OnInit {
 
   async showRevokeSuccess() {
     const toast = await this.toastCtrl.create({
-      position: 'middle',
+      position: 'top',
       duration: 2000,
       cssClass: 'successToast',
       message: 'You have successfully withdrawn your deposit.'

@@ -143,7 +143,6 @@ export class TransferTokenPage extends BaseForm implements OnInit {
   }
 
   getTokenBalance(balances: any) {
-    console.log('transfer-token balances: ' + balances);
     const balancesFormatted = this.balancesService.format(balances);
     return this.token === 'No' ? balancesFormatted.NoToken : balancesFormatted.YesToken;
   }

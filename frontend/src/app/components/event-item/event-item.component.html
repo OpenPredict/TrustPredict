@@ -18,9 +18,9 @@
           </li>
           <li *ngIf="event.expiration">
             expiration: {{ event.expiration}}
-          </li>    
+          </li>
           <li>
-            value: ${{ this.getTotalValue(event.staked_values) }} USD (<em>$1000 USD minimum needed to activate</em>)
+            value: ${{ this.getTotalValue(event.staked_values) }} USD <em *ngIf="showMinimumText(event.staked_values, event.status)">($1000 USD minimum needed to activate)</em>
           </li>                    
         </ul>
         <div class="lb"></div>
@@ -28,11 +28,8 @@
           <li class="status-status">
             {{ getStatusText(event) }}<span *ngIf="event.deposit_period_end && event.status == 0"> : {{timeToShow}}</span> 
           </li>
-          <li>
-            value: ${{ this.getTotalValue(event.staked_values) }} USD (<em>$1000 USD minimum needed to activate</em>)
-          </li>
           <li *ngIf="event.ratio">
-            win ratio: {{ event.ratio }}
+            win ratio: {{ getRatio(event.token_values,event.side) }}%
           </li>                           
         </ul>        
       </div>      

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
-import { IEvent, Side } from '@app/data-model';
+import { IEvent, Side, Status } from '@app/data-model';
 import { OpEventService } from '@services/op-event-service/op-event.service';
 
 
@@ -40,6 +40,23 @@ export class EventItemComponent implements OnInit {
         clearInterval(this.interval);
       }
     },1000)
+  }
+
+  getRatio(balances: any, betSide: Side) {
+    // console.log('balances: ' + JSON.stringify(balances));
+    // console.log('token selection: ' + this.eventsService.getToken(position, betSide));
+    const selection = balances[betSide];
+    const other = balances[1 - betSide];
+
+    // (loser / winner) * 100
+    return (selection === 0) ? '0.00' :
+      ((other * 1.0 / selection) * 100).toFixed(2);
+  }
+
+  showMinimumText(balances: any, status: Status) {
+    // console.log('balances: ' + JSON.stringify(balances));
+    // console.log('token selection: ' + this.eventsService.getToken(position, betSide));
+    return status == Status.Staking && (balances[0] + balances[1]) >= 1000;
   }
 
   getClass(betSide: Side): string {

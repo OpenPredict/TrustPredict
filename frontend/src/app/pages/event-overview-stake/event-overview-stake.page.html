@@ -74,11 +74,15 @@
                   <div class="form__item buffer">
                     <div class="form__label">
                       Select amount
+                      <!-- <div class="form__label-info" *ngIf="(opBalance$ | async) as opBalance" (click)="setMaxStake(opBalance)">
+                        Max stake: ${{ getMaxStake(opBalance) }}
+                      </div> -->
                       <div class="form__label-info" *ngIf="(opBalance$ | async) as opBalance">
-                        Max stake: {{ getMaxStake(opBalance) }} USDC
+                        <span class="max_stake_btn" (click)="setMaxStake(opBalance)">Max stake</span>: ${{ getMaxStake(opBalance) }}
                       </div>
+
                       <div class="form__label-info" *ngIf="(stakingBalance$ | async) as stakingBalance">
-                        Balance: {{ getBalance(stakingBalance)}} USDC
+                        Balance: ${{ getBalance(stakingBalance)}}
                       </div>
                     </div>
                     <input class="form__input" type="text" min="0" formControlName="option_stake" placeholder="0.00"

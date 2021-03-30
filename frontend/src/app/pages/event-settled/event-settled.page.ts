@@ -82,7 +82,7 @@ export class EventSettledPage implements OnInit {
     try {
       const interaction = await this.ui
         .loading(this.eventsService.claim(eventId),
-          'You will be prompted for 1 contract interaction, please approve it and be patient as it may take a few moments to broadcast to the network.')
+          'You will be prompted for a contract interaction, please be patient as it may take a few moments to broadcast to the network.')
         .catch(e => alert(`Error with contract interactions ${JSON.stringify(e)}`));
 
       if (interaction) {
