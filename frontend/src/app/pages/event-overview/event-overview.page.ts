@@ -23,6 +23,8 @@ export class EventOverviewPage implements OnInit, OnDestroy {
   public Position = Position;
   public Status = Status;
   public Token = Token;
+  yesRation: any;   
+  noRation: any;   
 
   get eventId() {
     return this.activatedRoute.snapshot.params.eventId;
@@ -157,6 +159,12 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     } else {
       return false;
     }
+  }
+
+  calcRatio(yesVal, noVal) {
+    let total = yesVal + noVal;
+    this.yesRation = (yesVal / total) * 100;
+    this.noRation = (noVal / total) * 100;
   }
 
 }

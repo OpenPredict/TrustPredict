@@ -48,10 +48,17 @@
                     Event value:
                   </div>
 
-                  <div class="eventInfoTxt bolder white">
-                    ${{ event.staked_values[Token.No] + event.staked_values[Token.Yes] }} USD
-                    (${{event.staked_values[Token.Yes]}} USD Yes Token, ${{event.staked_values[Token.No]}} USD No Token)
-                  </div>
+                  <div>{{calcRatio(event.staked_values[Token.Yes], event.staked_values[Token.No])}}</div>
+                  <div class="confirm-details">
+                    <div class="progress-title">
+                        <div class="yes-label">Yes <span>{{yesRation}}%</span></div>
+                        <div class="no-label">No <span>{{noRation}}%</span></div>
+                    </div>
+                    <div class="progress-bar">
+                        <div [ngClass]="yesRation == '100' ? 'yes-100' : 'yes'" [style.width.%]="yesRation"></div>
+                        <div [ngClass]="noRation == '100' ? 'no-100' : 'no'" [style.width.%]="noRation"></div>
+                    </div>
+                </div>
                 </li>
               </ul>
             </div>
@@ -70,14 +77,14 @@
                     <div class="eventInfoTxt--small">
                       Current win ratio:
                     </div>
-                    <div class="eventInfoTxt bolder">
+                    <div class="eventInfoTxt bolder white">
                       {{getRatio(event.token_values,Position.Left,event.side)}}%
                     </div>
 
                     <div class="eventInfoTxt--small divideBal">
                       My balance:
                     </div>
-                    <div class="eventInfoTxt bolder">
+                    <div class="eventInfoTxt bolder white">
                       {{getTokenBalance(balance, Position.Left,event.side)}} {{getToken(Position.Left,event.side)}}
                     </div>
 
@@ -106,14 +113,14 @@
                     <div class="eventInfoTxt--small">
                       Current win ratio:
                     </div>
-                    <div class="eventInfoTxt bolder">
+                    <div class="eventInfoTxt bolder white">
                       {{getRatio(event.token_values,Position.Right,event.side)}}%
                     </div>
 
                     <div class="eventInfoTxt--small divideBal">
                       My balance:
                     </div>
-                    <div class="eventInfoTxt bolder">
+                    <div class="eventInfoTxt bolder white">
                       {{getTokenBalance(balance, Position.Right,event.side)}} {{getToken(Position.Right,event.side)}}
                     </div>
 
