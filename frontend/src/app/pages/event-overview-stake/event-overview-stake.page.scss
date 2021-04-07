@@ -5,10 +5,6 @@
     background-color: #A6AEBE;
 }
 
-
-
-
-
 .checkboxSegment {
     text-align: center;
     margin: 0 auto 30px;
@@ -22,6 +18,19 @@
             font-size: 14px;
             line-height: 17px;        
         }        
+    }    
+}
+
+.form__input--wrapped {
+    padding-right: 15px;
+    display: flex;
+    border-radius: 15px;
+    border: 1px solid var(--ion-color-primary);
+    align-items: center;
+    .form__input--token {
+        text-transform: uppercase;
     }
-    
+    input {
+        border: none!important;
+    }
 }

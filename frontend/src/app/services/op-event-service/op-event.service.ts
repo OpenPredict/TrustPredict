@@ -6,7 +6,7 @@ import { AuthQuery } from '@services/auth-service/auth.service.query';
 import { ethers } from 'ethers';
 const BigNumber = ethers.BigNumber;
 
-import { map, mapTo } from 'rxjs/operators';
+import { map, mapTo, timeout } from 'rxjs/operators';
 import { ID, cacheable } from '@datorama/akita';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { timer } from 'rxjs/internal/observable/timer';
@@ -15,8 +15,8 @@ import { ToastrService } from 'ngx-toastr';
 
 import { WEB3 } from '@app/web3';
 import Web3 from 'web3';
-import { EventsStore } from './op-event.service.store';
-import { IEvent, Status, Position, Side, Token } from '@app/data-model';
+import { EventsStore, EventFactoryStore } from './op-event.service.store';
+import { IEvent, Status, Position, Side, Token, IEventFactory } from '@app/data-model';
 
 @Injectable({
   providedIn: 'root'
@@ -24,15 +24,73 @@ import { IEvent, Status, Position, Side, Token } from '@app/data-model';
 export class OpEventService {
 
   events = {} as IEvent;
+  eventFactory = {} as IEventFactory;
 
   address = '';
-  minimumTokenAmountPerEvent = BigNumber.from(ethers.utils.parseUnits('10'));
+  
+  
   constructor(
     private crypto: CryptoService,
     private optionService: OptionService,
     private eventsStore: EventsStore,
+    private eventFactoryStore: EventFactoryStore,
     private toastr: ToastrService,
     @Inject(WEB3) private web3: Web3) {}
+
+    async setupSubscribers(){
+      await this.setupInitSubscriber();
+      await this.setupEventSubscriber();
+
+    }
+
+    async setupInitSubscriber(){
+      // OPEventFactory Initialize subscriber
+      this.crypto.provider().on( {
+          address: this.optionService.contracts['OPEventFactory'].address,
+          topics: [ethers.utils.id('Initialize(uint256,uint256,uint256,uint256,uint256)')], // OPEventFactory
+        }, async (log) => {
+          const init = this.optionService.abis['OPEventFactory'].parseLog(log);
+
+          const maxEventPeriod             = init['args'][0];
+          const minimumTokenAmountPerEvent = init['args'][1];
+          const maxPredictionFactor        = init['args'][2];
+          const depositPeriod              = init['args'][3];
+          const valuePerToken              = init['args'][4];
+          const assetSymbol = await this.optionService.contracts['Asset'].symbol();
+          const assetDecimals = await this.optionService.contracts['Asset'].decimals();
+
+          const eventFactoryEntry = {
+            id: 0,
+            max_event_period: maxEventPeriod,
+            minimum_token_amount_per_event: minimumTokenAmountPerEvent,
+            max_prediction_factor: maxPredictionFactor,
+            deposit_period: depositPeriod,
+            value_per_token: valuePerToken,
+            asset_symbol: assetSymbol,
+            asset_decimals: parseFloat(assetDecimals.toString()),
+          };
+
+          console.log('eventFactoryEntry: ' + JSON.stringify(eventFactoryEntry));
+
+          this.eventFactory[0] = eventFactoryEntry;
+          this.eventFactoryStore.upsert(0, eventFactoryEntry);
+        });
+    }
+
+    async setupEventSubscriber(){
+      // OPEventFactory subscriber
+      this.crypto.provider().on( {
+          address: this.optionService.contracts['OPEventFactory'].address,
+          topics: [ethers.utils.id('EventUpdate(address)')], // OPEventFactory
+        }, async (eventIdRaw) => {
+          const eventID = '0x' + eventIdRaw.data.substring(26);
+          //console.log('eventID subscriber: ' + eventID);
+          //console.log('events length: ' + Object.keys(this.events).length);
+          const eventData = await this.optionService.contracts['OPEventFactory'].events(eventID);
+          const balances = await this.optionService.contracts['TrustPredict'].getTokenBalances(eventID);
+          await this.parseEventData(eventID, eventData, balances);
+        });
+    }
 
     updateStatusFollowingDepositPeriod(depositPeriodEnd, eventId) {
       // set a timer to update the status following depositPeriodEnd.
@@ -42,14 +100,16 @@ export class OpEventService {
           // call status update function, upsert result
           const totalTokenValue = eventEntry.token_values_raw[0].add(eventEntry.token_values_raw[1]);
 
+          const minimumTokenAmountPerEvent = this.eventFactory[0].minimum_token_amount_per_event;
+
           //console.log('ending timeout for eventId ' + eventId);
           //console.log('totalTokenValue ' + totalTokenValue);
           //console.log('this.minimumTokenAmountPerEvent ' + this.minimumTokenAmountPerEvent);
           const isDepositPeriod = (new Date() < new Date(this.timestampToDate(eventEntry.deposit_period_end)));
-          const status =   isDepositPeriod                                                           ? Status.Staking :
-                           eventEntry.Status === Status.Settled                                      ? Status.Settled :
-                           !isDepositPeriod && (totalTokenValue.lt(this.minimumTokenAmountPerEvent)) ? Status.Expired :
-                                                                                                       Status.Active;
+          const status =   isDepositPeriod                                                      ? Status.Staking :
+                           eventEntry.Status === Status.Settled                                 ? Status.Settled :
+                           !isDepositPeriod && (totalTokenValue.lt(minimumTokenAmountPerEvent)) ? Status.Expired :
+                                                                                                  Status.Active;
 
           //console.log('new status: ' + status);
 
@@ -94,11 +154,12 @@ export class OpEventService {
 
     parseEventStatus(eventData, tokenValuesRaw: ethers.BigNumber[]) {
       const totalTokenValue = tokenValuesRaw[0].add(tokenValuesRaw[1]);
+      const minimumTokenAmountPerEvent = this.eventFactory[0].minimum_token_amount_per_event;
       const isDepositPeriod = (new Date() < new Date(this.timestampToDate(Number(eventData['startTime']))));
-      let status = isDepositPeriod                                                         ? Status.Staking :
-                   (eventData['eventSettled'] === true)                                    ? Status.Settled :
-                   !isDepositPeriod && totalTokenValue.lt(this.minimumTokenAmountPerEvent) ? Status.Expired :
-                                                                                             Status.Active;
+      let status = isDepositPeriod                                                    ? Status.Staking :
+                   (eventData['eventSettled'] === true)                               ? Status.Settled :
+                   !isDepositPeriod && totalTokenValue.lt(minimumTokenAmountPerEvent) ? Status.Expired :
+                                                                                        Status.Active;
       // handle the case where the event is not yet settled but ready to be.
 
       const readyToSettle = (status == Status.Active) && (new Date() >= new Date(this.timestampToDate(Number(eventData['endTime']))));
@@ -108,17 +169,24 @@ export class OpEventService {
     }
 
     async parseEventData(eventId, eventData, tokenValuesRaw){
+      while(Object.keys(this.eventFactory).length === 0){
+        console.log('undefined');
+        timeout(2);
+      }
       //console.log('priceAggregator: ' + eventData['priceAggregator']);
       const pairing = this.optionService.availablePairs[eventData['priceAggregator']];
       //console.log('pairing: ' + pairing);
 
       const ticker = pairing.pair.replace('/USD', '');
       const asset = this.optionService.availableAssets[ticker];
+      const valuePerToken = this.eventFactory[0].value_per_token;
 
       const tokenValues = [parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenValuesRaw[Token.No]))),
                            parseFloat(ethers.utils.formatUnits(BigNumber.from(tokenValuesRaw[Token.Yes])))];
 
-      const stakedValuesRaw = [tokenValuesRaw[Token.No].mul(100), tokenValuesRaw[Token.Yes].mul(100)];
+      const stakedValuesRaw = [tokenValuesRaw[ Token.No].mul(valuePerToken).div(ethers.constants.WeiPerEther),
+                               tokenValuesRaw[Token.Yes].mul(valuePerToken).div(ethers.constants.WeiPerEther)];
+
       const stakedValues = [parseFloat(ethers.utils.formatUnits(BigNumber.from(stakedValuesRaw[Token.No]))),
                            parseFloat(ethers.utils.formatUnits(BigNumber.from(stakedValuesRaw[Token.Yes])))];
 
@@ -170,21 +238,6 @@ export class OpEventService {
       //console.log('events length after push: ' + Object.keys(this.events).length);
     }
 
-    async setupSubscriber(){
-      // OPEventFactory subscriber
-      this.crypto.provider().on( {
-          address: this.optionService.contracts['OPEventFactory'].address,
-          topics: [ethers.utils.id('EventUpdate(address)')], // OPEventFactory
-        }, async (eventIdRaw) => {
-          const eventID = '0x' + eventIdRaw.data.substring(26);
-          //console.log('eventID subscriber: ' + eventID);
-          //console.log('events length: ' + Object.keys(this.events).length);
-          const eventData = await this.optionService.contracts['OPEventFactory'].events(eventID);
-          const balances = await this.optionService.contracts['TrustPredict'].getTokenBalances(eventID);
-          await this.parseEventData(eventID, eventData, balances);
-        });
-    }
-
   async launchEvent(rawBetPrice: number,
                     betSide: boolean,
                     eventPeriod: number,
@@ -209,47 +262,72 @@ export class OpEventService {
 
       console.log(Math.ceil(rawBetPrice * 100).toString());
       const betPrice        = ethers.utils.parseUnits(Math.ceil(rawBetPrice  * 100).toString(), this.optionService.priceFeedDecimals - 2);
-      const numTokensToMint = ethers.utils.parseUnits(numTokensStakedToMint.toString()).div(this.optionService.USDCOptionRatio).toString();
+      const numTokensToMint = ethers.utils.parseUnits(numTokensStakedToMint.toString()).div(this.optionService.AssetOptionRatio).toString();
       console.log(numTokensToMint);
 
       try {
         const optionsOP = {};
-        const approveOP = this.optionService.contracts['USDC'].approve(this.crypto.contractAddresses['OPEventFactory'],
-                                                  ethers.utils.parseUnits(numTokensStakedToMint.toString()),
-                                                  optionsOP );
+        let allowance = await this.optionService.contracts['Asset'].allowance(this.optionService.address, this.optionService.contracts['OPEventFactory'].address);
+        allowance = ethers.BigNumber.from(allowance);
+        console.log('allowance: ' + allowance);
+        if(allowance.gte(numTokensToMint)){
+          console.log(`Deploying event with =>> betPrice: ${betPrice} | betSide: ${Number(betSide)} | eventPeriod: ${eventPeriod} | numTokensToMint: ${numTokensToMint} || pairContract: ${pairContract} `);
+          const createOPEvent = this.optionService.contracts['OPEventFactory'].createOPEvent(betPrice,
+                                                          Number(betSide),
+                                                          eventPeriod,
+                                                          numTokensToMint,
+                                                          pairContract );
 
-        const waitForApprovals = Promise.all([approveOP]);
-        waitForApprovals.then( async (res) => {
-          const approveOPWait = await res[0].wait();
-          if (approveOPWait.status === 1) {
-            console.log(`Deploying event with =>> betPrice: ${betPrice} | betSide: ${Number(betSide)} | eventPeriod: ${eventPeriod} | numTokensToMint: ${numTokensToMint} || pairContract: ${pairContract} `);
-            const createOPEvent = this.optionService.contracts['OPEventFactory'].createOPEvent(betPrice,
-                                                            Number(betSide),
-                                                            eventPeriod,
-                                                            numTokensToMint,
-                                                            pairContract );
+          const waitForCreation = Promise.all([createOPEvent]);
+          waitForCreation.then( async (res) => {
+            const createOPEventWait = await res[0].wait();
+            if (createOPEventWait.status === 1) {
+              resolve(true);
+            }
+          }).catch( err => {
+            this.showError(err);
+            resolve(false);
+          });
+        } else {
+          const optionsOP = {};
+          const approveOP = this.optionService.contracts['Asset'].approve(this.crypto.contractAddresses['OPEventFactory'],
+                                                    ethers.constants.MaxUint256,
+                                                    optionsOP );
 
-            const waitForCreation = Promise.all([createOPEvent]);
-            waitForCreation.then( async (res) => {
-              const createOPEventWait = await res[0].wait();
-              if (createOPEventWait.status === 1) {
-                resolve(true);
-              }
-            }).catch( err => {
-              this.showError(err);
-              resolve(false);
-            });
-          }
-        }).catch( err => {
-          this.showError(err);
-          resolve(false);
-        });
+          const waitForApprovals = Promise.all([approveOP]);
+          waitForApprovals.then( async (res) => {
+            const approveOPWait = await res[0].wait();
+            if (approveOPWait.status === 1) {
+              console.log(`Deploying event with =>> betPrice: ${betPrice} | betSide: ${Number(betSide)} | eventPeriod: ${eventPeriod} | numTokensToMint: ${numTokensToMint} || pairContract: ${pairContract} `);
+              const createOPEvent = this.optionService.contracts['OPEventFactory'].createOPEvent(betPrice,
+                                                              Number(betSide),
+                                                              eventPeriod,
+                                                              numTokensToMint,
+                                                              pairContract );
+
+              const waitForCreation = Promise.all([createOPEvent]);
+              waitForCreation.then( async (res) => {
+                const createOPEventWait = await res[0].wait();
+                if (createOPEventWait.status === 1) {
+                  resolve(true);
+                }
+              }).catch( err => {
+                this.showError(err);
+                resolve(false);
+              });
+            }
+          }).catch( err => {
+            this.showError(err);
+            resolve(false);
+          });
+        }
       } catch (error) {
         console.log();
         reject(
           new Error(error)
         );
       }
+
     });
   }
 
@@ -265,35 +343,56 @@ export class OpEventService {
               );
             }
 
-            const numTokensToMint = ethers.utils.parseUnits(numTokensStakedToMint.toString()).div(this.optionService.USDCOptionRatio).toString();
+            const numTokensToMint = ethers.utils.parseUnits(numTokensStakedToMint.toString()).div(this.optionService.AssetOptionRatio).toString();
             console.log(numTokensToMint);
             try {
-              const optionsOP = {};
-              const approveOP = this.optionService.contracts['USDC'].approve(this.crypto.contractAddresses['OPEventFactory'],
-                                                        ethers.utils.parseUnits(numTokensStakedToMint.toString()),
-                                                        optionsOP );
 
-              const waitForApproval = Promise.all([approveOP]);
-              waitForApproval.then( async (res) => {
-                const approveOPWait = await res[0].wait();
-                if (approveOPWait.status === 1) {
-                  console.log(`Placing stake with | eventId: ${eventId}| numTokensToMint: ${numTokensToMint} || selection: ${selection}`);
-                  const stakeOP = this.optionService.contracts['OPEventFactory'].stake(eventId, numTokensToMint, selection);
-                  const waitForStake = Promise.all([stakeOP]);
-                  waitForStake.then( async (res) => {
-                    const stakeOPWait = await res[0].wait();
-                    if (stakeOPWait.status === 1) {
-                      resolve(true);
-                    }
-                  }).catch( err => {
-                    this.showError(err);
-                    resolve(false);
-                  });
-                }
-              }).catch( err => {
-                this.showError(err);
-                resolve(false);
-              });
+
+              const optionsOP = {};
+              let allowance = await this.optionService.contracts['Asset'].allowance(this.optionService.address, this.optionService.contracts['OPEventFactory'].address);
+              allowance = ethers.BigNumber.from(allowance);
+              console.log('allowance: ' + allowance);
+              if(allowance.gte(numTokensToMint)){
+                console.log(`Placing stake with | eventId: ${eventId}| numTokensToMint: ${numTokensToMint} || selection: ${selection}`);
+                const stakeOP = this.optionService.contracts['OPEventFactory'].stake(eventId, numTokensToMint, selection);
+                const waitForStake = Promise.all([stakeOP]);
+                waitForStake.then( async (res) => {
+                  const stakeOPWait = await res[0].wait();
+                  if (stakeOPWait.status === 1) {
+                    resolve(true);
+                  }
+                }).catch( err => {
+                  this.showError(err);
+                  resolve(false);
+                });
+              } else {
+                const optionsOP = {};
+                const approveOP = this.optionService.contracts['Asset'].approve(this.crypto.contractAddresses['OPEventFactory'],
+                                                                                ethers.constants.MaxUint256,
+                                                                                optionsOP );
+
+                const waitForApproval = Promise.all([approveOP]);
+                waitForApproval.then( async (res) => {
+                  const approveOPWait = await res[0].wait();
+                  if (approveOPWait.status === 1) {
+                    console.log(`Placing stake with | eventId: ${eventId}| numTokensToMint: ${numTokensToMint} || selection: ${selection}`);
+                    const stakeOP = this.optionService.contracts['OPEventFactory'].stake(eventId, numTokensToMint, selection);
+                    const waitForStake = Promise.all([stakeOP]);
+                    waitForStake.then( async (res) => {
+                      const stakeOPWait = await res[0].wait();
+                      if (stakeOPWait.status === 1) {
+                        resolve(true);
+                      }
+                    }).catch( err => {
+                      this.showError(err);
+                      resolve(false);
+                    });
+                  }
+                }).catch( err => {
+                  this.showError(err);
+                  resolve(false);
+                });
+              }
             } catch (error) {
               console.log();
               reject(
@@ -460,6 +559,14 @@ export class OpEventService {
     return (amount.indexOf('.') >= 0 && amount.length - 1 === amount.indexOf('.') + 1) ?
             (amount + '0') :
             amount;
+  }
+
+  getSymbol() {
+    return this.eventFactory[0].asset_symbol;
+  }
+
+  getDecimals() {
+    return this.eventFactory[0].asset_decimals;
   }
 
   getTotalValue(value) {

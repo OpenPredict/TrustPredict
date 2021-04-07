@@ -33,14 +33,17 @@
                 <div class="form__label">
                   Select amount
                   <div class="form__label-info">
-                    <span class="max_stake_btn" (click)="setMaxStake()">Max stake</span>: ${{ maxStake }}
+                    <span class="max_stake_btn" (click)="setMaxStake()">Max stake</span>: {{ maxStake }} {{ getSymbol() }}
                   </div>
                   <div class="form__label-info" *ngIf="stakingBalance$ | async as stakingBalance">
                     Balance: ${{ getBalance(stakingBalance) }}
                   </div>
                 </div>
+                <div class="form__input--wrapped">
                 <input class="form__input" type="text" min="0" formControlName="option_stake" placeholder="0.00"
                   [textMask]="{ mask: dollarMask }" />
+                  <div class="form__input--token">{{getSymbol()}}</div>
+                </div>
               </div>
 
               <div class="form__item">
@@ -54,7 +57,7 @@
                 </ion-button>
               </div>
 
-              <app-wager-information-output></app-wager-information-output>
+              <!-- <app-wager-information-output></app-wager-information-output> -->
 
             </div>
           </form>

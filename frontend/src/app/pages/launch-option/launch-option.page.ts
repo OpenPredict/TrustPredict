@@ -40,9 +40,9 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
   availableOptions: any[];
 
   dollarMask = createNumberMask({
-    prefix: '$ ',
-    suffix: '', // This will put the dollar sign at the end, with a space.
+    prefix: ' ',
     allowDecimal: true,
+    decimalLimit: 6,
     decimalSymbol: '.',
   });
 
@@ -50,7 +50,7 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
     private fb: FormBuilder,
     private optionService: OptionService,
     private optQry: OptionQuery,
-    public opEvent: OpEventService,
+    public eventsService: OpEventService,
     private optStr: OptionsStore,
     public toastCtrl: ToastController,
     public ui: UiService,
@@ -103,7 +103,7 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
 
     try {
       const interaction = await this.ui
-        .loading(this.opEvent.launchEvent(rawBetPrice, betSide, eventPeriod, numTokensStakedToMint, pairContract),
+        .loading(this.eventsService.launchEvent(rawBetPrice, betSide, eventPeriod, numTokensStakedToMint, pairContract),
           'You will be prompted for contract interactions, please be patient as it may take a few moments to broadcast to the network.')
         .catch(e => { 
           this.toastr.error(`Failed: ${JSON.stringify(e)}`);
@@ -156,6 +156,14 @@ export class LaunchOptionPage extends BaseForm implements OnInit {
   
   information() {
     this.header.information();
+  }
+
+  getSymbol(): string {
+    return this.eventsService.getSymbol();
+  }
+
+  getDecimals(): string {
+    return this.eventsService.getDecimals();
   }
 
 }

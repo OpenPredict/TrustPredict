@@ -59,6 +59,17 @@ export interface IEvent {
   ratio?: string;
 }
 
+export interface IEventFactory {
+  id?: ID; // 0
+  max_event_period?: BigNumber;
+  minimum_token_amount_per_event?: BigNumber;
+  max_prediction_factor?: BigNumber;
+  deposit_period?: BigNumber;
+  value_per_token?: BigNumber;
+  asset_symbol?: String;
+  asset_decimals?: number;
+}
+
 
 export interface IStakingBalance {
   id?: ID; // wallet

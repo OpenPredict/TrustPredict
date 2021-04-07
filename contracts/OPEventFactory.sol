@@ -16,24 +16,25 @@ contract OPEventFactory {
 
     // ********** Start Events ***************
     event EventUpdate(address);
+
+    event Initialize(uint256, uint256, uint256, uint256, uint256);
     // ********** End Events ***************
 
 
     // ********** Start State variables **********    
     // constants
-    uint256 immutable public maxEventPeriod = 315360000;                        // max time any one event can last for (10y in seconds)
-    uint256 immutable public minimumTokenAmountPerEvent = 10000000000000000000; // 10 tokens
-    uint256 immutable public maxPredictionFactor = 2;                           // ie. 50% of max pot per stake (1/2 == 50%)
-    //uint256 immutable public depositPeriod = (Utils.GetTest()) ? 10 : 86400;    // test: 10 seconds, otherwise: 1 day
-    uint256 immutable public depositPeriod = 10;                                 // test: 10 seconds, otherwise: 1 day
-    uint256 immutable public usdValuePerToken = 100;                            // value of 1 minted token in USD.
+    uint256 immutable public maxEventPeriod;             // max time any one event can last for.
+    uint256 immutable public minimumTokenAmountPerEvent; // minimum tokens needed to be minted for event start
+    uint256 immutable public maxPredictionFactor;        // ie. percentage of max pot per stake. eg for 50%, value should be 2 (1/2 == 50%)
+    uint256 immutable public depositPeriod;              // length of time during which the event can be staked on.
+    uint256 immutable public valuePerToken;              // value of 1 minted token in the collateralized asset.
     // enums
     enum Side {Lower, Higher}
 
     // addresses
     IOracle            immutable public oracle;
     ITrustPredictToken immutable public trustPredictToken;
-    IERC20             immutable public staking; // USD-denominated stablecoin
+    IERC20             immutable public asset; // The ERC20 collateralized asset used for predictions.
     
     // event data
     struct EventData {
@@ -77,7 +78,7 @@ contract OPEventFactory {
         // The maximum prediction is either the total token amount / maxPredictionFactor OR minimum amount / maxPredictionFactor, whichever is higher.
         uint256 totalMinted = deployment ? 0 : trustPredictToken.getTotalSupply(_eventId);
         uint256 maximumPrediction = (totalMinted > minimumTokenAmountPerEvent) ?
-                                 (totalMinted                    ).div(maxPredictionFactor) :
+                                 (totalMinted               ).div(maxPredictionFactor) :
                                  (minimumTokenAmountPerEvent).div(maxPredictionFactor);
 
         require(numTokensToMint <= maximumPrediction,
@@ -133,10 +134,24 @@ contract OPEventFactory {
      }
     // ************************************ end gatekeeping functions ***************************************************
 
-    constructor(IOracle _oracle, ITrustPredictToken _trustPredictToken, IERC20 _staking) {
+    constructor(IOracle _oracle, 
+                ITrustPredictToken _trustPredictToken, 
+                IERC20 _asset,
+                uint256 _maxEventPeriod,
+                uint256 _minimumTokenAmountPerEvent,
+                uint256 _maxPredictionFactor,
+                uint256 _depositPeriod,
+                uint256 _valuePerToken
+    ) {
         oracle = _oracle;
         trustPredictToken = _trustPredictToken;
-        staking = _staking;
+        asset = _asset;
+        maxEventPeriod = _maxEventPeriod;
+        minimumTokenAmountPerEvent = _minimumTokenAmountPerEvent;
+        maxPredictionFactor = _maxPredictionFactor;
+        depositPeriod = _depositPeriod;
+        valuePerToken = _valuePerToken;
+        emit Initialize(_maxEventPeriod, _minimumTokenAmountPerEvent, _maxPredictionFactor, _depositPeriod, _valuePerToken);
     }
 
     // ************************************ start external functions ****************************************************
@@ -165,8 +180,8 @@ contract OPEventFactory {
         
         // Create event entry in TrustPredictToken.
         trustPredictToken.createTokens(_eventId);
-        // Transfer staking token to this contract
-        staking.transferFrom(msg.sender, address(this), convertToStakingAmount(numTokensToMint));        
+        // Transfer asset token to this contract
+        asset.transferFrom(msg.sender, address(this), convertToStakingAmount(numTokensToMint));        
         // mint tokens to sender
         trustPredictToken.mint(_eventId, msg.sender, numTokensToMint, 1);
 
@@ -184,7 +199,7 @@ contract OPEventFactory {
         _correctWeight(_eventId, numTokensToMint, selection);
         _correctPredictionAmount(_eventId, numTokensToMint, false);
         
-        staking.transferFrom(msg.sender, address(this), convertToStakingAmount(numTokensToMint));
+        asset.transferFrom(msg.sender, address(this), convertToStakingAmount(numTokensToMint));
         trustPredictToken.mint(_eventId, msg.sender, numTokensToMint, selection);
 
         emit EventUpdate(_eventId);
@@ -232,18 +247,18 @@ contract OPEventFactory {
         // sender has winnings
         require(tokenHoldings > 0, "OPEventFactory: no holdings for sender in winning token.");
 
-        // first calculate staking holdings (deposited amount of staking on winning side)
-        uint256 stakingHoldings = convertToStakingAmount(tokenHoldings);
+        // first calculate asset holdings (deposited amount of asset on winning side)
+        uint256 assetHoldings = convertToStakingAmount(tokenHoldings);
 
-        // next, calculate winnings: give sender their portion of the loser staking pool.
-        uint256 senderWinnings = stakingHoldings.mul(eventData.amountPerWinningToken).div(1e18);
+        // next, calculate winnings: give sender their portion of the loser asset pool.
+        uint256 senderWinnings = assetHoldings.mul(eventData.amountPerWinningToken).div(1e18);
 
         // Completed, burn winning event tokens.
         trustPredictToken.burn(_eventId, msg.sender, tokenHoldings, eventData.winner);
 
         // send holdings and winnings back to staker
-        staking.safeTransfer(msg.sender, stakingHoldings);
-        staking.safeTransfer(msg.sender, senderWinnings);
+        asset.safeTransfer(msg.sender, assetHoldings);
+        asset.safeTransfer(msg.sender, senderWinnings);
 
         emit EventUpdate(_eventId);
      }
@@ -261,15 +276,15 @@ contract OPEventFactory {
         if(YesHoldings > 0 && NoHoldings > 0){
             trustPredictToken.burn(_eventId, msg.sender, YesHoldings, 1);
             trustPredictToken.burn(_eventId, msg.sender,  NoHoldings, 0);
-            staking.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings.add(NoHoldings)));
+            asset.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings.add(NoHoldings)));
         }
         else if(YesHoldings > 0){
             trustPredictToken.burn(_eventId, msg.sender, YesHoldings, 1);
-            staking.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings));
+            asset.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings));
         }
         else {
             trustPredictToken.burn(_eventId, msg.sender, NoHoldings, 0);
-            staking.safeTransfer(msg.sender, convertToStakingAmount(NoHoldings));
+            asset.safeTransfer(msg.sender, convertToStakingAmount(NoHoldings));
         }
 
         emit EventUpdate(_eventId);
@@ -277,10 +292,9 @@ contract OPEventFactory {
     // ************************************ End external functions ****************************************************
     
     // ************************************ start view functions **************************************************
-    function convertToStakingAmount(uint256 optionAmount) internal pure returns(uint) {
-        // assumes optionAmount is already encoded
-        // 1 Yes/No Token = 100 USD
-        return optionAmount.mul(usdValuePerToken);
+    function convertToStakingAmount(uint256 optionAmount) internal view returns(uint) {
+        // 1 Yes/No Token = 'valuePerToken' amount of the collateralized asset.
+        return optionAmount.mul(valuePerToken).div(1e18);
     }
 
     function getOtherToken(uint8 selection) internal pure returns (uint8) {

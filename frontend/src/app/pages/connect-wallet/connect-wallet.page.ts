@@ -66,7 +66,7 @@ export class ConnectWalletPage implements OnInit {
             console.log('starting..');
             // this._auth.login(wallet, signer);
             //this.cryptoService.initContracts(this.wallets.wallet, this.wallets.signer);
-            this.opEventService.setupSubscriber();
+            this.opEventService.setupSubscribers();
             this.opBalanceService.setupSubscriber();
             this.stakingBalanceService.setupSubscriber();
             this.navCtrl.navigateForward('/landing');

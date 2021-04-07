@@ -48,11 +48,11 @@ export class CryptoService {
         }
         if (networkName === 'kovan'){
           this.contractAddresses = { // TODO
-            'USDC'           : '0xb876a52abd933a02426c31d8231e9b9352864214',
-            'Utils'          : '0xaFfAa8Bd46155e536FF863Cad355a237B8102142',
-            'Oracle'         : '0x16406518B81e70E131357F8eC53C6c8F604EBdB4',
-            'TrustPredict'   : '0xb91208C000f75f1564663A53109F08BdC8dF7a60',
-            'OPEventFactory' : '0xeBabC1c93fc645a9C47CC4373FE456fD6791660c',
+            'Asset'           : '0x532f3efA415e5bB62b13D31e93639041e7C21164',
+            'Utils'           : '0xB3Ad8c0d2aCdeFc4B07026FD5B846a7D24ff6EF0',
+            'Oracle'          : '0xF829E186eE77C3F2104EccEB8C78173A6F470049',
+            'TrustPredict'    : '0xf90163a36953aB2648Da3EAF26166Ff0d087B05D',
+            'OPEventFactory'  : '0x3456668ce3c64cc567FdCfea71bAD7f6E6aa6635',
           };
           optionService.depositPeriod = 86400;
         }
@@ -64,7 +64,7 @@ export class CryptoService {
           console.log(this.getNextContractAddress(this.account, 3));
           console.log(this.getNextContractAddress(this.account, 4));
           this.contractAddresses = {
-          'USDC'           : this.getNextContractAddress(this.account, 0),
+          'Asset'          : this.getNextContractAddress(this.account, 0),
           'Utils'          : this.getNextContractAddress(this.account, 1),
           'Oracle'         : this.getNextContractAddress(this.account, 2),
           'TrustPredict'   : this.getNextContractAddress(this.account, 3),
@@ -233,12 +233,18 @@ export class CryptoService {
       TrustPredictToken.abi,
       signer);
 
-    this.optionService.contracts['USDC'] = new ethers.Contract(
-      this.contractAddresses['USDC'],
+    this.optionService.contracts['Asset'] = new ethers.Contract(
+      this.contractAddresses['Asset'],
       ERC20.abi,
       signer);
 
+      this.optionService.abis['OPEventFactory'] = new ethers.utils.Interface(OPEventFactory.abi);
+      this.optionService.abis['TrustPredict'] = new ethers.utils.Interface(TrustPredictToken.abi);
+      this.optionService.abis['Asset'] = new ethers.utils.Interface(ERC20.abi);
+    
+    console.log('resetting events block..');
     this.provider().resetEventsBlock(0);
+    console.log('done.');
   }
 
 /** Utils  */

@@ -37,7 +37,7 @@ export class StakingBalanceService {
 
     async setupSubscriber(){
 
-      const _balance = await this.optionService.contracts['USDC'].balanceOf(this.optionService.address);
+      const _balance = await this.optionService.contracts['Asset'].balanceOf(this.optionService.address);
 
       this.balance[this.optionService.address] = {
         id: this.optionService.address,
@@ -46,7 +46,7 @@ export class StakingBalanceService {
       this.balanceStore.upsert(this.optionService.address, this.balance[this.optionService.address]);
 
       this.crypto.provider().on( {
-          address: this.optionService.contracts['USDC'].address,
+          address: this.optionService.contracts['Asset'].address,
           topics: [ethers.utils.id('Transfer(address,address,uint256)')],
         }, async (log) => {
           //console.log('staking-balance log:' + log);
@@ -68,7 +68,7 @@ export class StakingBalanceService {
             if (!(id in this.balanceUpdates)){
               this.balanceUpdates[id] = true;
 
-              const _balance = await this.optionService.contracts['USDC'].balanceOf(this.optionService.address);
+              const _balance = await this.optionService.contracts['Asset'].balanceOf(this.optionService.address);
 
               this.balance[this.optionService.address] = {
                 id: this.optionService.address,
