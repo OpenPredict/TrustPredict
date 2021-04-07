@@ -54,10 +54,10 @@
                 <div class="formWrapper">
 
                   <h2 class="eventHeader">
-                    Choose asset and amount being staked for the Option
+                    Choose amount being staked for the Option
                   </h2>
 
-                  <div class="form__item buffer">
+                  <!-- <div class="form__item buffer">
                     <div class="form__label">
                       Select Asset
                     </div>
@@ -69,7 +69,7 @@
                     <div *ngIf="hasError('option_asset', 'required')" class="standardInputErr">
                       option_asset is required
                     </div>
-                  </div>
+                  </div> -->
 
                   <div class="form__item buffer">
                     <div class="form__label">
@@ -78,16 +78,22 @@
                         Max stake: ${{ getMaxStake(opBalance) }}
                       </div> -->
                       <div class="form__label-info" *ngIf="(opBalance$ | async) as opBalance">
-                        <span class="max_stake_btn" (click)="setMaxStake(opBalance)">Max stake</span>: ${{ getMaxStake(opBalance) }}
+                        <span class="max_stake_btn" *ngIf="(eventFactory$ | async) as eventFactory" (click)="setMaxStake(opBalance)">Max stake</span>: {{ getMaxStake(opBalance) }} {{getSymbol()}}
                       </div>
 
                       <div class="form__label-info" *ngIf="(stakingBalance$ | async) as stakingBalance">
-                        Balance: ${{ getBalance(stakingBalance)}}
+                        Balance: {{ getBalance(stakingBalance)}} {{ getSymbol() }}
                       </div>
                     </div>
-                    <input class="form__input" type="text" min="0" formControlName="option_stake" placeholder="0.00"
-                      [textMask]="{mask: dollarMask }" />
+                    <div class="form__input--wrapped">
+                      <input class="form__input" type="text" min="0" formControlName="option_stake" placeholder="0.00"
+                        [textMask]="{ mask: dollarMask }" />
+                        <div class="form__input--token">{{getSymbol()}}</div>
+                    </div>
                   </div>
+
+
+                  
 
                   <div class="winRatioEstimator"
                     [ngClass]="{'red': position === Position.Right, 'green': position === Position.Left}">

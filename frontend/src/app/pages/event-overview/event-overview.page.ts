@@ -167,4 +167,7 @@ export class EventOverviewPage implements OnInit, OnDestroy {
     this.noRation = parseFloat(((noVal / total) * 100).toString()).toFixed(2);
   }
 
+  getSymbol(): string {
+    return this.eventsService.getSymbol();
+  }
 }

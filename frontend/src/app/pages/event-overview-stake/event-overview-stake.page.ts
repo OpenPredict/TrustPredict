@@ -3,7 +3,7 @@ import { filter, map, switchMap } from 'rxjs/operators';
 import { untilDestroyed } from 'ngx-take-until-destroy';
 import { ActivatedRoute } from '@angular/router';
 import { OpEventService } from '@app/services/op-event-service/op-event.service';
-import { OpEventQuery } from '@app/services/op-event-service/op-event.service.query';
+import { OpEventQuery, OpEventFactoryQuery } from '@app/services/op-event-service/op-event.service.query';
 import { NavController, ToastController } from '@ionic/angular';
 import { BaseForm } from '@app/helpers/BaseForm';
 import { FormBuilder, Validators } from '@angular/forms';
@@ -11,6 +11,7 @@ import { OptionService } from '@app/services/option-service/option.service';
 import { UiService } from '@app/services/ui-service/ui.service';
 import { Position } from '@app/data-model';
 import { AuthQuery } from '@app/services/auth-service/auth.service.query';
+import createNumberMask from 'text-mask-addons/dist/createNumberMask';
 import { CustomValidators } from '@app/helpers/CustomValidators';
 import { OpBalanceService } from '@app/services/op-balance-service/op-balance.service';
 import { OpBalanceQuery } from '@app/services/op-balance-service/op-balance.service.query';
@@ -28,7 +29,12 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
 
   @ViewChild("header") header: AppHeaderComponent;
   Position = Position;
-  dollarMask = BaseForm.dollarMask;
+  dollarMask = createNumberMask({
+    prefix: ' ',
+    allowDecimal: true,
+    decimalLimit: 6,
+    decimalSymbol: '.',
+  });
 
   modalHeader = 'Stake on an Event';
   modalTxt = `
@@ -58,6 +64,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
 
   termsAndConditions = 'https://openpredict.io';
   event$ = this.eventsQuery.selectEntity(this.eventId);
+  eventFactory$ = this.eventFactoryQuery.select();
   opBalance$ = this.opBalancesQuery.selectEntity(this.balancesService.getID(this.eventId));
 
   stakingBalance$ = this.stakingBalanceQuery.select();
@@ -65,6 +72,8 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
 
   lastStakingBalance = -1;
   lastOpBalance = -1;
+
+  eventFactory : any;
 
   constructor(
     private fb: FormBuilder,
@@ -76,6 +85,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     private balancesService: OpBalanceService,
     private optionService: OptionService,
     private eventsQuery: OpEventQuery,
+    private eventFactoryQuery: OpEventFactoryQuery,
     private opBalancesQuery: OpBalanceQuery,
     private stakingBalanceQuery: StakingBalanceQuery,
     private toastCtrl: ToastController,
@@ -119,6 +129,30 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
       this.form.get('option_stake').setValidators(
         [CustomValidators.numberRange(0.01, maximum)]
       );
+    });
+
+    this.opBalance$.subscribe(opBalance => {
+      console.log('opBalance updated:' + JSON.stringify(opBalance));
+      if (opBalance == undefined) {
+        this.balancesService.setBalance(this.balancesService.getID(this.eventId));
+        console.log('set empty opBalance');
+        return;
+      }
+
+      const nextOpBalance = this.getMaxStake(opBalance);
+      this.lastOpBalance = nextOpBalance;
+      // return the lower of the two, assuming StakingBalance has been set.
+      const maximum = (nextOpBalance > this.lastStakingBalance && this.lastStakingBalance >= 0) ? nextOpBalance : nextOpBalance;
+
+      this.form.get('option_stake').setValidators(
+        [CustomValidators.numberRange(0.01, maximum)]
+      );
+    });
+
+    this.eventFactory$.subscribe(eventFactory => {
+      this.eventFactory = eventFactory['entities'][0];
+
+      console.log('eventFactory: ' + JSON.stringify(this.eventFactory));
     });
   }
 
@@ -183,11 +217,24 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
     return this.eventsService.currencyFormat(price);
   }
 
+  getSymbol(): string {
+    return this.eventsService.getSymbol();
+  }
+
   getMaxStake(balances: any): number {
 
+    if(this.eventFactory === undefined){
+      return;
+    }
+
     const balancesFormatted = this.balancesService.format(balances);
-    const minTokens = 10;
-    const factor = 2;
+
+    const minTokens = parseFloat(ethers.utils.formatUnits(this.eventFactory['minimum_token_amount_per_event']));
+    const factor = this.eventFactory['max_prediction_factor'];
+    const valuePerToken = parseFloat(ethers.utils.formatUnits(this.eventFactory['value_per_token']));
+
+
+
     const total = (balancesFormatted.YesToken + balancesFormatted.NoToken);
     const minTokensMaxStake = minTokens / factor;
     const totalMaxStake = total / factor;
@@ -197,7 +244,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
 
     let result = 0;
     if (total < minTokens) {
-      let maxDifference = minTokens - selection - (minTokens / 10);
+      let maxDifference = minTokens - selection - 1;
       if (maxDifference < 0) { maxDifference = 0; }
       result = (minTokensMaxStake < maxDifference) ? minTokensMaxStake : maxDifference;
     } else {
@@ -206,7 +253,7 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
       result = (maxStake > totalMaxStake) ? totalMaxStake : maxStake;
     }
 
-    return Number(parseFloat((result * 100).toString()).toFixed(2)); // 100 USD == 1 token
+    return Number(parseFloat((result * valuePerToken).toString()).toFixed(2));
   }
 
   setMaxStake(balances) {
@@ -262,5 +309,4 @@ export class EventOverviewStakePage extends BaseForm implements OnInit {
   information() {
     this.header.information();
   }
-
 }

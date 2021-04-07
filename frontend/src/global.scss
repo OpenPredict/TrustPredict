@@ -95,6 +95,9 @@ ion-header {
   border-radius: 15px;
   border: 1px solid var(--ion-color-primary);
   color: white;
+  .form__input--token {
+    text-transform: uppercase;
+}
 }
 
 input.form__input {

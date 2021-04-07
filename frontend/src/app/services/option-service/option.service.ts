@@ -19,7 +19,8 @@ export class OptionService {
   address: any;
   signer: any;
   contracts: any = {};
-  USDCOptionRatio = 100;
+  abis: any = {};
+  AssetOptionRatio = 100;
   priceFeedDecimals = 8;
   depositPeriod: any;
 
@@ -70,7 +71,6 @@ export class OptionService {
     '0xC6F39246494F25BbCb0A8018796890037Cb5980C': { pair: 'XTZ/USD',   pair_contract:  '0xC6F39246494F25BbCb0A8018796890037Cb5980C' },
     '0x70179FB2F3A0a5b7FfB36a235599De440B0922ea': { pair: 'sDEFI/USD', pair_contract:  '0x70179FB2F3A0a5b7FfB36a235599De440B0922ea' }
   };
-
 
     availableOptions: any[] = [
       { ticker: 'USDC', name: 'USD Coin', pair_contract: '0x0bF499444525a23E7Bb61997539725cA2e928138' },

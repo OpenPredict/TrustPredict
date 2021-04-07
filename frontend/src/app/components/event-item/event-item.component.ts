@@ -1,6 +1,7 @@
 import { Component, Input, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { IEvent, Side, Status } from '@app/data-model';
 import { OpEventService } from '@services/op-event-service/op-event.service';
+import makeBlockie from 'ethereum-blockies-base64';
 
 
 @Component({
@@ -77,6 +78,10 @@ export class EventItemComponent implements OnInit {
 
   getTotalValue(value: any): string {
     return this.eventService.getTotalValue(value);
+  }
+
+  makeBlockie(id): string {
+    return makeBlockie(id);
   }
 
 }

@@ -29,7 +29,7 @@ export class WalletGuard implements CanActivate {
       .then(async wallets => {
         //console.log('wallets: ' + JSON.stringify(wallets));
         this.cryptoService.initContracts(wallets['wallet'], wallets['signer']);
-        this.opEventService.setupSubscriber().then( () => {
+        this.opEventService.setupSubscribers().then( () => {
             this.opBalanceService.setupSubscriber().then( () => {
               this.stakingBalanceService.setupSubscriber();
             })

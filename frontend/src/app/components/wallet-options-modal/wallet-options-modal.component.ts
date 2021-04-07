@@ -29,7 +29,7 @@ export class WalletOptionsModalComponent implements OnInit {
     await this.modalCtrl.dismiss();
   }
 
-  async logout(wallet: string) {
+  async logout() {
     this.authService.logout();
     await this.modalCtrl.dismiss();
     this.router.navigateByUrl('/connect-wallet');

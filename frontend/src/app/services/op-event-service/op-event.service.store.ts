@@ -1,15 +1,25 @@
 import { Injectable } from '@angular/core';
-import { IEvent } from '@app/data-model';
+import { IEvent, IEventFactory } from '@app/data-model';
 import { EntityState, EntityStore, StoreConfig } from '@datorama/akita';
 
-export interface State extends EntityState<IEvent> {}
+export interface EventState extends EntityState<IEvent> {}
+const initialEventState: EventState = {};
 
-const initialState: State = {};
+export interface EventFactoryState extends EntityState<IEventFactory> {}
+const initialEventFactoryState: EventFactoryState = {};
 
 @Injectable({ providedIn: 'root' })
 @StoreConfig({ name: 'events', resettable: true })
-export class EventsStore extends EntityStore<State, IEvent> {
+export class EventsStore extends EntityStore<EventState, IEvent> {
   constructor() {
-    super( initialState );
+    super( initialEventState );
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+@StoreConfig({ name: 'eventFactory', resettable: true })
+export class EventFactoryStore extends EntityStore<EventFactoryState, IEventFactory> {
+  constructor() {
+    super( initialEventFactoryState );
   }
 }

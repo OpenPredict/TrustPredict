@@ -2,7 +2,7 @@
   <div class="asset_itemWrap status-orange">    
     <div class="eventIdentifiers">
       <div class="asset_icon" [ngClass]="'token-'+event.asset_ticker.toLowerCase()"></div>
-      <div class="eventID">ID:<img [src]="event.id | blockie" alt=""> </div>     
+      <div class="eventID">ID:<img [src]="makeBlockie(event.id)" alt=""> </div>     
     </div>                   
     <div class="asset_data">
       <div class="asset_title">
@@ -16,9 +16,9 @@
               {{ getConditionText(event.side) }} ${{ currencyFormat(event.condition_price)}}              
             </span>
           </li>
-          <li *ngIf="event.expiration">
+          <!-- <li *ngIf="event.expiration">
             expiration: {{ event.expiration}}
-          </li>
+          </li> -->
           <li>
             value: ${{ this.getTotalValue(event.staked_values) }} <em *ngIf="showMinimumText(event.staked_values, event.status)">($1000 minimum needed to activate)</em>
           </li>                    

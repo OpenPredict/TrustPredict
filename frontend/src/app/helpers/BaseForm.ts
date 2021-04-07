@@ -2,14 +2,12 @@ import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, Va
 import createNumberMask from 'text-mask-addons/dist/createNumberMask';
 import {OnInit} from '@angular/core';
 
-export abstract class BaseForm implements OnInit {
+export abstract class BaseForm {
 
     form!: FormGroup;
     serverError!: string | null;
     submitted = false;
     events: any[] = []; // list of form changes
-
-    abstract ngOnInit(): void;
 
     /**
      * Sets submitted to true, serverError to null and marks all the form controls as touched, which triggers the validations
