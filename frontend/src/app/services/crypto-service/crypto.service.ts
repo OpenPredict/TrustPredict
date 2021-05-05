@@ -36,6 +36,7 @@ export class CryptoService {
   account = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'; // ganache-cli -d account 0
 
   contractAddresses: any = {};
+  contractData: any = {};
 
   constructor(
     public router: Router,
@@ -53,6 +54,9 @@ export class CryptoService {
             'Oracle'          : '0xF829E186eE77C3F2104EccEB8C78173A6F470049',
             'TrustPredict'    : '0xf90163a36953aB2648Da3EAF26166Ff0d087B05D',
             'OPEventFactory'  : '0x3456668ce3c64cc567FdCfea71bAD7f6E6aa6635',
+          };
+          this.contractData = { // TODO
+            'Asset'           : {symbol: 'USDC', decimals: 18 },
           };
           optionService.depositPeriod = 86400;
         }
@@ -243,7 +247,7 @@ export class CryptoService {
       this.optionService.abis['Asset'] = new ethers.utils.Interface(ERC20.abi);
     
     console.log('resetting events block..');
-    this.provider().resetEventsBlock(0);
+    //this.provider().resetEventsBlock(0);
     console.log('done.');
   }
 
