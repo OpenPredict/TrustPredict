@@ -33,6 +33,7 @@ export class OpEventService {
     private crypto: CryptoService,
     private optionService: OptionService,
     private eventsStore: EventsStore,
+    private cryptoService: CryptoService,
     private eventFactoryStore: EventFactoryStore,
     private toastr: ToastrService,
     @Inject(WEB3) private web3: Web3) {}
@@ -45,35 +46,41 @@ export class OpEventService {
 
     async setupInitSubscriber(){
       // OPEventFactory Initialize subscriber
+      //this.crypto.provider().resetEventsBlock(0);
       this.crypto.provider().on( {
           address: this.optionService.contracts['OPEventFactory'].address,
           topics: [ethers.utils.id('Initialize(uint256,uint256,uint256,uint256,uint256)')], // OPEventFactory
         }, async (log) => {
-          const init = this.optionService.abis['OPEventFactory'].parseLog(log);
+          if(Object.keys(this.eventFactory).length === 0){
+            const init = this.optionService.abis['OPEventFactory'].parseLog(log);
 
-          const maxEventPeriod             = init['args'][0];
-          const minimumTokenAmountPerEvent = init['args'][1];
-          const maxPredictionFactor        = init['args'][2];
-          const depositPeriod              = init['args'][3];
-          const valuePerToken              = init['args'][4];
-          const assetSymbol = await this.optionService.contracts['Asset'].symbol();
-          const assetDecimals = await this.optionService.contracts['Asset'].decimals();
+            console.log('init..' + JSON.stringify(init));
 
-          const eventFactoryEntry = {
-            id: 0,
-            max_event_period: maxEventPeriod,
-            minimum_token_amount_per_event: minimumTokenAmountPerEvent,
-            max_prediction_factor: maxPredictionFactor,
-            deposit_period: depositPeriod,
-            value_per_token: valuePerToken,
-            asset_symbol: assetSymbol,
-            asset_decimals: parseFloat(assetDecimals.toString()),
-          };
+            console.log('setting eventfactory..');
+            const maxEventPeriod             = init['args'][0];
+            const minimumTokenAmountPerEvent = init['args'][1];
+            const maxPredictionFactor        = init['args'][2];
+            const depositPeriod              = init['args'][3];
+            const valuePerToken              = init['args'][4];
+            const assetSymbol = this.cryptoService.contractData['Asset'].symbol;
+            const assetDecimals = this.cryptoService.contractData['Asset'].decimals;
 
-          console.log('eventFactoryEntry: ' + JSON.stringify(eventFactoryEntry));
+            const eventFactoryEntry = {
+              id: 0,
+              max_event_period: maxEventPeriod,
+              minimum_token_amount_per_event: minimumTokenAmountPerEvent,
+              max_prediction_factor: maxPredictionFactor,
+              deposit_period: depositPeriod,
+              value_per_token: valuePerToken,
+              asset_symbol: assetSymbol,
+              asset_decimals: parseFloat(assetDecimals.toString()),
+            };
 
-          this.eventFactory[0] = eventFactoryEntry;
-          this.eventFactoryStore.upsert(0, eventFactoryEntry);
+            console.log('eventFactoryEntry: ' + JSON.stringify(eventFactoryEntry));
+
+            this.eventFactory[0] = eventFactoryEntry;
+            this.eventFactoryStore.upsert(0, eventFactoryEntry);
+          }
         });
     }
 
@@ -170,10 +177,10 @@ export class OpEventService {
 
     async parseEventData(eventId, eventData, tokenValuesRaw){
       while(Object.keys(this.eventFactory).length === 0){
-        console.log('undefined');
-        timeout(2);
-      }
-      //console.log('priceAggregator: ' + eventData['priceAggregator']);
+         console.log('undefined');
+         await timeout(2);
+       }
+      console.log('this.eventFactory: ' + JSON.stringify(this.eventFactory));
       const pairing = this.optionService.availablePairs[eventData['priceAggregator']];
       //console.log('pairing: ' + pairing);
 
