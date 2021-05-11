@@ -28,7 +28,6 @@ contract OPEventFactory is Ownable {
     uint256 immutable public minimumTokenAmountPerEvent; // minimum tokens needed to be minted for event start
     uint256 immutable public maxPredictionFactor;        // ie. percentage of max pot per stake. eg for 50%, value should be 2 (1/2 == 50%)
     uint256 immutable public depositPeriod;              // length of time during which the event can be staked on.
-    uint256 immutable public valuePerToken;              // value of 1 minted token in the collateralized asset.
     uint256 immutable public conclusionTime;             // Time in which the event can be settled post conclusion. if not settled within this time, allow users to withdraw stake.
     // enums
     enum Side {Lower, Higher}
@@ -37,7 +36,6 @@ contract OPEventFactory is Ownable {
     // addresses
     IOracle            immutable public oracle;
     ITrustPredictToken immutable public trustPredictToken;
-    IERC20             immutable public asset; // The ERC20 collateralized asset used for predictions.
     
     // event data
     struct EventData {
@@ -52,11 +50,18 @@ contract OPEventFactory is Ownable {
         bool eventSettled;
         address creator;
         address priceAggregator;
+        IERC20 asset;
     }
 
-    // whitelisted admins who can create prelaunch events.
-    mapping(address => bool) public whitelist;
-    mapping(address => EventData) public events;
+    struct Asset {
+        IERC20 _address;       // address of the collateralized asset.
+        uint256 valuePerToken; // value of 1 minted ERC1155 token in the collateralized asset.
+        bool set;              // if this asset is valid for collateral.
+    }
+
+    mapping(address => EventData) public events;  // mapping of eventID to events.
+    mapping(address => bool)      public admins;  // whitelisted admins who can create prelaunch events.
+    mapping(IERC20 => Asset)      public assets;  // The ERC20 collateralized assets that can be used for predictions in an event.
 
     uint256 public nonce = 1; // have to keep track of nonce independently. Used for deterministic event ID generation.
     // ********** End State variables **********    
@@ -66,8 +71,14 @@ contract OPEventFactory is Ownable {
 
     function _validCreator() internal view {
         // require that calling address is whitelisted to create events.
-        require(whitelist[msg.sender],
+        require(admins[msg.sender],
                 "OPEventFactory: Prelaunch event creator is not whitelisted.");
+     }
+
+    function _validAsset(IERC20 asset) internal view {
+        // require that calling address is whitelisted to create events.
+        require(assets[asset].set,
+                "OPEventFactory: Chosen asset is not whitelist.");
      }
 
     function _validBetPrice(int _betPrice) internal pure {
@@ -157,8 +168,8 @@ contract OPEventFactory is Ownable {
     // ************************************ end gatekeeping functions ***************************************************
 
     constructor(IOracle _oracle, 
-                ITrustPredictToken _trustPredictToken, 
-                IERC20 _asset,
+                ITrustPredictToken _trustPredictToken,
+                IERC20 initialAsset,
                 uint256 _maxEventPeriod,
                 uint256 _minimumTokenAmountPerEvent,
                 uint256 _maxPredictionFactor,
@@ -168,13 +179,16 @@ contract OPEventFactory is Ownable {
     ) {
         oracle = _oracle;
         trustPredictToken = _trustPredictToken;
-        asset = _asset;
         maxEventPeriod = _maxEventPeriod;
         minimumTokenAmountPerEvent = _minimumTokenAmountPerEvent;
         maxPredictionFactor = _maxPredictionFactor;
         depositPeriod = _depositPeriod;
-        valuePerToken = _valuePerToken;
         conclusionTime = _conclusionTime;
+        assets[initialAsset] = Asset({
+            _address: initialAsset,
+            valuePerToken: _valuePerToken,
+            set: true
+        });
         emit Initialize(_maxEventPeriod, _minimumTokenAmountPerEvent, _maxPredictionFactor, _depositPeriod, _valuePerToken);
     }
 
@@ -183,10 +197,12 @@ contract OPEventFactory is Ownable {
                            int8 betSide, 
                            uint256 eventSettlementTime,
                            uint256 numTokensToMint,
-                           address priceAggregator)
+                           address priceAggregator,
+                           IERC20 asset)
             external
             returns(bool){
         _validBetPrice(betPrice);
+        _validAsset(asset);
         _validEventSettlementTime(eventSettlementTime);
         _correctPredictionAmount(address(0), numTokensToMint, true);
 
@@ -201,12 +217,13 @@ contract OPEventFactory is Ownable {
         data.priceAggregator = priceAggregator;
         data.creator = msg.sender;
         data.betType = Type.Regular;
+        data.asset = asset;
         events[_eventId] = data;
         
         // Create event entry in TrustPredictToken.
         trustPredictToken.createTokens(_eventId);
         // Transfer asset token to this contract
-        asset.transferFrom(msg.sender, address(this), convertToStakingAmount(numTokensToMint));        
+        asset.transferFrom(msg.sender, address(this), convertToStakingAmount(numTokensToMint, assets[asset].valuePerToken));        
         // mint tokens to sender
         trustPredictToken.mint(_eventId, msg.sender, numTokensToMint, 1);
 
@@ -214,10 +231,13 @@ contract OPEventFactory is Ownable {
         return true;
      }
 
-    function createPrelaunchEvent(int betPrice, uint256 eventSettlementTime)
+    function createPrelaunchEvent(int betPrice,
+                                  IERC20 asset,
+                                  uint256 eventSettlementTime)
             external
             returns(bool){
         _validCreator();
+        _validAsset(asset);
         _validBetPrice(betPrice);
         _validEventSettlementTime(eventSettlementTime);
 
@@ -231,6 +251,7 @@ contract OPEventFactory is Ownable {
         data.startTime = block.timestamp.add(depositPeriod);
         data.creator = msg.sender;
         data.betType = Type.Prelaunch;
+        data.asset = asset;
         events[_eventId] = data;
 
         // Create event entry in TrustPredictToken.
@@ -250,8 +271,10 @@ contract OPEventFactory is Ownable {
         _minimumTimeReached(_eventId, false);
         _correctWeight(_eventId, numTokensToMint, selection);
         _correctPredictionAmount(_eventId, numTokensToMint, false);
+
+        EventData storage eventData = events[_eventId];
         
-        asset.transferFrom(msg.sender, address(this), convertToStakingAmount(numTokensToMint));
+        eventData.asset.transferFrom(msg.sender, address(this), convertToStakingAmount(numTokensToMint, assets[eventData.asset].valuePerToken));
         trustPredictToken.mint(_eventId, msg.sender, numTokensToMint, selection);
 
         emit EventUpdate(_eventId);
@@ -259,8 +282,7 @@ contract OPEventFactory is Ownable {
      }
 
     function settle(address _eventId, 
-                    int _settledPrice,
-                    Type betType) 
+                    int _settledPrice) 
         public {
         _minimumAmountReached(_eventId, true);
         _isConcluded(_eventId, true);
@@ -271,7 +293,7 @@ contract OPEventFactory is Ownable {
         // int settledPrice = (Utils.GetTest() == false) ? oracle.getLatestPrice(eventData.priceAggregator) : _settledPrice;
 
         int settledPrice;
-        if(betType == Type.Prelaunch){
+        if(eventData.betType == Type.Prelaunch){
              require(eventData.creator == msg.sender, "settle: attempt to settle prelaunch event from account other than creator.");
             settledPrice = _settledPrice;
         }else {
@@ -302,7 +324,7 @@ contract OPEventFactory is Ownable {
         // if event has not been settled yet, settle first.
         EventData storage eventData = events[_eventId];
         if(!events[_eventId].eventSettled){
-            settle(_eventId, 0, Type.Regular);
+            settle(_eventId, 0);
         }
         
         uint256 tokenHoldings = trustPredictToken.balanceOfAddress(_eventId, msg.sender, eventData.winner);
@@ -310,7 +332,7 @@ contract OPEventFactory is Ownable {
         require(tokenHoldings > 0, "OPEventFactory: no holdings for sender in winning token.");
 
         // first calculate asset holdings (deposited amount of asset on winning side)
-        uint256 assetHoldings = convertToStakingAmount(tokenHoldings);
+        uint256 assetHoldings = convertToStakingAmount(tokenHoldings, assets[eventData.asset].valuePerToken);
 
         // next, calculate winnings: give sender their portion of the loser asset pool.
         uint256 senderWinnings = assetHoldings.mul(eventData.amountPerWinningToken).div(1e18);
@@ -319,35 +341,38 @@ contract OPEventFactory is Ownable {
         trustPredictToken.burn(_eventId, msg.sender, tokenHoldings, eventData.winner);
 
         // send holdings and winnings back to staker
-        asset.safeTransfer(msg.sender, assetHoldings);
-        asset.safeTransfer(msg.sender, senderWinnings);
+        eventData.asset.safeTransfer(msg.sender, assetHoldings);
+        eventData.asset.safeTransfer(msg.sender, senderWinnings);
 
         emit EventUpdate(_eventId);
      }
 
-    function revoke(address _eventId) 
+    function revokableWithdraw(address _eventId)
         external {
         _minimumAmountReached(_eventId, false);
         _minimumTimeReached(_eventId, true);
         _isVoid(_eventId, false);
 
+        EventData storage eventData = events[_eventId];
+
         // send staking holdings back to the sending party if they have funds deposited.
         uint256 YesHoldings = trustPredictToken.balanceOfAddress(_eventId, msg.sender, 1);
         uint256 NoHoldings  = trustPredictToken.balanceOfAddress(_eventId, msg.sender, 0);
+        uint256 valuePerToken = assets[eventData.asset].valuePerToken;
         require(YesHoldings > 0 || NoHoldings > 0, "OPEventFactory: no holdings for sender in any token.");
 
         if(YesHoldings > 0 && NoHoldings > 0){
             trustPredictToken.burn(_eventId, msg.sender, YesHoldings, 1);
             trustPredictToken.burn(_eventId, msg.sender,  NoHoldings, 0);
-            asset.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings.add(NoHoldings)));
+            eventData.asset.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings.add(NoHoldings), valuePerToken));
         }
         else if(YesHoldings > 0){
             trustPredictToken.burn(_eventId, msg.sender, YesHoldings, 1);
-            asset.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings));
+            eventData.asset.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings, valuePerToken));
         }
         else {
             trustPredictToken.burn(_eventId, msg.sender, NoHoldings, 0);
-            asset.safeTransfer(msg.sender, convertToStakingAmount(NoHoldings));
+            eventData.asset.safeTransfer(msg.sender, convertToStakingAmount(NoHoldings, valuePerToken));
         }
 
         emit EventUpdate(_eventId);
@@ -355,44 +380,58 @@ contract OPEventFactory is Ownable {
 
     // in the case of emergency, ie. a valid event concluded but not settled within the alloted time,
     // allow users to withdraw their original stake.
-    function emergencyWithdraw(address _eventId) 
+    function voidWithdraw(address _eventId) 
         external {
         _isConcluded(_eventId, true);
         _isSettled(_eventId, false);
         _isVoid(_eventId, true);
 
+        EventData storage eventData = events[_eventId];
+
         // send staking holdings back to the sending party if they have funds deposited.
         uint256 YesHoldings = trustPredictToken.balanceOfAddress(_eventId, msg.sender, 1);
         uint256 NoHoldings  = trustPredictToken.balanceOfAddress(_eventId, msg.sender, 0);
+        uint256 valuePerToken = assets[eventData.asset].valuePerToken;
         require(YesHoldings > 0 || NoHoldings > 0, "OPEventFactory: no holdings for sender in any token.");
 
         if(YesHoldings > 0 && NoHoldings > 0){
             trustPredictToken.burn(_eventId, msg.sender, YesHoldings, 1);
             trustPredictToken.burn(_eventId, msg.sender,  NoHoldings, 0);
-            asset.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings.add(NoHoldings)));
+            eventData.asset.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings.add(NoHoldings), valuePerToken));
         }
         else if(YesHoldings > 0){
             trustPredictToken.burn(_eventId, msg.sender, YesHoldings, 1);
-            asset.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings));
+            eventData.asset.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings, valuePerToken));
         }
         else {
             trustPredictToken.burn(_eventId, msg.sender, NoHoldings, 0);
-            asset.safeTransfer(msg.sender, convertToStakingAmount(NoHoldings));
+            eventData.asset.safeTransfer(msg.sender, convertToStakingAmount(NoHoldings, valuePerToken));
         }
 
         emit EventUpdate(_eventId);
      }
 
-    // allow contract admin to update whitelist.
-    function updateWhitelist(address _address, bool isWhitelisted) 
+    // allow contract admin to update admin list.
+    function updateAdmins(address _admin, bool isWhitelisted) 
         external
         onlyOwner {
-            whitelist[_address] = isWhitelisted;
+            admins[_admin] = isWhitelisted;
+     }
+
+    // allow contract admin to update asset list.
+    function updateAssets(IERC20 _asset, uint256 valuePerToken, bool set) 
+        external
+        onlyOwner {
+        assets[_asset] = Asset({
+            _address: _asset,
+            valuePerToken: valuePerToken,
+            set: set
+        });
      }
     // ************************************ End external functions ****************************************************
     
     // ************************************ start view functions **************************************************
-    function convertToStakingAmount(uint256 optionAmount) internal view returns(uint) {
+    function convertToStakingAmount(uint256 optionAmount, uint256 valuePerToken) internal pure returns(uint) {
         // 1 Yes/No Token = 'valuePerToken' amount of the collateralized asset.
         return optionAmount.mul(valuePerToken).div(1e18);
     }
