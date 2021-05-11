@@ -53,3 +53,10 @@ truffle test --network development
 - Apart from the coverage case, You will need to restart the Ganache server every time, as the test runner is deterministic.
 
 - If you recompile and re-migrate the contracts, you need to reset MetaMask, otherwise it doesn't change networks (in Chrome at least). The easiest thing to do is close the app, switch networks to eg. Mainnet, switch back to `localhost 8545`, and re-open the app.
+
+
+## Documentation
+
+- see `/docs`.
+- `api.md` gives extended info on each function in the application.
+- `event_states.md` describes (and shows an infographic) of how speculation events pass through different states during their lifetime.

@@ -60,6 +60,7 @@ async function deployEvent(contracts, accounts, args, shouldFail, revertMessage)
             args[Constants.eventPeriod], 
             args[Constants.numTokensToMint],
             args[Constants.priceAggregator],
+            contracts['Asset'].address,
             {from: accounts[1], gas: 10000000});
 
             YesToken = await contracts['TrustPredict'].getToken(OPEventID, Constants.YesTokenSelection)
@@ -81,6 +82,7 @@ async function deployEvent(contracts, accounts, args, shouldFail, revertMessage)
                 args[Constants.eventPeriod], 
                 args[Constants.numTokensToMint],
                 args[Constants.priceAggregator],
+                contracts['Asset'].address,
                 {from: accounts[1], gas: 10000000}),
                 revertMessage
         ); 
@@ -103,7 +105,8 @@ async function deployPrelaunchEvent(contracts, account, args, shouldFail, revert
     if(!(shouldFail)){
         await contracts['OPEventFactory'].createPrelaunchEvent(
             args[Constants.betPrice], 
-            args[Constants.eventPeriod], 
+            contracts['Asset'].address,
+            args[Constants.eventPeriod],
             {from: account, gas: 10000000});
 
             YesToken = await contracts['TrustPredict'].getToken(OPEventID, Constants.YesTokenSelection)
@@ -120,8 +123,9 @@ async function deployPrelaunchEvent(contracts, account, args, shouldFail, revert
         // assert it overflows with maxUint setting
         await truffleAssert.reverts(
             contracts['OPEventFactory'].createPrelaunchEvent(
-                args[Constants.betPrice], 
-                args[Constants.eventPeriod], 
+                args[Constants.betPrice],
+                contracts['Asset'].address, 
+                args[Constants.eventPeriod],
                 {from: account, gas: 10000000}),
                 revertMessage
         ); 
@@ -175,10 +179,10 @@ async function OPEventFactory_claim(contracts, accounts, start, end, eventId, su
     }));
 }
 
-async function OPEventFactory_revoke(contracts, accounts, start, end, eventId, success, revertMsg) {
+async function OPEventFactory_revokableWithdraw(contracts, accounts, start, end, eventId, success, revertMsg) {
     const range = (account,index) => index >= start && index <= end;
     await Promise.all(accounts.filter(range).map(async (account) => {
-        const call = contracts['OPEventFactory'].revoke(eventId, {from: account })
+        const call = contracts['OPEventFactory'].revokableWithdraw(eventId, {from: account })
         success ? await call : await truffleAssert.reverts(call, revertMsg);
         console.log("finish revoke for " + account)
     }));
@@ -265,7 +269,7 @@ contract("TrustPredict", async (accounts) => {
 
         // assert failure to settle where minimum amount not yet reached
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0),
+            contracts['OPEventFactory'].settle(OPEventID, settlementPrice),
             "OPEventFactory: minimum amount not yet reached."
         );
 
@@ -278,7 +282,7 @@ contract("TrustPredict", async (accounts) => {
         
         // assert failure to settle where event not yet concluded.
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0),
+            contracts['OPEventFactory'].settle(OPEventID, settlementPrice),
             "OPEventFactory: Event not yet concluded."
         );
         
@@ -306,7 +310,7 @@ contract("TrustPredict", async (accounts) => {
         );
 
         // settle event
-        contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0);
+        contracts['OPEventFactory'].settle(OPEventID, settlementPrice);
         // validate price per winning token as 2/3 of a token for each No holder
         eventData = await contracts['OPEventFactory'].events(OPEventID);
         amountPerWinningTokenContract = eventData['amountPerWinningToken'];
@@ -365,19 +369,19 @@ contract("TrustPredict", async (accounts) => {
 
         // assert invalid revokes: minimum amount for contract reached
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].revoke(OPEventID, {from: accounts[0]}),
+            contracts['OPEventFactory'].revokableWithdraw(OPEventID, {from: accounts[0]}),
             "OPEventFactory: minimum amount reached."
         );
 
 
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].revoke(OPEventID, {from: accounts[2]}),
+            contracts['OPEventFactory'].revokableWithdraw(OPEventID, {from: accounts[2]}),
             "OPEventFactory: minimum amount reached."
         );
 
         // assert invalid settlement call: event settled
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0, {from: accounts[0]}),
+            contracts['OPEventFactory'].settle(OPEventID, settlementPrice, {from: accounts[0]}),
             "OPEventFactory: Event settled."
         );
         
@@ -429,7 +433,7 @@ contract("TrustPredict", async (accounts) => {
         // - attempt settlement, assert failure
         settlementPrice = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2).add(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0),
+            contracts['OPEventFactory'].settle(OPEventID, settlementPrice),
             "OPEventFactory: minimum amount not yet reached."
         );
 
@@ -439,10 +443,10 @@ contract("TrustPredict", async (accounts) => {
 
 
         // - valid revokes from all minters
-        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, true);
+        await OPEventFactory_revokableWithdraw(contracts, accounts, 1, 4, OPEventID, true);
 
         // - invalid follow-up revokes
-        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: no holdings for sender in any token.");
+        await OPEventFactory_revokableWithdraw(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: no holdings for sender in any token.");
     })
 
 
@@ -462,7 +466,7 @@ contract("TrustPredict", async (accounts) => {
         NoToken = IDs[2]
 
         // - attempt revoke during deposit period
-        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: Event not yet started. Minting of new tokens is enabled.");
+        await OPEventFactory_revokableWithdraw(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: Event not yet started. Minting of new tokens is enabled.");
         
         // -  valid wagers to reach minimum amount
         await USDC_approve(contracts, accounts, 2, 4, 5 * Constants.numTokens * Constants.AssetOptionRatio);
@@ -477,18 +481,18 @@ contract("TrustPredict", async (accounts) => {
         }
     
         // - attempt revoke before deposit period ends
-        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
+        await OPEventFactory_revokableWithdraw(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
 
         // wait for contract event to complete (waiting full amount, so includes some leeway for settle call)
         console.log("waiting for event settlement..")
         await new Promise(r => setTimeout(r, (Constants[process.env.NETWORK].eventPeriodSeconds) * 1000));
         
         // - attempt revoke after deposit period ends
-        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
+        await OPEventFactory_revokableWithdraw(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
 
         // valid event settlement
         settlementPrice = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2).sub(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
-        await contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0);
+        await contracts['OPEventFactory'].settle(OPEventID, settlementPrice);
 
     })
 
@@ -499,7 +503,7 @@ contract("TrustPredict", async (accounts) => {
     it("Should pass for test case D", async () => {
 
         // - valid contract deployment
-        await contracts['OPEventFactory'].updateWhitelist(accounts[1], true);
+        await contracts['OPEventFactory'].updateAdmins(accounts[1], true);
 
         IDs = await deployPrelaunchEvent(contracts, accounts[1], defaultArgs, false, '');
         OPEventID = IDs[0]
@@ -507,7 +511,7 @@ contract("TrustPredict", async (accounts) => {
         NoToken = IDs[2]
 
         // - attempt revoke during deposit period
-        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: Event not yet started. Minting of new tokens is enabled.");
+        await OPEventFactory_revokableWithdraw(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: Event not yet started. Minting of new tokens is enabled.");
         
         // -  valid wagers to reach minimum amount
         await USDC_approve(contracts, accounts, 2, 4, 5 * Constants.numTokens * Constants.AssetOptionRatio);
@@ -522,24 +526,30 @@ contract("TrustPredict", async (accounts) => {
         }
     
         // - attempt revoke before deposit period ends
-        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
+        await OPEventFactory_revokableWithdraw(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
 
         // wait for contract event to complete (waiting full amount, so includes some leeway for settle call)
-        console.log("waiting for event settlement..")
+        console.log("waiting for event conclusion..")
         await new Promise(r => setTimeout(r, (Constants[process.env.NETWORK].eventPeriodSeconds) * 1000));
         
         // - attempt revoke after deposit period ends
-        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
+        await OPEventFactory_revokableWithdraw(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
 
-        // valid event settlement
         settlementPrice = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2).sub(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
-        await contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0);
+
+        // attempt to settle event from non-creator account
+        await truffleAssert.reverts(
+            contracts['OPEventFactory'].settle(OPEventID, settlementPrice),
+            "settle: attempt to settle prelaunch event from account other than creator."
+        ); 
+        // valid event settlement
+        await contracts['OPEventFactory'].settle(OPEventID, settlementPrice, {from: accounts[1]});
 
         // Invalid deployment
         await deployPrelaunchEvent(contracts, accounts[0], defaultArgs, true, "OPEventFactory: Prelaunch event creator is not whitelisted.");
 
         // negate whitelist, invalid event deployment
-        await contracts['OPEventFactory'].updateWhitelist(accounts[1], false);
+        await contracts['OPEventFactory'].updateAdmins(accounts[1], false);
         await deployPrelaunchEvent(contracts, accounts[0], defaultArgs, true, "OPEventFactory: Prelaunch event creator is not whitelisted.");
 
     })
@@ -674,10 +684,10 @@ contract("TrustPredict", async (accounts) => {
 
     // test case I
     // deploy valid event
-    // try to emergencyWithdraw before concluded, verify failure
+    // try to voidWithdraw before concluded, verify failure
     // wait for void, 
     // try to settle, verify failure
-    // valid emergencyWithdraw
+    // valid voidWithdraw
     it("Should pass for test case I", async () => {
 
         IDs = await deployEvent(contracts, accounts, defaultArgs, false, '');
@@ -699,7 +709,7 @@ contract("TrustPredict", async (accounts) => {
 
         // 
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].emergencyWithdraw(OPEventID,
+            contracts['OPEventFactory'].voidWithdraw(OPEventID,
                 {from: accounts[0] }
             ), "OPEventFactory: Event not yet concluded."
         );
@@ -711,16 +721,16 @@ contract("TrustPredict", async (accounts) => {
 
         //assert failure to settle following voided event
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].settle(OPEventID, 0, 0),
+            contracts['OPEventFactory'].settle(OPEventID, 0),
             "OPEventFactory: Event voided."
         );
         
-        // valid emergencyWithdraw
-        await contracts['OPEventFactory'].emergencyWithdraw(OPEventID, {from: accounts[2]});
+        // valid voidWithdraw
+        await contracts['OPEventFactory'].voidWithdraw(OPEventID, {from: accounts[2]});
 
-        //try to emergencyWithdraw from an account with no tokens
+        //try to voidWithdraw from an account with no tokens
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].emergencyWithdraw(OPEventID,
+            contracts['OPEventFactory'].voidWithdraw(OPEventID,
                 {from: accounts[5] }
             ), "OPEventFactory: no holdings for sender in any token."
         );
