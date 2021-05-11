@@ -6,11 +6,12 @@ pragma abicoder v2;
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IOracle.sol";
 import "./interfaces/ITrustPredictToken.sol";
 import "./libraries/Utils.sol";
 
-contract OPEventFactory {
+contract OPEventFactory is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -28,8 +29,10 @@ contract OPEventFactory {
     uint256 immutable public maxPredictionFactor;        // ie. percentage of max pot per stake. eg for 50%, value should be 2 (1/2 == 50%)
     uint256 immutable public depositPeriod;              // length of time during which the event can be staked on.
     uint256 immutable public valuePerToken;              // value of 1 minted token in the collateralized asset.
+    uint256 immutable public conclusionTime;             // Time in which the event can be settled post conclusion. if not settled within this time, allow users to withdraw stake.
     // enums
     enum Side {Lower, Higher}
+    enum Type { Regular, Prelaunch }
 
     // addresses
     IOracle            immutable public oracle;
@@ -44,11 +47,15 @@ contract OPEventFactory {
         uint256 endTime;
         uint256 amountPerWinningToken;
         Side betSide;
+        Type betType;
         uint8 winner;
         bool eventSettled;
         address creator;
         address priceAggregator;
     }
+
+    // whitelisted admins who can create prelaunch events.
+    mapping(address => bool) public whitelist;
     mapping(address => EventData) public events;
 
     uint256 public nonce = 1; // have to keep track of nonce independently. Used for deterministic event ID generation.
@@ -56,6 +63,13 @@ contract OPEventFactory {
 
 
     // ************************************ start gatekeeping functions *************************************************
+
+    function _validCreator() internal view {
+        // require that calling address is whitelisted to create events.
+        require(whitelist[msg.sender],
+                "OPEventFactory: Prelaunch event creator is not whitelisted.");
+     }
+
     function _validBetPrice(int _betPrice) internal pure {
         // require that betPrice is > 0.
         require(_betPrice > 0,
@@ -132,6 +146,14 @@ contract OPEventFactory {
         else
             require(block.timestamp < events[_eventId].endTime, "OPEventFactory: Event concluded.");
      }
+
+    function _isVoid(address _eventId, bool _void) internal view {
+        if(_void){
+            require(block.timestamp >= events[_eventId].endTime.add(conclusionTime), "OPEventFactory: Event not yet voided.");
+        }else {
+            require(block.timestamp < events[_eventId].endTime.add(conclusionTime), "OPEventFactory: Event voided.");
+        }
+     }
     // ************************************ end gatekeeping functions ***************************************************
 
     constructor(IOracle _oracle, 
@@ -141,7 +163,8 @@ contract OPEventFactory {
                 uint256 _minimumTokenAmountPerEvent,
                 uint256 _maxPredictionFactor,
                 uint256 _depositPeriod,
-                uint256 _valuePerToken
+                uint256 _valuePerToken,
+                uint256 _conclusionTime
     ) {
         oracle = _oracle;
         trustPredictToken = _trustPredictToken;
@@ -151,6 +174,7 @@ contract OPEventFactory {
         maxPredictionFactor = _maxPredictionFactor;
         depositPeriod = _depositPeriod;
         valuePerToken = _valuePerToken;
+        conclusionTime = _conclusionTime;
         emit Initialize(_maxEventPeriod, _minimumTokenAmountPerEvent, _maxPredictionFactor, _depositPeriod, _valuePerToken);
     }
 
@@ -176,6 +200,7 @@ contract OPEventFactory {
         data.startTime = block.timestamp.add(depositPeriod);
         data.priceAggregator = priceAggregator;
         data.creator = msg.sender;
+        data.betType = Type.Regular;
         events[_eventId] = data;
         
         // Create event entry in TrustPredictToken.
@@ -189,12 +214,39 @@ contract OPEventFactory {
         return true;
      }
 
+    function createPrelaunchEvent(int betPrice, uint256 eventSettlementTime)
+            external
+            returns(bool){
+        _validCreator();
+        _validBetPrice(betPrice);
+        _validEventSettlementTime(eventSettlementTime);
+
+        // get next OPEvent ID
+        address _eventId = Utils.addressFrom(address(this), nonce++);
+        // set event data
+        EventData memory data;
+        data.betPrice = betPrice;
+        data.betSide = Side.Higher;
+        data.endTime = eventSettlementTime;
+        data.startTime = block.timestamp.add(depositPeriod);
+        data.creator = msg.sender;
+        data.betType = Type.Prelaunch;
+        events[_eventId] = data;
+
+        // Create event entry in TrustPredictToken.
+        trustPredictToken.createTokens(_eventId);
+
+        emit EventUpdate(_eventId);
+        return true;
+     }
+
     function stake(address _eventId, 
                    uint256 numTokensToMint, 
                    uint8 selection)
         external
         returns(bool){
         _isSettled(_eventId, false);
+        _isVoid(_eventId, false);
         _minimumTimeReached(_eventId, false);
         _correctWeight(_eventId, numTokensToMint, selection);
         _correctPredictionAmount(_eventId, numTokensToMint, false);
@@ -207,14 +259,24 @@ contract OPEventFactory {
      }
 
     function settle(address _eventId, 
-                    int _settledPrice) 
+                    int _settledPrice,
+                    Type betType) 
         public {
         _minimumAmountReached(_eventId, true);
         _isConcluded(_eventId, true);
         _isSettled(_eventId, false);
+        _isVoid(_eventId, false);
 
         EventData storage eventData = events[_eventId];
-        int settledPrice = (Utils.GetTest() == false) ? oracle.getLatestPrice(eventData.priceAggregator) : _settledPrice;
+        // int settledPrice = (Utils.GetTest() == false) ? oracle.getLatestPrice(eventData.priceAggregator) : _settledPrice;
+
+        int settledPrice;
+        if(betType == Type.Prelaunch){
+             require(eventData.creator == msg.sender, "settle: attempt to settle prelaunch event from account other than creator.");
+            settledPrice = _settledPrice;
+        }else {
+            settledPrice = (Utils.GetTest() == false) ? oracle.getLatestPrice(eventData.priceAggregator) : _settledPrice;
+        }
 
         if((settledPrice >= eventData.betPrice && eventData.betSide == Side.Higher) || 
            (settledPrice <  eventData.betPrice && eventData.betSide == Side.Lower)) {
@@ -238,11 +300,11 @@ contract OPEventFactory {
     function claim(address _eventId)
         external {
         // if event has not been settled yet, settle first.
-        if(!events[_eventId].eventSettled){
-            settle(_eventId, 0);
-        }
-
         EventData storage eventData = events[_eventId];
+        if(!events[_eventId].eventSettled){
+            settle(_eventId, 0, Type.Regular);
+        }
+        
         uint256 tokenHoldings = trustPredictToken.balanceOfAddress(_eventId, msg.sender, eventData.winner);
         // sender has winnings
         require(tokenHoldings > 0, "OPEventFactory: no holdings for sender in winning token.");
@@ -267,6 +329,7 @@ contract OPEventFactory {
         external {
         _minimumAmountReached(_eventId, false);
         _minimumTimeReached(_eventId, true);
+        _isVoid(_eventId, false);
 
         // send staking holdings back to the sending party if they have funds deposited.
         uint256 YesHoldings = trustPredictToken.balanceOfAddress(_eventId, msg.sender, 1);
@@ -288,6 +351,43 @@ contract OPEventFactory {
         }
 
         emit EventUpdate(_eventId);
+     }
+
+    // in the case of emergency, ie. a valid event concluded but not settled within the alloted time,
+    // allow users to withdraw their original stake.
+    function emergencyWithdraw(address _eventId) 
+        external {
+        _isConcluded(_eventId, true);
+        _isSettled(_eventId, false);
+        _isVoid(_eventId, true);
+
+        // send staking holdings back to the sending party if they have funds deposited.
+        uint256 YesHoldings = trustPredictToken.balanceOfAddress(_eventId, msg.sender, 1);
+        uint256 NoHoldings  = trustPredictToken.balanceOfAddress(_eventId, msg.sender, 0);
+        require(YesHoldings > 0 || NoHoldings > 0, "OPEventFactory: no holdings for sender in any token.");
+
+        if(YesHoldings > 0 && NoHoldings > 0){
+            trustPredictToken.burn(_eventId, msg.sender, YesHoldings, 1);
+            trustPredictToken.burn(_eventId, msg.sender,  NoHoldings, 0);
+            asset.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings.add(NoHoldings)));
+        }
+        else if(YesHoldings > 0){
+            trustPredictToken.burn(_eventId, msg.sender, YesHoldings, 1);
+            asset.safeTransfer(msg.sender, convertToStakingAmount(YesHoldings));
+        }
+        else {
+            trustPredictToken.burn(_eventId, msg.sender, NoHoldings, 0);
+            asset.safeTransfer(msg.sender, convertToStakingAmount(NoHoldings));
+        }
+
+        emit EventUpdate(_eventId);
+     }
+
+    // allow contract admin to update whitelist.
+    function updateWhitelist(address _address, bool isWhitelisted) 
+        external
+        onlyOwner {
+            whitelist[_address] = isWhitelisted;
      }
     // ************************************ End external functions ****************************************************
     
