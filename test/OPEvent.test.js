@@ -88,6 +88,47 @@ async function deployEvent(contracts, accounts, args, shouldFail, revertMessage)
 
 }
 
+async function deployPrelaunchEvent(contracts, account, args, shouldFail, revertMessage) {
+    // get deployer address nonce
+    nonce = await contracts['OPEventFactory'].nonce();
+    console.log('nonce: ' + nonce);
+
+    // contract address creation starts at nonce 1, so we emulate that for the Event ID.
+    OPEventID = utils.getNextContractAddress(contracts['OPEventFactory'].address, nonce++)
+
+    args[Constants.eventPeriod] = Math.floor(new Date().getTime() / 1000) + Constants[process.env.NETWORK].eventPeriodSeconds
+    //console.log('args: ' + JSON.stringify(args));
+    // deploy event
+    console.log("Event deployment..")
+    if(!(shouldFail)){
+        await contracts['OPEventFactory'].createPrelaunchEvent(
+            args[Constants.betPrice], 
+            args[Constants.eventPeriod], 
+            {from: account, gas: 10000000});
+
+            YesToken = await contracts['TrustPredict'].getToken(OPEventID, Constants.YesTokenSelection)
+            NoToken = await contracts['TrustPredict'].getToken(OPEventID, Constants.NoTokenSelection)
+            console.log('OPEventID: ' + OPEventID);
+            console.log('YesToken: ' + YesToken);
+            console.log('NoToken: ' + NoToken);
+
+            //eventData = await contracts['OPEventFactory'].events(OPEventID)
+            //console.log('EventData: ' + JSON.stringify(eventData));
+
+            return [OPEventID, YesToken, NoToken];
+    }else{
+        // assert it overflows with maxUint setting
+        await truffleAssert.reverts(
+            contracts['OPEventFactory'].createPrelaunchEvent(
+                args[Constants.betPrice], 
+                args[Constants.eventPeriod], 
+                {from: account, gas: 10000000}),
+                revertMessage
+        ); 
+    }
+
+}
+
 async function USDC_approve(contracts, accounts, start, end, amount){
     const range = (account,index) => index >= start && index <= end;
     await Promise.all(accounts.filter(range).map(async (account) => {
@@ -160,8 +201,9 @@ contract("TrustPredict", async (accounts) => {
             315360000,
             ethers.utils.parseUnits('10'),
             2,
-            10,
+            Constants['development'].depositPeriodSeconds,
             ethers.utils.parseUnits('100'),
+            Constants['development'].voidPeriodSeconds,
         );
 
         await contracts['TrustPredict'].setFactory(contracts['OPEventFactory'].address, true);
@@ -223,7 +265,7 @@ contract("TrustPredict", async (accounts) => {
 
         // assert failure to settle where minimum amount not yet reached
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].settle(OPEventID, settlementPrice),
+            contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0),
             "OPEventFactory: minimum amount not yet reached."
         );
 
@@ -236,7 +278,7 @@ contract("TrustPredict", async (accounts) => {
         
         // assert failure to settle where event not yet concluded.
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].settle(OPEventID, settlementPrice),
+            contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0),
             "OPEventFactory: Event not yet concluded."
         );
         
@@ -264,7 +306,7 @@ contract("TrustPredict", async (accounts) => {
         );
 
         // settle event
-        contracts['OPEventFactory'].settle(OPEventID, settlementPrice);
+        contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0);
         // validate price per winning token as 2/3 of a token for each No holder
         eventData = await contracts['OPEventFactory'].events(OPEventID);
         amountPerWinningTokenContract = eventData['amountPerWinningToken'];
@@ -335,7 +377,7 @@ contract("TrustPredict", async (accounts) => {
 
         // assert invalid settlement call: event settled
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].settle(OPEventID, settlementPrice, {from: accounts[0]}),
+            contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0, {from: accounts[0]}),
             "OPEventFactory: Event settled."
         );
         
@@ -387,7 +429,7 @@ contract("TrustPredict", async (accounts) => {
         // - attempt settlement, assert failure
         settlementPrice = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2).add(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
         await truffleAssert.reverts(
-            contracts['OPEventFactory'].settle(OPEventID, settlementPrice),
+            contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0),
             "OPEventFactory: minimum amount not yet reached."
         );
 
@@ -446,12 +488,64 @@ contract("TrustPredict", async (accounts) => {
 
         // valid event settlement
         settlementPrice = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2).sub(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
-        await contracts['OPEventFactory'].settle(OPEventID, settlementPrice);
+        await contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0);
 
     })
 
-    // test case D (misc functions)
+    // test case D:
+    // - add account 1 as creator account
+    // - valid event deployment from creator account
+    // - attempt Prelaunch event deployment from non-creator account
     it("Should pass for test case D", async () => {
+
+        // - valid contract deployment
+        await contracts['OPEventFactory'].updateWhitelist(accounts[1], true);
+
+        IDs = await deployPrelaunchEvent(contracts, accounts[1], defaultArgs, false, '');
+        OPEventID = IDs[0]
+        YesToken = IDs[1]
+        NoToken = IDs[2]
+
+        // - attempt revoke during deposit period
+        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: Event not yet started. Minting of new tokens is enabled.");
+        
+        // -  valid wagers to reach minimum amount
+        await USDC_approve(contracts, accounts, 2, 4, 5 * Constants.numTokens * Constants.AssetOptionRatio);
+        stake = {}
+        stake[accounts[2]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.NoTokenSelection};
+        stake[accounts[3]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.NoTokenSelection};
+        stake[accounts[4]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.YesTokenSelection };
+
+        for(i = 0; i < 5; i++){
+            await OPEventFactory_stake(contracts, accounts, stake, 2, 3); // we require this call to be semi-syncronous so first call 2 and 3, and then 4
+            await OPEventFactory_stake(contracts, accounts, stake, 4, 4);
+        }
+    
+        // - attempt revoke before deposit period ends
+        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
+
+        // wait for contract event to complete (waiting full amount, so includes some leeway for settle call)
+        console.log("waiting for event settlement..")
+        await new Promise(r => setTimeout(r, (Constants[process.env.NETWORK].eventPeriodSeconds) * 1000));
+        
+        // - attempt revoke after deposit period ends
+        await OPEventFactory_revoke(contracts, accounts, 1, 4, OPEventID, false, "OPEventFactory: minimum amount reached");
+
+        // valid event settlement
+        settlementPrice = ethers.utils.parseUnits(Constants.rawBetPrice, Constants.priceFeedDecimals - 2).sub(ethers.utils.parseUnits("2", Constants.priceFeedDecimals));
+        await contracts['OPEventFactory'].settle(OPEventID, settlementPrice, 0);
+
+        // Invalid deployment
+        await deployPrelaunchEvent(contracts, accounts[0], defaultArgs, true, "OPEventFactory: Prelaunch event creator is not whitelisted.");
+
+        // negate whitelist, invalid event deployment
+        await contracts['OPEventFactory'].updateWhitelist(accounts[1], false);
+        await deployPrelaunchEvent(contracts, accounts[0], defaultArgs, true, "OPEventFactory: Prelaunch event creator is not whitelisted.");
+
+    })
+
+    // test case E (misc functions)
+    it("Should pass for test case E", async () => {
 
         // - valid contract deployment
         IDs = await deployEvent(contracts, accounts, defaultArgs, false, '');
@@ -477,9 +571,9 @@ contract("TrustPredict", async (accounts) => {
         );
     })
 
-    // test case E
+    // test case F
     // deploy event with more than maximum prediction amount, verify failure
-    it("Should pass for test case E", async () => {
+    it("Should pass for test case F", async () => {
 
         // - valid contract deployment
         args = [...defaultArgs]
@@ -487,9 +581,9 @@ contract("TrustPredict", async (accounts) => {
         await deployEvent(contracts, accounts, args, true, 'OPEventFactory: requested token amount exceeds current valid prediction amount.');
     })
 
-    // test case F
+    // test case G
     // deploy event with more than maximum prediction amount, verify failure
-    it("Should pass for test case F", async () => {
+    it("Should pass for test case G", async () => {
 
         // deploy valid event, evenly distribute stakes.
         IDs = await deployEvent(contracts, accounts, defaultArgs, false, '');
@@ -523,12 +617,12 @@ contract("TrustPredict", async (accounts) => {
         );
     })
 
-    // test case G
+    // test case H
     // deploy valid event
     // mint 86% Yes side, 6% No side
     // attempt mint 6% Yes side
     // verify incorrect weight
-    it("Should pass for test case G", async () => {
+    it("Should pass for test case H", async () => {
 
         IDs = await deployEvent(contracts, accounts, defaultArgs, false, '');
         OPEventID = IDs[0]
@@ -576,5 +670,67 @@ contract("TrustPredict", async (accounts) => {
             ), "OPEventFactory: requested token amount exceeds current valid prediction amount."
         );
 
+    })
+
+    // test case I
+    // deploy valid event
+    // try to emergencyWithdraw before concluded, verify failure
+    // wait for void, 
+    // try to settle, verify failure
+    // valid emergencyWithdraw
+    it("Should pass for test case I", async () => {
+
+        IDs = await deployEvent(contracts, accounts, defaultArgs, false, '');
+        OPEventID = IDs[0]
+        YesToken = IDs[1]
+        NoToken = IDs[2]
+
+        // -  valid wagers to reach minimum amount
+        await USDC_approve(contracts, accounts, 2, 4, 5 * Constants.numTokens * Constants.AssetOptionRatio);
+        stake = {}
+        stake[accounts[2]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.NoTokenSelection};
+        stake[accounts[3]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.NoTokenSelection};
+        stake[accounts[4]] = {"eventId": OPEventID, "numTokensToMint": Constants.numTokens, "selection": Constants.YesTokenSelection };
+
+        for(i = 0; i < 5; i++){
+            await OPEventFactory_stake(contracts, accounts, stake, 2, 3);
+            await OPEventFactory_stake(contracts, accounts, stake, 4, 4);
+        }
+
+        // 
+        await truffleAssert.reverts(
+            contracts['OPEventFactory'].emergencyWithdraw(OPEventID,
+                {from: accounts[0] }
+            ), "OPEventFactory: Event not yet concluded."
+        );
+
+        // verify mint fails following deposit period complete
+        console.log("waiting for event to become void..")
+        let timeframe = Constants[process.env.NETWORK].depositPeriodSeconds + Constants[process.env.NETWORK].eventPeriodSeconds + Constants[process.env.NETWORK].voidPeriodSeconds;
+        await new Promise(r => setTimeout(r, timeframe * 1000));
+
+        //assert failure to settle following voided event
+        await truffleAssert.reverts(
+            contracts['OPEventFactory'].settle(OPEventID, 0, 0),
+            "OPEventFactory: Event voided."
+        );
+        
+        // valid emergencyWithdraw
+        await contracts['OPEventFactory'].emergencyWithdraw(OPEventID, {from: accounts[2]});
+
+        //try to emergencyWithdraw from an account with no tokens
+        await truffleAssert.reverts(
+            contracts['OPEventFactory'].emergencyWithdraw(OPEventID,
+                {from: accounts[5] }
+            ), "OPEventFactory: no holdings for sender in any token."
+        );
+
+        //try to stake following void
+        await truffleAssert.reverts(
+            contracts['OPEventFactory'].stake(OPEventID, 
+                                              ethers.utils.parseUnits((Constants.numTokens).toString()), 
+                                              Constants.NoTokenSelection),
+            "OPEventFactory: Event voided."
+        );
     })
 })

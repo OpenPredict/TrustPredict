@@ -3,8 +3,9 @@ const Utils             = artifacts.require("Utils");
 const Oracle            = artifacts.require("Oracle");
 const TrustPredictToken = artifacts.require('TrustPredictToken');
 const OPEventFactory    = artifacts.require("OPEventFactory");
-
 const ethers = require('ethers')
+const utils = require('../utils.js');
+let Constants = utils.Constants
 
 module.exports = async function (deployer, network, accounts) {
     console.log("network: " + network)
@@ -34,11 +35,12 @@ module.exports = async function (deployer, network, accounts) {
             315360000,
             ethers.utils.parseUnits('10'),
             2,
-            86400,
+            Constants[network].depositPeriodSeconds,
             ethers.utils.parseUnits('100'),
+            Constants[network].voidPeriodSeconds,
         );
         
-        console.log('setting factory in trsutpredict token..');
+        console.log('setting factory in TrustPredict token..');
         await contracts['TrustPredict'].setFactory(contracts['OPEventFactory'].address, true);
         
         console.log('setting price aggregators..');
