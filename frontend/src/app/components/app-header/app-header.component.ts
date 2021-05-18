@@ -105,4 +105,12 @@ export class AppHeaderComponent implements OnInit {
     this.router.navigateByUrl('/landing');
   }
 
+  navigateToLaunchpad() {
+    this.router.navigateByUrl('/launchpad');
+  }
+
+  navigateToAdmin() {
+    this.router.navigateByUrl('/admin');
+  }
+
 }

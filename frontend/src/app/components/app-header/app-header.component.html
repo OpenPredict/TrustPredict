@@ -12,8 +12,14 @@
         <ion-icon class="btn-info" src="/assets/img/information-circle-sharp.svg" name="information-circle-sharp">
         </ion-icon>
       </ion-button>
+      <div class="btnInner activeNetwork btn-full" *ngIf="loggedIn$ | async" (click)="navigateToLaunchpad()">
+        Launchpad
+      </div>
       <div class="btnInner activeNetwork" *ngIf="chainName && loggedIn$ | async">
         {{ chainName }}
+      </div>
+      <div class="btnInner activeNetwork btn-full" *ngIf="loggedIn$ | async" (click)="navigateToAdmin()">
+        Admin
       </div>
       <button class="btn btn-header btn-unlock" *ngIf="loggedIn$ | async" (click)="options()">
         <div class="btnInner">

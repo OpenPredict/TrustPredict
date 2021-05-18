@@ -63,6 +63,16 @@ const routes: Routes = [
     path: 'transfer-token/:eventId/:token/:position',
     canActivate : [WalletGuard],
     loadChildren: () => import('./pages/transfer-token/transfer-token.module').then( m => m.TransferTokenPageModule)
+  },
+  {
+    path: 'admin',
+    canActivate : [WalletGuard],
+    loadChildren: () => import('./pages/admin/admin.module').then( m => m.AdminPageModule)
+  },
+  {
+    path: 'launchpad',
+    canActivate : [WalletGuard],
+    loadChildren: () => import('./pages/launchpad/launchpad.module').then( m => m.LaunchpadPageModule)
   }
 ];
 
