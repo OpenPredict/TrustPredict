@@ -1,12 +1,16 @@
+body {
+    overflow-y: auto;
+}
 .main {
     padding: 0px 0 100px; 
 }
 .container {
     width: 800px;  
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -42%);
     position: absolute;
-    top: 45%;
+     top: 50%;
     left: 50%;
+    padding: 100px 0;
 }
 .wrapper {
     list-style-type: none;
@@ -22,11 +26,13 @@
     padding: .5em 1em .5em 0;
     flex: 1;
 }
-.form-row > input {
+.form-row > input,
+.form-row > textarea {
     flex: 2;
 }
 .form-row > input,
-.form-row > button {
+.form-row > button,
+.form-row > .select {
     padding: .5em;
 }
 .form-row > button {
@@ -45,4 +51,24 @@ label {
     font-weight: bold;
     font-size: 24px;
     color: #89F4ED;
+}
+hr {
+    background: #89F4ED;
+    margin: 15px 0px;
+}
+textarea.form__input {
+    background: #1D2C49;
+    padding: 7px;
+}
+select {
+    flex: 2;
+    background: #1D2C49;
+    padding: 7px;
+}
+.times,
+.check {
+    padding: .5em 1em .5em 0;
+}
+.event-info {
+    display: flex;
 }

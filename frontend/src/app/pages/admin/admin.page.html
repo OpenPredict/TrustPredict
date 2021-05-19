@@ -1,8 +1,9 @@
 <app-app-header #header [modal_header]="modalHeader" [modal_txt]="modalTxt" [showHelp]="false">
 </app-app-header>
+
 <div class="container">
 
-    <form>
+    <form >
         <div class="title">Admin Panel</div>
         <ul class="wrapper">
             <li class="form-row">
@@ -10,36 +11,60 @@
             </li>
             <li class="form-row">
                 <label for="name">Select Launchpad</label>
-                <input type="text" id="name">
+                <select class="form__input" name="launchpad" id="lauchpad">
+                    <option value="daomaker">Dao Maker</option>
+                    <option value="test1">Test 1</option>
+                </select>
             </li>
+            <hr>
             <li class="form-row">
                 <label for="townborn">Project Name</label>
-                <input type="text" id="townborn">
+                <input class="form__input" type="text"  />
             </li>
+            <hr>
             <li class="form-row">
                 <label for="email">Token Ticker</label>
-                <input type="email" id="email">
+                <input class="form__input" type="text" />
             </li>
+            <hr>
             <li class="form-row">
                 <label for="name">Description</label>
-                <input type="text" id="name">
+                <textarea class="form__input"  rows="4"
+                    placeholder="Insert text here..."></textarea>
             </li>
+            <hr>
             <li class="form-row">
                 <label for="townborn">Website link</label>
-                <input type="text" id="townborn">
+                <input class="form__input" type="text"  />
             </li>
+            <hr>
             <li class="form-row">
                 <label for="email">Telegram link</label>
-                <input type="email" id="email">
+                <input class="form__input" type="text" />
             </li>
+            <hr>
             <li class="form-row">
                 <label for="townborn">Twitter link</label>
-                <input type="text" id="townborn">
+                <input class="form__input" type="text"  />
             </li>
+            <hr>
             <li class="form-row">
                 <label for="email">Company Logo</label>
                 <input type="email" id="email">
             </li>
+            <li class="form-row">
+                <label for="add" class="add">Set up events</label>
+            </li>
+            <!-- <li class="form-row">
+                        <div></div>
+
+                        <div class="event-info">
+                            <div class="times">2x</div>
+                            <div class="check">X</div>
+                            <div><input class="form__input" type="text" formControlName="wager" /></div>
+                        </div>
+                    </li> -->
+            <hr>
             <li class="form-row">
                 <button type="submit">Submit</button>
             </li>
