@@ -30,6 +30,10 @@ In the browser:
 
 -- Connect to `Localhost 8545`
 
+## Kovan deployment
+`mv .env.example .env`
+- replace `PRIVATE_KEY` and `INFURA_KEY` with your keys.
+
 ## Run tests + Create Coverage Report
 
 ```
